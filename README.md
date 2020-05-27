@@ -8,6 +8,10 @@ This python package is devoted to efficient implementations of modern graph-base
 
 The main python file is graphlearning.py. The demo scripts semi-supervised_demo.py and clustering_demo.py give basic examples of how to use the package on synthetic data. The clustering script reproduces the figures above, which are the result of spectral clustering on toy examples. The file main.py implements a user-friendly interface to run experiments comparing different datasets and algorithms over randomization of labeled and unlabeled data.
 
+This package also reproduces experiments from our paper
+
+[Poisson Learning: Graph Based Semi-Supervised Learning at Very Low Label Rates.](https://arxiv.org/) Calder, Cook, Thorpe, Slepcev, 2020.
+
 ## Compiling C code extensions
 
 Some parts of the package rely on C code acceleration that needs to be compiled. To compile the C code run
