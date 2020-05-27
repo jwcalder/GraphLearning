@@ -6,13 +6,25 @@
 
 This python package is devoted to efficient implementations of modern graph-based learning algorithms for both semi-supervised learning and clustering. The package implements many popular datasets (currently MNIST, FashionMNIST, cifar-10, and WEBKB) in a way that makes it simple for users to test out new algorithms and rapidly compare against existing methods.
 
+Download the package locally with 
+
+```
+git clone https://github.com/jwcalder/GraphLearning
+```
+
 The main python file is graphlearning.py. The demo scripts semi-supervised_demo.py and clustering_demo.py give basic examples of how to use the package on synthetic data. The clustering script reproduces the figures above, which are the result of spectral clustering on toy examples. The file main.py implements a user-friendly interface to run experiments comparing different datasets and algorithms over randomization of labeled and unlabeled data.
 
 This package also reproduces experiments from our paper
 
 [Poisson Learning: Graph Based Semi-Supervised Learning at Very Low Label Rates.](https://arxiv.org/) Calder, Cook, Thorpe, Slepcev, 2020.
 
-## Compiling C code extensions
+## Python requirements and C code extensions
+
+To install required non-standard packages:
+
+```
+pip install -r requirements.txt
+```
 
 Some parts of the package rely on C code acceleration that needs to be compiled. To compile the C code run
 
