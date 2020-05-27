@@ -95,7 +95,7 @@ Then the script ComputeKNN.py can be used to perform the preprocessing steps of 
 python ComputeKNN.py -d MNIST -m scatter
 ```
 
-The deep learning-based feature transformations (e.g., variational autoencoder (vae) or autoencoding transformations (aet) weights) are not provided as built-in subroutines. Normally it only be necessary to run ComputeKNN.py when adding a new dataset or trying a new feature transformation on an existing dataset.
+The deep learning-based feature transformations (e.g., variational autoencoder (vae) or autoencoding transformations (aet) weights) are not provided as built-in subroutines. Normally it will only be necessary to run ComputeKNN.py when adding a new dataset or trying a new feature transformation on an existing dataset.
 
 
 ## Plotting and LaTeX table creation
