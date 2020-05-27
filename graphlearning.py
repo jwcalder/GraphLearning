@@ -1879,13 +1879,13 @@ def graph_clustering(W,k,true_labels=None,method="incres",speed=5,T=100,extra_di
         print('Warning: Graph is not connected!')
 
     #Clustering
-    if method=="INCRES":
+    if method=="incres":
         labels = incres_cluster(W,k,speed,T,true_labels)
-    elif method=="Spectral":
+    elif method=="spectral":
         labels = spectral_cluster(W,k,method="unnormalized",extra_dim=extra_dim)
-    elif method=="SpectralShiMalik":
+    elif method=="spectralshimalik":
         labels = spectral_cluster(W,k,method="ShiMalik",extra_dim=extra_dim)
-    elif method=="SpectralNgJordanWeiss":
+    elif method=="spectralngjordanweiss":
         labels = spectral_cluster(W,k,method="NgJordanWeiss",extra_dim=extra_dim)
     else:
         print("Invalid choice of clustering method.")
