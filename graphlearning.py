@@ -2044,8 +2044,6 @@ def accuracy_table_icml(dataset,ssl_method_list,legend_list,num_of_classes,teste
     accfile = "Results/"+dataset+"_"+ssl_method_list[0]+"_accuracy.csv"
     acc,stddev,N,quant,num_trials = accuracy_statistics(accfile)
     m = len(N)
-    print(acc)
-    print(N)
 
     #Determine best algorithm at each label rate
     best = [None]*m
