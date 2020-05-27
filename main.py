@@ -55,6 +55,8 @@ def print_info():
     print('Number of neighbors: %d'%k)
     print('Learning algorithm: '+algorithm)
     print('Laplacian normalization: '+norm)
+    if algorithm == 'plaplace':
+        print("p-Laplace value p=%.2f" % p)
     if algorithm in clustering_algorithms:
         print('Number of clusters: %d'%num_classes)
         if algorithm == 'INCRES':
@@ -188,7 +190,6 @@ if algorithm == 'MBO':
 #Output file
 outfile = "Results/"+dataset+label_perm+"_"+metric+"_k%d"%k
 if algorithm == 'plaplace':
-    print("p-Laplace value p=%.2f" % p)
     outfile = outfile+"_p%.1f"%p+algorithm[1:]+"_"+norm
 else:
     outfile = outfile+"_"+algorithm
