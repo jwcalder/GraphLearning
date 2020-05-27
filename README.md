@@ -1,7 +1,8 @@
 # Graph-based Clustering and Semi-Supervised Learning
 
-![Cluster moons](images/cluster_moons.png)
-![Cluster circles](images/cluster_circles.png)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+![Cluster moons](images/cluster_moons.png)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+![Cluster circles](images/cluster_circles.png)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 ![Cluster blobs](images/cluster_blobs.png)
 
 This python package is devoted to efficient implementations of modern graph-based learning algorithms for both semi-supervised learning and clustering. The package implements many popular datasets (currently MNIST, FashionMNIST, cifar-10, and WEBKB) in a way that makes it simple for users to test out new algorithms and rapidly compare against existing methods.
