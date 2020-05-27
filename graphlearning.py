@@ -95,7 +95,6 @@ def cluster_prior(W,cluster_labels):
 def scattering_transform(I,n,m,depth=2):
 
     from kymatio import Scattering2D
-    print('Computing scattering transform...')
 
     num_pts = I.shape[0]
     K = torch.from_numpy(I.reshape((num_pts,n,m))).float().contiguous() 
