@@ -1148,7 +1148,7 @@ def poissonMBO(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False):
         Ns = 80
     elif dataset=='WEBKB':
         mu = 1000
-        Ns = 10
+        Ns = 8
     elif dataset=='citeseer':
         mu = 1
         Ns = 500
@@ -1470,7 +1470,7 @@ def poisson(W,I,g,true_labels=None,use_cuda=False):
         Dbt = torch.from_numpy(Db).float().cuda()
 
         #start_time = time.time()
-        while np.max(np.absolute(v-vinf)) > 1/n:
+        while T < 50 or np.max(np.absolute(v-vinf)) > 1/n:
             ut = torch.sparse.addmm(Dbt,Pt,ut)
             v = RW*v
             T = T + 1
@@ -1482,7 +1482,7 @@ def poisson(W,I,g,true_labels=None,use_cuda=False):
     else: #Use CPU
 
         #start_time = time.time()
-        while np.max(np.absolute(v-vinf)) > 1/n:
+        while T < 50 or np.max(np.absolute(v-vinf)) > 1/n:
             u = Db + P*u
             v = RW*v
             T = T + 1
