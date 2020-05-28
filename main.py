@@ -37,6 +37,7 @@ def print_help():
     print('   -x (--extra_dim=): Number of extra dimensions in spectral clustering (default=0)')
     print('   -c (--cuda): Use GPU acceleration (when available)')
     print('   -T (--temperature): Temperature for volume constrained MBO (default=0)')
+    print('   -v (--volume_constraint=): Volume constraint for MBO (default=0.5)')
     print('   -j (--num_cores=): Number of cores to use in parallel processing (default=1)')
     print('   -r (--results): Turns off automatic saving of results to .csv file')
 
@@ -67,8 +68,10 @@ def print_info():
     else:
         print('Number of trial permutations: %d'%len(perm))
         print('Permutations file: LabelPermutations/'+dataset+label_perm+'_permutations.npz')
-        if T!=0:
+
+        if algorithm == 'volumembo' or algorithm == 'poissonvolumembo':
             print("Using temperature=%.3f"%T)
+            print("Volume constraints = [%.3f,%.3f]"%(volume_constraint,2-volume_constraint))
 
         #If output file selected
         if results:
@@ -95,10 +98,11 @@ num_classes = 10
 speed = 2
 num_iter = 1000
 extra_dim = 0
+volume_constraint = 0.5
 
 #Read command line arguments
 try:
-    opts, args = getopt.getopt(sys.argv[1:],"hd:m:k:a:p:n:N:s:i:x:t:cl:T:j:r",["dataset=","metric=","knn=","algorithm=","p=","normalization=","num_classes=","speed=","num_iter=","extra_dim=","num_trials=","cuda","label_perm=","temperature=","--num_cores=","results"])
+    opts, args = getopt.getopt(sys.argv[1:],"hd:m:k:a:p:n:v:N:s:i:x:t:cl:T:j:r",["dataset=","metric=","knn=","algorithm=","p=","normalization=","volume_constraint=","num_classes=","speed=","num_iter=","extra_dim=","num_trials=","cuda","label_perm=","temperature=","--num_cores=","results"])
 except getopt.GetoptError:
     print_help()
     sys.exit(2)
@@ -118,6 +122,8 @@ for opt, arg in opts:
         p = float(arg)
     elif opt in ("-n", "--normalization"):
         norm = arg
+    elif opt in ("-v", "--volume_constraint"):
+        volume_constraint = float(arg)
     elif opt in ("-N", "--num_classes"):
         num_classes = int(arg)
     elif opt in ("-s", "--speed"):
@@ -194,8 +200,9 @@ if algorithm == 'plaplace':
 else:
     outfile = outfile+"_"+algorithm
 
-if T != 0:
+if algorithm == 'volumembo' or algorithm == 'poissonvolumembo':
     outfile = outfile+"_T%.3f"%T
+    outfile = outfile+"_V%.3f"%volume_constraint
 
 outfile = outfile+"_accuracy.csv"
 
@@ -242,7 +249,7 @@ else:
         beta = gl.label_proportions(labels)
 
         #Graph-based semi-supervised learning
-        u = gl.graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,method=algorithm,epsilon=0.3,p=p,norm=norm,eigvals=eigvals,eigvecs=eigvecs,dataset=dataset,T=T,use_cuda=use_cuda)
+        u = gl.graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,method=algorithm,epsilon=0.3,p=p,norm=norm,eigvals=eigvals,eigvecs=eigvecs,dataset=dataset,T=T,use_cuda=use_cuda,volume_mult=volume_constraint)
 
         #Compute accuracy
         accuracy = gl.accuracy(u,labels,m)

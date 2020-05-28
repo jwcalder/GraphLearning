@@ -993,7 +993,7 @@ def ClosestVertexTemp(X,T=0.01):
     return X
 
 #Volume MBO, initialized with Poisson
-def poisson_volumeMBO(W,I,g,dataset,beta,T):
+def poisson_volumeMBO(W,I,g,dataset,beta,T,volume_mult):
 
     #Set diagonal entries to zero
     W = diag_multiply(W,0)
@@ -1025,7 +1025,7 @@ def poisson_volumeMBO(W,I,g,dataset,beta,T):
     g = np.ascontiguousarray(g,dtype=np.int32)
     ClassCounts = np.ascontiguousarray(ClassCounts,dtype=np.int32)
 
-    cgp.volume_mbo(u,WI,WJ,WV,I,g,ClassCounts,k,0.0,T)
+    cgp.volume_mbo(u,WI,WJ,WV,I,g,ClassCounts,k,0.0,T,volume_mult)
 
     #Set given labels and convert to vector format
     u[I] = g
@@ -1035,7 +1035,7 @@ def poisson_volumeMBO(W,I,g,dataset,beta,T):
 
 
 #Volume MBO (Jacobs, et al.)
-def volumeMBO(W,I,g,dataset,beta,T):
+def volumeMBO(W,I,g,dataset,beta,T,volume_mult):
 
     #Set diagonal entries to zero
     W = diag_multiply(W,0)
@@ -1063,7 +1063,7 @@ def volumeMBO(W,I,g,dataset,beta,T):
     g = np.ascontiguousarray(g,dtype=np.int32)
     ClassCounts = np.ascontiguousarray(ClassCounts,dtype=np.int32)
 
-    cgp.volume_mbo(u,WI,WJ,WV,I,g,ClassCounts,k,1.0,T)
+    cgp.volume_mbo(u,WI,WJ,WV,I,g,ClassCounts,k,1.0,T,volume_mult)
 
     #Set given labels and convert to vector format
     u[I] = g
@@ -1899,7 +1899,7 @@ def graph_clustering(W,k,true_labels=None,method="incres",speed=5,T=100,extra_di
 #g = values of labels
 #method = SSL method
 #   Options: laplace, poisson, poisson_nodeg, wnll, properlyweighted, plaplace, randomwalk
-def graph_ssl(W,I,g,D=None,beta=None,method="laplace",p=3,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,eigvals=None,eigvecs=None,dataset=None,T=0,use_cuda=False,return_vector=False):
+def graph_ssl(W,I,g,D=None,beta=None,method="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,eigvals=None,eigvecs=None,dataset=None,T=0,use_cuda=False,return_vector=False):
 
     one_shot_methods = ["mbo","poisson","poissonmbo","poissonl1","nearestneighbor","poissonmbobalanced","volumembo","poissonvolumembo","dynamiclabelpropagation","sparselabelpropagation","centeredkernel"]
 
@@ -1924,9 +1924,9 @@ def graph_ssl(W,I,g,D=None,beta=None,method="laplace",p=3,alpha=2,zeta=1e7,r=0.1
         if method=="mbo":
             u = multiclassMBO(W,I,g,eigvals,eigvecs,dataset,true_labels=true_labels)
         elif method=="volumembo":
-            u = volumeMBO(W,I,g,dataset,beta,T)
+            u = volumeMBO(W,I,g,dataset,beta,T,volume_mult)
         elif method=="poissonvolumembo":
-            u = poisson_volumeMBO(W,I,g,dataset,beta,T)
+            u = poisson_volumeMBO(W,I,g,dataset,beta,T,volume_mult)
         elif method=="poissonmbo":
             u = poissonMBO(W,I,g,dataset,beta*0,true_labels=true_labels,temp=T,use_cuda=use_cuda)
         elif method=="poissonmbobalanced":

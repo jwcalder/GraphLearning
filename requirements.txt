@@ -1,4 +1,3 @@
 torch
 kymatio
 annoy
-wget
