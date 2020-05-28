@@ -59,7 +59,7 @@ static PyObject* lp_iterate(PyObject* self, PyObject* args)
 static PyObject* volume_mbo(PyObject* self, PyObject* args)
 {
 
-   double progd, lcountd, Td;
+   double progd, lcountd, Td, volume_mult;
    PyArrayObject *u_array;
    PyArrayObject *I_array;
    PyArrayObject *J_array;
@@ -69,7 +69,7 @@ static PyObject* volume_mbo(PyObject* self, PyObject* args)
    PyArrayObject *classCounts_array;
 
    /*  parse arguments */
-   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!ddd", &PyArray_Type, &u_array, &PyArray_Type, &I_array, &PyArray_Type, &J_array, &PyArray_Type, &W_array,  &PyArray_Type, &ind_array, &PyArray_Type, &val_array, &PyArray_Type, &classCounts_array, &lcountd, &progd, &Td))
+   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!dddd", &PyArray_Type, &u_array, &PyArray_Type, &I_array, &PyArray_Type, &J_array, &PyArray_Type, &W_array,  &PyArray_Type, &ind_array, &PyArray_Type, &val_array, &PyArray_Type, &classCounts_array, &lcountd, &progd, &Td, &volume_mult))
       return NULL;
 
    npy_intp *dim =  PyArray_DIMS(u_array);
@@ -91,7 +91,7 @@ static PyObject* volume_mbo(PyObject* self, PyObject* args)
    float T = (float)Td;
 
    //Call main function from C code
-   mbo_main(u,I,J,W,ind,val,classCounts,prog,n,M,m,lcount,100,1e-6,T,1.2,0.8);
+   mbo_main(u,I,J,W,ind,val,classCounts,prog,n,M,m,lcount,100,1e-6,T,2-volume_mult,volume_mult);
 
    Py_INCREF(Py_None);
    return Py_None;
