@@ -40,6 +40,7 @@ def print_help():
     print('   -v (--volume_constraint=): Volume constraint for MBO (default=0.5)')
     print('   -j (--num_cores=): Number of cores to use in parallel processing (default=1)')
     print('   -r (--results): Turns off automatic saving of results to .csv file')
+    print('   -b (--verbose): Turns on verbose mode (displaying more intermediate steps).')
 
 def print_info():
 
@@ -99,10 +100,11 @@ speed = 2
 num_iter = 1000
 extra_dim = 0
 volume_constraint = 0.5
+verbose = False
 
 #Read command line arguments
 try:
-    opts, args = getopt.getopt(sys.argv[1:],"hd:m:k:a:p:n:v:N:s:i:x:t:cl:T:j:r",["dataset=","metric=","knn=","algorithm=","p=","normalization=","volume_constraint=","num_classes=","speed=","num_iter=","extra_dim=","num_trials=","cuda","label_perm=","temperature=","--num_cores=","results"])
+    opts, args = getopt.getopt(sys.argv[1:],"hd:m:k:a:p:n:v:N:s:i:x:t:cl:T:j:rb",["dataset=","metric=","knn=","algorithm=","p=","normalization=","volume_constraint=","num_classes=","speed=","num_iter=","extra_dim=","num_trials=","cuda","label_perm=","temperature=","--num_cores=","results","verbose"])
 except getopt.GetoptError:
     print_help()
     sys.exit(2)
@@ -144,6 +146,8 @@ for opt, arg in opts:
         num_cores = int(arg)
     elif opt in ("-r", "--results"):
         results = False
+    elif opt in ("-b", "--verbose"):
+        verbose = True
 
 #Load labels
 try:
@@ -209,6 +213,10 @@ outfile = outfile+"_accuracy.csv"
 #Print information 
 print_info()
 
+true_labels = None
+if verbose:
+    true_labels = labels
+
 #If clustering algorithm was chosen
 if algorithm in clustering_algorithms:
     #Clustering
@@ -249,7 +257,7 @@ else:
         beta = gl.label_proportions(labels)
 
         #Graph-based semi-supervised learning
-        u = gl.graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,method=algorithm,epsilon=0.3,p=p,norm=norm,eigvals=eigvals,eigvecs=eigvecs,dataset=dataset,T=T,use_cuda=use_cuda,volume_mult=volume_constraint)
+        u = gl.graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,method=algorithm,epsilon=0.3,p=p,norm=norm,eigvals=eigvals,eigvecs=eigvecs,dataset=dataset,T=T,use_cuda=use_cuda,volume_mult=volume_constraint,true_labels=true_labels)
 
         #Compute accuracy
         accuracy = gl.accuracy(u,labels,m)

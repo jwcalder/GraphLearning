@@ -1140,9 +1140,12 @@ def poissonMBO(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False):
     k = len(np.unique(g))
 
     W = diag_multiply(W,0)
-    if dataset=='MNIST' or dataset=='FashionMNIST':
+    if dataset=='MNIST':
         mu = 1
-        Ns = 50
+        Ns = 40
+    elif dataset=='FashionMNIST':
+        mu = 1
+        Ns = 80
     elif dataset=='WEBKB':
         mu = 1000
         Ns = 5
@@ -1194,7 +1197,7 @@ def poissonMBO(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False):
         Pt = torch_sparse(P).cuda()
         Dbt = torch.from_numpy(np.transpose(Db)).float().cuda()
 
-    T = 10 #Maximum number of iterations
+    T = 50 #Maximum number of iterations
     for i in range(T):
 
         if use_cuda:
