@@ -188,7 +188,7 @@ if t > 0:
 #Load eigenvector data if MBO selected
 eigvals = None
 eigvecs = None
-if algorithm == 'MBO':
+if algorithm == 'mbo':
     try:
         M = np.load("MBOdata/"+dataset+"_"+metric+"_k%d"%k+"_spectrum.npz")
         eigvals = M['eigenvalues']
