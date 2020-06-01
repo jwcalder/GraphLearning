@@ -1145,7 +1145,7 @@ def poissonMBO(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False):
         Ns = 40
     elif dataset=='FashionMNIST':
         mu = 1
-        Ns = 80
+        Ns = 40
     elif dataset=='WEBKB':
         mu = 1000
         Ns = 8
@@ -1154,7 +1154,7 @@ def poissonMBO(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False):
         Ns = 500
     elif dataset=='cifar':
         mu = 1
-        Ns = 30
+        Ns = 40
     else:
         print('Dataset not supported by MBO...')
         sys.exit(2)
