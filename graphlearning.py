@@ -178,6 +178,16 @@ def randomize_labels(L,m):
 def exp_weight(x):
     return np.exp(-x)
 
+#Pointwise max of non-negative sparse matrices A and B
+def sparse_max(A,B):
+
+    I = (A + B) > 0
+    IB = B>A
+    IA = I - IB
+
+    return A.multiply(IA) + B.multiply(IB)
+
+
 #Compute degrees of weight matrix W
 def degrees(W):
 
@@ -1878,7 +1888,6 @@ def graph_clustering(W,k,true_labels=None,method="incres",speed=5,T=100,extra_di
 
     return labels
 
-
 #Graph-based semi-supervised learning
 #W = sparse weight matrix describing graph
 #I = indices of labeled datapoints
@@ -1898,7 +1907,7 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
 
     #Symmetrize D,W, if not already symmetric
     W = (W + W.transpose())/2
-    D = (D + D.transpose())/2
+    D = sparse_max(D,D.transpose())
 
     #Check if connected
     num_comp,comp = csgraph.connected_components(W)
