@@ -1134,31 +1134,15 @@ def multiclassMBO(W,I,g,eigvals,eigvecs,dataset,true_labels=None):
 
 
 #Poisson MBO
-def poissonMBO(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False):
+def poissonMBO(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False,Ns=40,mu=1,T=50):
 
     n = W.shape[0]
     k = len(np.unique(g))
 
     W = diag_multiply(W,0)
-    if dataset=='MNIST':
-        mu = 1
-        Ns = 40
-    elif dataset=='FashionMNIST':
-        mu = 1
-        Ns = 40
-    elif dataset=='WEBKB':
+    if dataset=='WEBKB':
         mu = 1000
         Ns = 8
-    elif dataset=='citeseer':
-        mu = 1
-        Ns = 500
-    elif dataset=='cifar':
-        mu = 1
-        Ns = 40
-    else:
-        print('Dataset not supported by MBO...')
-        sys.exit(2)
-
     
     #Labels to vector and correct position
     J = np.zeros(n,)
@@ -1197,7 +1181,6 @@ def poissonMBO(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False):
         Pt = torch_sparse(P).cuda()
         Dbt = torch.from_numpy(np.transpose(Db)).float().cuda()
 
-    T = 50 #Maximum number of iterations
     for i in range(T):
 
         if use_cuda:
@@ -1902,7 +1885,7 @@ def graph_clustering(W,k,true_labels=None,method="incres",speed=5,T=100,extra_di
 #g = values of labels
 #method = SSL method
 #   Options: laplace, poisson, poisson_nodeg, wnll, properlyweighted, plaplace, randomwalk
-def graph_ssl(W,I,g,D=None,beta=None,method="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,eigvals=None,eigvecs=None,dataset=None,T=0,use_cuda=False,return_vector=False):
+def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,eigvals=None,eigvecs=None,dataset=None,T=0,use_cuda=False,return_vector=False):
 
     one_shot_methods = ["mbo","poisson","poissonmbo","poissonl1","nearestneighbor","poissonmbobalanced","volumembo","poissonvolumembo","dynamiclabelpropagation","sparselabelpropagation","centeredkernel"]
 
@@ -1931,9 +1914,9 @@ def graph_ssl(W,I,g,D=None,beta=None,method="laplace",p=3,volume_mult=0.5,alpha=
         elif method=="poissonvolumembo":
             u = poisson_volumeMBO(W,I,g,dataset,beta,T,volume_mult)
         elif method=="poissonmbo":
-            u = poissonMBO(W,I,g,dataset,beta*0,true_labels=true_labels,temp=T,use_cuda=use_cuda)
+            u = poissonMBO(W,I,g,dataset,beta*0,true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu,T=numT)
         elif method=="poissonmbobalanced":
-            u = poissonMBO(W,I,g,dataset,beta,true_labels=true_labels,temp=T,use_cuda=use_cuda)
+            u = poissonMBO(W,I,g,dataset,beta,true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu,T=numT)
         elif method=="poissonl1":
             u = poissonL1(W,I,g,dataset,true_labels=true_labels)
         elif method=="poisson":
