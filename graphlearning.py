@@ -1896,8 +1896,9 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
     if beta is None:
         beta = np.ones((len(np.unique(g)),))
 
-    #Symmetrize W, if not already symmetric
+    #Symmetrize D,W, if not already symmetric
     W = (W + W.transpose())/2
+    D = (D + D.transpose())/2
 
     #Check if connected
     num_comp,comp = csgraph.connected_components(W)
