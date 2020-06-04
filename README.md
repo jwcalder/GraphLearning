@@ -17,7 +17,7 @@ The main python file is graphlearning.py. The demo scripts semi-supervised_demo.
 
 This package also reproduces experiments from our paper
 
-[Poisson Learning: Graph Based Semi-Supervised Learning at Very Low Label Rates.](https://arxiv.org/) Calder, Cook, Thorpe, Slepcev, 2020.
+Calder, Cook, Thorpe, Slepcev. [Poisson Learning: Graph Based Semi-Supervised Learning at Very Low Label Rates.](https://arxiv.org/) To appear in International Conference on Machine Learning (ICML) 2020. 
 
 ## Python requirements and C code extensions
 
