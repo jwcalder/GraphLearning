@@ -87,7 +87,7 @@ dataset = 'MNIST'
 metric = 'L2'
 algorithm = 'laplace'
 k = 10
-t = -1
+t = '-1'
 label_perm = ''
 p = 3
 norm = "none"
@@ -135,7 +135,7 @@ for opt, arg in opts:
     elif opt in ("-x", "--extra_dim"):
         extra_dim = int(arg)
     elif opt in ("-t", "--num_trials"):
-        t = int(arg)
+        t = arg
     elif opt in ("-c", "--cuda"):
         use_cuda = True
     elif opt in ("-l", "--label_perm"):
@@ -182,8 +182,12 @@ except:
     sys.exit(2)
 
 #Restrict trials
-if t > 0:
-    perm = perm[0:t]
+t = [int(e)  for e in t.split(',')]
+if t[0] > -1:
+    if len(t) == 1:
+        perm = perm[0:t[0]]
+    else:
+        perm = perm[(t[0]-1):t[1]]
 
 #Load eigenvector data if MBO selected
 eigvals = None
