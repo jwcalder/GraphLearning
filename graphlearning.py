@@ -2015,7 +2015,7 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
         elif method=="poissonvolumembo":
             u = poisson_volumeMBO(W,I,g,dataset,beta,T,volume_mult)
         elif method=="poissonmbo":
-            u = poissonMBO(W,I,g,dataset,beta*0,true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu,T=numT)
+            u = poissonMBO(W,I,g,dataset,np.ones_like(beta),true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu,T=numT)
         elif method=="poissonmbobalanced":
             u = poissonMBO(W,I,g,dataset,beta,true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu,T=numT)
         elif method=="poissonl1":
