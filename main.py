@@ -101,10 +101,11 @@ num_iter = 1000
 extra_dim = 0
 volume_constraint = 0.5
 verbose = False
+poisson_training_balance = True
 
 #Read command line arguments
 try:
-    opts, args = getopt.getopt(sys.argv[1:],"hd:m:k:a:p:n:v:N:s:i:x:t:cl:T:j:rb",["dataset=","metric=","knn=","algorithm=","p=","normalization=","volume_constraint=","num_classes=","speed=","num_iter=","extra_dim=","num_trials=","cuda","label_perm=","temperature=","--num_cores=","results","verbose"])
+    opts, args = getopt.getopt(sys.argv[1:],"hd:m:k:a:p:n:v:N:s:i:x:t:cl:T:j:rbo",["dataset=","metric=","knn=","algorithm=","p=","normalization=","volume_constraint=","num_classes=","speed=","num_iter=","extra_dim=","num_trials=","cuda","label_perm=","temperature=","--num_cores=","results","verbose","poisson_training_balance"])
 except getopt.GetoptError:
     print_help()
     sys.exit(2)
@@ -148,6 +149,8 @@ for opt, arg in opts:
         results = False
     elif opt in ("-b", "--verbose"):
         verbose = True
+    elif opt in ("-o", "--poisson_training_balance"):
+        poisson_training_balance = False
 
 #Load labels
 try:
@@ -212,6 +215,9 @@ if algorithm == 'volumembo' or algorithm == 'poissonvolumembo':
     outfile = outfile+"_T%.3f"%T
     outfile = outfile+"_V%.3f"%volume_constraint
 
+if algorithm == 'poisson' and poisson_training_balance == False:
+    outfile = outfile+"_NoBal"
+
 outfile = outfile+"_accuracy.csv"
 
 #Print information 
@@ -261,7 +267,7 @@ else:
         beta = gl.label_proportions(labels)
 
         #Graph-based semi-supervised learning
-        u = gl.graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,method=algorithm,epsilon=0.3,p=p,norm=norm,eigvals=eigvals,eigvecs=eigvecs,dataset=dataset,T=T,use_cuda=use_cuda,volume_mult=volume_constraint,true_labels=true_labels)
+        u = gl.graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,method=algorithm,epsilon=0.3,p=p,norm=norm,eigvals=eigvals,eigvecs=eigvecs,dataset=dataset,T=T,use_cuda=use_cuda,volume_mult=volume_constraint,true_labels=true_labels,poisson_training_balance=poisson_training_balance)
 
         #Compute accuracy
         accuracy = gl.accuracy(u,labels,m)

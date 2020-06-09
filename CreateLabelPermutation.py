@@ -47,7 +47,7 @@ for opt, arg in opts:
         t = int(arg)
     elif opt in ("-s", "--multiplier"):
         multiplier = arg
-        multiplier = [int(e)  for e in multiplier.split(',')]
+        multiplier = [float(e)  for e in multiplier.split(',')]
     elif opt in ("-n", "--name"):
         name = arg
     elif opt in ("-o", "--overwrite"):

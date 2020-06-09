@@ -160,7 +160,8 @@ def create_label_permutations(labels,T,m,multiplier=None):
                 if multiplier is None:
                     L = L + random.choice(K,size=i,replace=False).tolist()
                 else:
-                    L = L + random.choice(K,size=i*multiplier[ind],replace=False).tolist()
+                    sze = int(np.round(i*multiplier[ind]))
+                    L = L + random.choice(K,size=sze,replace=False).tolist()
                 ind = ind + 1
             L = np.array(L)
             perm.append(L)
@@ -1147,7 +1148,12 @@ def multiclassMBO(W,I,g,eigvals,eigvecs,dataset,true_labels=None):
 def poissonMBO(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False,Ns=40,mu=1,T=50):
 
     n = W.shape[0]
-    k = len(np.unique(g))
+    unique_labels = np.unique(g)
+    k = len(unique_labels)
+
+    num_labels = np.zeros((k,))
+    for i in range(k):
+        num_labels[i] = np.sum(g==unique_labels[i])
 
     W = diag_multiply(W,0)
     if dataset=='WEBKB':
@@ -1176,7 +1182,7 @@ def poissonMBO(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False,Ns=40,m
     #    u[j,:] = pcg_solve(L,b[j,:])
     #u = mu*u
     #u = np.transpose(np.transpose(u) - np.mean(u,axis=1))
-    u,mix_time = poisson(W,I,g,use_cuda=use_cuda)
+    u,mix_time = poisson(W,I,g,use_cuda=use_cuda,beta=beta)
     #Ns = int(mix_time/4)
     u = ProjectToSimplex(u)
     u = ClosestVertex(u)
@@ -1210,6 +1216,7 @@ def poissonMBO(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False,Ns=40,m
                 u = u*P + Db
 
         #Projection step
+        #u = np.diag(beta/num_labels)@u
         u = ProjectToSimplex(u)
         u = ClosestVertex(u)
         u = np.transpose(np.transpose(u) - np.mean(u,axis=1) + beta)
@@ -1404,24 +1411,108 @@ def CenteredKernel(W,I,g,true_labels=None):
     return np.transpose(u)
 
 
+#Poisson learning
+#def poisson_old(W,I,g,true_labels=None,use_cuda=False,training_balance=True):
+#
+#    n = W.shape[0]
+#    unique_labels = np.unique(g)
+#    k = len(unique_labels)
+#    
+#    num_labels = np.zeros((k,))
+#    for i in range(k):
+#        num_labels[i] = np.sum(g==unique_labels[i])
+#
+#    if training_balance:
+#        multiplier = 1/num_labels
+#    else:
+#        multiplier = np.ones((k,))
+#
+#    W = diag_multiply(W,0)
+#    
+#    #Labels to vector and correct position
+#    J = np.zeros(n,)
+#    K = np.ones(n,)*g[0]
+#    J[I] = 1
+#    K[I] = g
+#    Kg,_ = LabelsToVec(K)
+#    Kg = Kg*J
+#    Kg = np.transpose(multiplier*np.transpose(Kg))
+#    
+#    #Poisson source term
+#    #c = np.sum(Kg,axis=1)/len(I)
+#    c = np.sum(Kg,axis=1)/k
+#    b = np.transpose(Kg)
+#    #b[I,:] = b[I,:]-c/num_labels
+#    j=0
+#    for i in I:
+#        b[i,:] = b[i,] - c/num_labels[g[j]]
+#        j = j+1
+#
+#    #Setup matrices
+#    L = graph_laplacian(W,norm='none')
+#    D = degree_matrix(W + 1e-10*sparse.identity(n),p=-1)
+#    P = sparse.identity(n) - D*L
+#    Db = D*b
+#
+#    v = np.max(Kg,axis=0)
+#    v = v/np.sum(v)
+#    vinf = degrees(W)/np.sum(degrees(W))
+#    RW = W*D
+#    u = np.zeros((n,k))
+#
+#    #Number of iterations
+#    #T = int(n*2/700) #OLD number iterations
+#    T = 0
+#    if use_cuda:
+#        
+#        Pt = torch_sparse(P).cuda()
+#        ut = torch.from_numpy(u).float().cuda()
+#        Dbt = torch.from_numpy(Db).float().cuda()
+#
+#        #start_time = time.time()
+#        while T < 50 or np.max(np.absolute(v-vinf)) > 1/n:
+#            ut = torch.sparse.addmm(Dbt,Pt,ut)
+#            v = RW*v
+#            T = T + 1
+#        #print("--- %s seconds ---" % (time.time() - start_time))
+#
+#        #Transfer to CPU and convert to numpy
+#        u = ut.cpu().numpy()
+#
+#    else: #Use CPU
+#
+#        #start_time = time.time()
+#        while T < 50 or np.max(np.absolute(v-vinf)) > 1/n:
+#            u = Db + P*u
+#            v = RW*v
+#            T = T + 1
+#
+#            #Compute accuracy if all labels are provided
+#            if true_labels is not None:
+#                max_locations = np.argmax(u,axis=1)
+#                labels = (np.unique(g))[max_locations]
+#                labels[I] = g
+#                acc = accuracy(labels,true_labels,len(I))
+#                print('%d,Accuracy = %.2f'%(T,acc))
+#        
+#        #print("--- %s seconds ---" % (time.time() - start_time))
+#
+#    u = u@np.diag(1/num_labels)
+#    return np.transpose(u),T
+
 
 
 
 #Poisson learning
-def poisson(W,I,g,true_labels=None,use_cuda=False):
+def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=None):
 
     n = W.shape[0]
     unique_labels = np.unique(g)
     k = len(unique_labels)
     
-    num_labels = np.zeros((k,))
-    for i in range(k):
-        num_labels[i] = np.sum(g==unique_labels[i])
-
-    multiplier = 1/num_labels
-
+    #Zero out diagonal for faster convergence
     W = diag_multiply(W,0)
-    
+
     #Labels to vector and correct position
     J = np.zeros(n,)
     K = np.ones(n,)*g[0]
@@ -1429,17 +1520,11 @@ def poisson(W,I,g,true_labels=None,use_cuda=False):
     K[I] = g
     Kg,_ = LabelsToVec(K)
     Kg = Kg*J
-    Kg = np.transpose(multiplier*np.transpose(Kg))
     
     #Poisson source term
-    #c = np.sum(Kg,axis=1)/len(I)
-    c = np.sum(Kg,axis=1)/k
+    c = np.sum(Kg,axis=1)/len(I)
     b = np.transpose(Kg)
-    #b[I,:] = b[I,:]-c/num_labels
-    j=0
-    for i in I:
-        b[i,:] = b[i,] - c/num_labels[g[j]]
-        j = j+1
+    b[I,:] = b[I,:]-c
 
     #Setup matrices
     L = graph_laplacian(W,norm='none')
@@ -1454,7 +1539,6 @@ def poisson(W,I,g,true_labels=None,use_cuda=False):
     u = np.zeros((n,k))
 
     #Number of iterations
-    #T = int(n*2/700) #OLD number iterations
     T = 0
     if use_cuda:
         
@@ -1489,6 +1573,17 @@ def poisson(W,I,g,true_labels=None,use_cuda=False):
                 print('%d,Accuracy = %.2f'%(T,acc))
         
         #print("--- %s seconds ---" % (time.time() - start_time))
+
+    #Balancing for training data/class size discrepancy
+    num_labels = np.zeros((k,))
+    for i in range(k):
+        num_labels[i] = np.sum(g==unique_labels[i])
+
+    if training_balance:
+        if beta is None:
+            u = u@np.diag(1/num_labels)
+        else:
+            u = u@np.diag(beta/num_labels)
 
     return np.transpose(u),T
 
@@ -1894,9 +1989,9 @@ def graph_clustering(W,k,true_labels=None,method="incres",speed=5,T=100,extra_di
 #g = values of labels
 #method = SSL method
 #   Options: laplace, poisson, poisson_nodeg, wnll, properlyweighted, plaplace, randomwalk
-def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,eigvals=None,eigvecs=None,dataset=None,T=0,use_cuda=False,return_vector=False):
+def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,eigvals=None,eigvecs=None,dataset=None,T=0,use_cuda=False,return_vector=False,poisson_training_balance=True):
 
-    one_shot_methods = ["mbo","poisson","poissonmbo","poissonl1","nearestneighbor","poissonmbobalanced","volumembo","poissonvolumembo","dynamiclabelpropagation","sparselabelpropagation","centeredkernel"]
+    one_shot_methods = ["mbo","poisson","poissonbalanced","poissonmbo","poissonl1","nearestneighbor","poissonmbobalanced","volumembo","poissonvolumembo","dynamiclabelpropagation","sparselabelpropagation","centeredkernel"]
 
     n = W.shape[0]
 
@@ -1930,7 +2025,9 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
         elif method=="poissonl1":
             u = poissonL1(W,I,g,dataset,true_labels=true_labels)
         elif method=="poisson":
-            u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda)
+            u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance)
+        elif method=="poissonbalanced":
+            u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance,beta = beta)
         elif method=="dynamiclabelpropagation":
             u = DynamicLabelPropagation(W,I,g,true_labels=true_labels)
         elif method=="sparselabelpropagation":
@@ -2071,7 +2168,9 @@ def accuracy_table_icml(dataset,ssl_method_list,legend_list,num_of_classes,teste
 
     f.write("\n\n\n")
     f.write("\\begin{table*}[t]\n")
+    f.write("\\vspace{-3mm}\n")
     f.write("\\caption{"+title+": Average accuracy scores over %d trials with standard deviation in brackets.}\n"%num_trials)
+    f.write("\\vspace{-3mm}\n")
     f.write("\\label{tab:"+title+"}\n")
     f.write("\\vskip 0.15in\n")
     f.write("\\begin{center}\n")
