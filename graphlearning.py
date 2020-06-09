@@ -1575,15 +1575,11 @@ def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=Non
         #print("--- %s seconds ---" % (time.time() - start_time))
 
     #Balancing for training data/class size discrepancy
-    num_labels = np.zeros((k,))
-    for i in range(k):
-        num_labels[i] = np.sum(g==unique_labels[i])
-
     if training_balance:
         if beta is None:
-            u = u@np.diag(1/num_labels)
+            u = u@np.diag(1/c)
         else:
-            u = u@np.diag(beta/num_labels)
+            u = u@np.diag(beta/c)
 
     return np.transpose(u),T
 
