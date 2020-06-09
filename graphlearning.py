@@ -1504,7 +1504,7 @@ def CenteredKernel(W,I,g,true_labels=None):
 
 
 #Poisson learning
-def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=None):
+def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=None,min_iter=50):
 
     n = W.shape[0]
     unique_labels = np.unique(g)
@@ -1547,7 +1547,7 @@ def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=Non
         Dbt = torch.from_numpy(Db).float().cuda()
 
         #start_time = time.time()
-        while T < 50 or np.max(np.absolute(v-vinf)) > 1/n:
+        while T < min_iter or np.max(np.absolute(v-vinf)) > 1/n:
             ut = torch.sparse.addmm(Dbt,Pt,ut)
             v = RW*v
             T = T + 1
@@ -1559,7 +1559,7 @@ def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=Non
     else: #Use CPU
 
         #start_time = time.time()
-        while T < 50 or np.max(np.absolute(v-vinf)) > 1/n:
+        while T < min_iter or np.max(np.absolute(v-vinf)) > 1/n:
             u = Db + P*u
             v = RW*v
             T = T + 1
