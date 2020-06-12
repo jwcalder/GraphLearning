@@ -1419,15 +1419,139 @@ def vec_acc(u,I,g,true_labels):
     acc = accuracy(labels,true_labels,len(I))
 
     return acc
+#def volume_label_projection(u,beta,s=None):
+#
+#    k = u.shape[0]
+#    n = u.shape[1]
+#    if s is None:
+#        s = np.ones((k,))
+#    for i in range(100):
+#        grad = beta - np.sum(ClosestVertex(np.diag(s)@u),axis=1)/n
+#        err0 = np.max(np.absolute(grad))
+#
+#        dt = 1
+#        snew = s + dt*grad
+#        gradnew = beta - np.sum(ClosestVertex(np.diag(snew)@u),axis=1)/n
+#        err = err0
+#        newerr = np.max(np.absolute(gradnew))
+#        while newerr < err:
+#            print(dt)
+#            dt = 2*dt
+#            snew = s + dt*grad
+#            gradnew = beta - np.sum(ClosestVertex(np.diag(snew)@u),axis=1)/n
+#            err = newerr
+#            newerr = np.max(np.absolute(gradnew))
+#        dt = dt/2
+#        snew = s + dt*grad
+#        gradnew = beta - np.sum(ClosestVertex(np.diag(snew)@u),axis=1)/n
+#        newerr = np.max(np.absolute(gradnew))
+#        while newerr >= err:
+#            print(dt)
+#            dt = dt/2
+#            snew = s + dt*grad
+#            gradnew = beta - np.sum(ClosestVertex(np.diag(snew)@u),axis=1)/n
+#            newerr = np.max(np.absolute(gradnew))
+#        if dt < 1:
+#            dt = dt/2
+#       
+#        s = s + dt*grad 
+#
+#        print(err)
+#        if err == 0:
+#            print(i)
+#            break
+#
+#        #s = s + dt*(beta - beta_u)
+#    
+#    return ClosestVertex(np.diag(s)@u),s
 
-#Compute sizes of each class
-def label_proportions_k(labels,k):
-    n = len(labels)
-    beta = np.zeros((k,))
-    for i in range(k):
-        beta[i] = np.sum(labels==i)/n
+def volume_label_projection(u,beta,s=None):
 
-    return beta
+    k = u.shape[0]
+    n = u.shape[1]
+    if s is None:
+        s = np.ones((k,))
+    dt = 10
+    for i in range(100):
+        grad = beta - np.sum(ClosestVertex(np.diag(s)@u),axis=1)/n
+        err = np.max(np.absolute(grad))
+
+        if err == 0:
+            break
+        s = s + dt*grad
+    
+    return ClosestVertex(np.diag(s)@u),s
+
+#Poisson MBO with volume constraints
+def poissonMBO_volume(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False,Ns=40,mu=1,T=20):
+
+    n = W.shape[0]
+    k = len(np.unique(g))
+
+    W = diag_multiply(W,0)
+    if dataset=='WEBKB':
+        mu = 1000
+        Ns = 8
+    
+    #Labels to vector and correct position
+    J = np.zeros(n,)
+    K = np.ones(n,)*g[0]
+    J[I] = 1
+    K[I] = g
+    Kg,_ = LabelsToVec(K)
+    Kg = Kg*J
+    
+    #Poisson source term
+    c = np.sum(Kg,axis=1)/len(I)
+    b = np.transpose(Kg)
+    b[I,:] = b[I,:]-c
+    b = np.transpose(b)
+
+    L = graph_laplacian(W,norm='none')
+
+    #Initialize u via Poisson learning
+    u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda, beta=beta)
+
+    #Time step for stability
+    dt = 1/np.max(degrees(W))
+
+    P = sparse.identity(n) - dt*L
+    Db = mu*dt*b
+
+    if use_cuda:
+        Pt = torch_sparse(P).cuda()
+        Dbt = torch.from_numpy(np.transpose(Db)).float().cuda()
+
+    s = np.ones((k,))
+    for i in range(T):
+
+        #Projection step
+        u,s = volume_label_projection(u,beta,s=s)
+
+        if use_cuda:
+
+            #Put on GPU and run heat equation
+            ut = torch.from_numpy(np.transpose(u)).float().cuda()
+            for j in range(Ns):
+                ut = torch.sparse.addmm(Dbt,Pt,ut)
+
+            #Put back on CPU
+            u = np.transpose(ut.cpu().numpy())
+         
+        else: #Use CPU 
+            for j in range(Ns):
+                u = u*P + Db
+
+        #Compute accuracy if all labels are provided
+        if true_labels is not None:
+            max_locations = np.argmax(u,axis=0)
+            labels = (np.unique(g))[max_locations]
+            labels[I] = g
+            acc = accuracy(labels,true_labels,len(I))
+            print('Accuracy = %.2f'%acc)
+    
+    _,s = volume_label_projection(u,beta,s=s)
+    return np.diag(s)@u
 
 
 #Poisson Volume
@@ -1437,17 +1561,8 @@ def PoissonVolume(W,I,g,true_labels=None,use_cuda=False,training_balance=True,be
     #Run Poisson learning
     u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda, training_balance=training_balance,beta = beta)
 
-    k = u.shape[0]
-    s = np.ones((k,))
-    dt = 1
-    for i in range(1000):
-        beta_u = label_proportions_k(np.argmax(np.diag(s)@u,axis=0),k)
-
-        s = s + dt*(beta - beta_u)
-        if true_labels is not None: 
-            print('Accuracy = %.2f'%vec_acc(np.diag(s)@u,I,g,true_labels))
-
-
+    #Volume constraints
+    _,s = volume_label_projection(u,beta)
     return np.diag(s)@u
 
 #Poisson learning
@@ -1934,7 +2049,7 @@ def graph_clustering(W,k,true_labels=None,method="incres",speed=5,T=100,extra_di
 #   Options: laplace, poisson, poisson_nodeg, wnll, properlyweighted, plaplace, randomwalk
 def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,eigvals=None,eigvecs=None,dataset=None,T=0,use_cuda=False,return_vector=False,poisson_training_balance=True):
 
-    one_shot_methods = ["mbo","poisson","poissonbalanced","poissonvolume","poissonmbo","poissonl1","nearestneighbor","poissonmbobalanced","volumembo","poissonvolumembo","dynamiclabelpropagation","sparselabelpropagation","centeredkernel"]
+    one_shot_methods = ["mbo","poisson","poissonbalanced","poissonvolume","poissonmbo_volume","poissonmbo","poissonl1","nearestneighbor","poissonmbobalanced","volumembo","poissonvolumembo","dynamiclabelpropagation","sparselabelpropagation","centeredkernel"]
 
     n = W.shape[0]
 
@@ -1973,6 +2088,8 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
             u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance,beta = beta)
         elif method=="poissonvolume":
             u = PoissonVolume(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance,beta = beta)
+        elif method=="poissonmbo_volume":
+            u = poissonMBO_volume(W,I,g,dataset,beta,true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu,T=numT)
         elif method=="dynamiclabelpropagation":
             u = DynamicLabelPropagation(W,I,g,true_labels=true_labels)
         elif method=="sparselabelpropagation":
