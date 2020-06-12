@@ -1411,97 +1411,44 @@ def CenteredKernel(W,I,g,true_labels=None):
     return np.transpose(u)
 
 
-#Poisson learning
-#def poisson_old(W,I,g,true_labels=None,use_cuda=False,training_balance=True):
-#
-#    n = W.shape[0]
-#    unique_labels = np.unique(g)
-#    k = len(unique_labels)
-#    
-#    num_labels = np.zeros((k,))
-#    for i in range(k):
-#        num_labels[i] = np.sum(g==unique_labels[i])
-#
-#    if training_balance:
-#        multiplier = 1/num_labels
-#    else:
-#        multiplier = np.ones((k,))
-#
-#    W = diag_multiply(W,0)
-#    
-#    #Labels to vector and correct position
-#    J = np.zeros(n,)
-#    K = np.ones(n,)*g[0]
-#    J[I] = 1
-#    K[I] = g
-#    Kg,_ = LabelsToVec(K)
-#    Kg = Kg*J
-#    Kg = np.transpose(multiplier*np.transpose(Kg))
-#    
-#    #Poisson source term
-#    #c = np.sum(Kg,axis=1)/len(I)
-#    c = np.sum(Kg,axis=1)/k
-#    b = np.transpose(Kg)
-#    #b[I,:] = b[I,:]-c/num_labels
-#    j=0
-#    for i in I:
-#        b[i,:] = b[i,] - c/num_labels[g[j]]
-#        j = j+1
-#
-#    #Setup matrices
-#    L = graph_laplacian(W,norm='none')
-#    D = degree_matrix(W + 1e-10*sparse.identity(n),p=-1)
-#    P = sparse.identity(n) - D*L
-#    Db = D*b
-#
-#    v = np.max(Kg,axis=0)
-#    v = v/np.sum(v)
-#    vinf = degrees(W)/np.sum(degrees(W))
-#    RW = W*D
-#    u = np.zeros((n,k))
-#
-#    #Number of iterations
-#    #T = int(n*2/700) #OLD number iterations
-#    T = 0
-#    if use_cuda:
-#        
-#        Pt = torch_sparse(P).cuda()
-#        ut = torch.from_numpy(u).float().cuda()
-#        Dbt = torch.from_numpy(Db).float().cuda()
-#
-#        #start_time = time.time()
-#        while T < 50 or np.max(np.absolute(v-vinf)) > 1/n:
-#            ut = torch.sparse.addmm(Dbt,Pt,ut)
-#            v = RW*v
-#            T = T + 1
-#        #print("--- %s seconds ---" % (time.time() - start_time))
-#
-#        #Transfer to CPU and convert to numpy
-#        u = ut.cpu().numpy()
-#
-#    else: #Use CPU
-#
-#        #start_time = time.time()
-#        while T < 50 or np.max(np.absolute(v-vinf)) > 1/n:
-#            u = Db + P*u
-#            v = RW*v
-#            T = T + 1
-#
-#            #Compute accuracy if all labels are provided
-#            if true_labels is not None:
-#                max_locations = np.argmax(u,axis=1)
-#                labels = (np.unique(g))[max_locations]
-#                labels[I] = g
-#                acc = accuracy(labels,true_labels,len(I))
-#                print('%d,Accuracy = %.2f'%(T,acc))
-#        
-#        #print("--- %s seconds ---" % (time.time() - start_time))
-#
-#    u = u@np.diag(1/num_labels)
-#    return np.transpose(u),T
+def vec_acc(u,I,g,true_labels):
+
+    max_locations = np.argmax(u,axis=0)
+    labels = (np.unique(g))[max_locations]
+    labels[I] = g
+    acc = accuracy(labels,true_labels,len(I))
+
+    return acc
+
+#Compute sizes of each class
+def label_proportions_k(labels,k):
+    n = len(labels)
+    beta = np.zeros((k,))
+    for i in range(k):
+        beta[i] = np.sum(labels==i)/n
+
+    return beta
 
 
+#Poisson Volume
+def PoissonVolume(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=None,min_iter=50):
 
+
+    #Run Poisson learning
+    u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda, training_balance=training_balance,beta = beta)
+
+    k = u.shape[0]
+    s = np.ones((k,))
+    dt = 1
+    for i in range(1000):
+        beta_u = label_proportions_k(np.argmax(np.diag(s)@u,axis=0),k)
+
+        s = s + dt*(beta - beta_u)
+        if true_labels is not None: 
+            print('Accuracy = %.2f'%vec_acc(np.diag(s)@u,I,g,true_labels))
+
+
+    return np.diag(s)@u
 
 #Poisson learning
 def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=None,min_iter=50):
@@ -1987,7 +1934,7 @@ def graph_clustering(W,k,true_labels=None,method="incres",speed=5,T=100,extra_di
 #   Options: laplace, poisson, poisson_nodeg, wnll, properlyweighted, plaplace, randomwalk
 def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,eigvals=None,eigvecs=None,dataset=None,T=0,use_cuda=False,return_vector=False,poisson_training_balance=True):
 
-    one_shot_methods = ["mbo","poisson","poissonbalanced","poissonmbo","poissonl1","nearestneighbor","poissonmbobalanced","volumembo","poissonvolumembo","dynamiclabelpropagation","sparselabelpropagation","centeredkernel"]
+    one_shot_methods = ["mbo","poisson","poissonbalanced","poissonvolume","poissonmbo","poissonl1","nearestneighbor","poissonmbobalanced","volumembo","poissonvolumembo","dynamiclabelpropagation","sparselabelpropagation","centeredkernel"]
 
     n = W.shape[0]
 
@@ -2024,6 +1971,8 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
             u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance)
         elif method=="poissonbalanced":
             u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance,beta = beta)
+        elif method=="poissonvolume":
+            u = PoissonVolume(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance,beta = beta)
         elif method=="dynamiclabelpropagation":
             u = DynamicLabelPropagation(W,I,g,true_labels=true_labels)
         elif method=="sparselabelpropagation":
