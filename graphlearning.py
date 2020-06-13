@@ -1369,7 +1369,7 @@ def CenteredKernel(W,I,g,true_labels=None):
     k = len(np.unique(g))
 
     #W = diag_multiply(W,0)
-    
+
     #Labels to vector and correct position
     J = np.zeros(n,)
     K = np.ones(n,)*g[0]
@@ -1378,6 +1378,10 @@ def CenteredKernel(W,I,g,true_labels=None):
     Kg,_ = LabelsToVec(K)
     Kg = np.transpose(Kg*J)
     
+    #Center labels
+    c = np.sum(Kg,axis=0)/len(I)
+    Kg[I,:] = Kg[I,:]-c
+
     u = np.copy(Kg)
     v = np.ones((n,1))
     vt = np.ones((1,n))
@@ -1390,7 +1394,8 @@ def CenteredKernel(W,I,g,true_labels=None):
         e = w/np.linalg.norm(w)
 
     #Number of iterations
-    alpha = 5*l/4
+    #alpha = 5*l/4
+    alpha = 101*l/100
     T = 1000
     err = 1
     while err > 1e-10:
@@ -1472,14 +1477,18 @@ def volume_label_projection(u,beta,s=None):
     if s is None:
         s = np.ones((k,))
     dt = 10
+    #print(np.around(100*beta,decimals=1))
+    #print(np.around(100*np.sum(ClosestVertex(np.diag(s)@u),axis=1)/n,decimals=1))
     for i in range(100):
         grad = beta - np.sum(ClosestVertex(np.diag(s)@u),axis=1)/n
-        err = np.max(np.absolute(grad))
+        #err = np.max(np.absolute(grad))
 
-        if err == 0:
-            break
-        s = s + dt*grad
+        #if err == 0:
+        #    break
+        s = np.clip(s + dt*grad,0.5,2)
     
+    #print(np.around(100*np.sum(ClosestVertex(np.diag(s)@u),axis=1)/n,decimals=1))
+    #print(np.around(100*beta - 100*np.sum(ClosestVertex(np.diag(s)@u),axis=1)/n,decimals=4))
     return ClosestVertex(np.diag(s)@u),s
 
 #Poisson MBO with volume constraints
@@ -1522,11 +1531,10 @@ def poissonMBO_volume(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False,
         Pt = torch_sparse(P).cuda()
         Dbt = torch.from_numpy(np.transpose(Db)).float().cuda()
 
-    s = np.ones((k,))
     for i in range(T):
 
         #Projection step
-        u,s = volume_label_projection(u,beta,s=s)
+        u,s = volume_label_projection(u,beta)
 
         if use_cuda:
 
@@ -1550,7 +1558,7 @@ def poissonMBO_volume(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False,
             acc = accuracy(labels,true_labels,len(I))
             print('Accuracy = %.2f'%acc)
     
-    _,s = volume_label_projection(u,beta,s=s)
+    _,s = volume_label_projection(u,beta)
     return np.diag(s)@u
 
 
@@ -1582,6 +1590,8 @@ def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=Non
     K[I] = g
     Kg,_ = LabelsToVec(K)
     Kg = Kg*J
+
+    print(Kg.shape)
     
     #Poisson source term
     c = np.sum(Kg,axis=1)/len(I)
@@ -2089,7 +2099,7 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
         elif method=="poissonvolume":
             u = PoissonVolume(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance,beta = beta)
         elif method=="poissonmbo_volume":
-            u = poissonMBO_volume(W,I,g,dataset,beta,true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu,T=numT)
+            u = poissonMBO_volume(W,I,g,dataset,beta,true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu)
         elif method=="dynamiclabelpropagation":
             u = DynamicLabelPropagation(W,I,g,true_labels=true_labels)
         elif method=="sparselabelpropagation":
