@@ -1395,7 +1395,7 @@ def CenteredKernel(W,I,g,true_labels=None):
 
     #Number of iterations
     #alpha = 5*l/4
-    alpha = 101*l/100
+    alpha = 105*l/100
     T = 1000
     err = 1
     while err > 1e-10:
