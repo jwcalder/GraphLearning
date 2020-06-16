@@ -1368,7 +1368,7 @@ def CenteredKernel(W,I,g,true_labels=None):
     n = W.shape[0]
     k = len(np.unique(g))
 
-    #W = diag_multiply(W,0)
+    W = diag_multiply(W,0)
 
     #Labels to vector and correct position
     J = np.zeros(n,)
@@ -1591,8 +1591,6 @@ def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=Non
     Kg,_ = LabelsToVec(K)
     Kg = Kg*J
 
-    print(Kg.shape)
-    
     #Poisson source term
     c = np.sum(Kg,axis=1)/len(I)
     b = np.transpose(Kg)
@@ -2086,7 +2084,7 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
             u = volumeMBO(W,I,g,dataset,beta,T,volume_mult)
         elif method=="poissonvolumembo":
             u = poisson_volumeMBO(W,I,g,dataset,beta,T,volume_mult)
-        elif method=="poissonmbo":
+        elif method=="poissonmbo_old":
             u = poissonMBO(W,I,g,dataset,np.ones_like(beta),true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu,T=numT)
         elif method=="poissonmbobalanced":
             u = poissonMBO(W,I,g,dataset,beta,true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu,T=numT)
@@ -2098,7 +2096,7 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
             u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance,beta = beta)
         elif method=="poissonvolume":
             u = PoissonVolume(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance,beta = beta)
-        elif method=="poissonmbo_volume":
+        elif method=="poissonmbo":
             u = poissonMBO_volume(W,I,g,dataset,beta,true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu)
         elif method=="dynamiclabelpropagation":
             u = DynamicLabelPropagation(W,I,g,true_labels=true_labels)

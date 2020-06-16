@@ -266,8 +266,10 @@ else:
         #Label proportions (used by some algroithms)
         beta = gl.label_proportions(labels)
 
+        start_time = time.time()
         #Graph-based semi-supervised learning
         u = gl.graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,method=algorithm,epsilon=0.3,p=p,norm=norm,eigvals=eigvals,eigvecs=eigvecs,dataset=dataset,T=T,use_cuda=use_cuda,volume_mult=volume_constraint,true_labels=true_labels,poisson_training_balance=poisson_training_balance)
+        print("--- %s seconds ---" % (time.time() - start_time))
 
         #Compute accuracy
         accuracy = gl.accuracy(u,labels,m)
