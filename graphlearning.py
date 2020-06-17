@@ -2068,7 +2068,8 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
 
     #Symmetrize D,W, if not already symmetric
     W = (W + W.transpose())/2
-    D = sparse_max(D,D.transpose())
+    if D is not None:
+        D = sparse_max(D,D.transpose())
 
     #Check if connected
     num_comp,comp = csgraph.connected_components(W)
