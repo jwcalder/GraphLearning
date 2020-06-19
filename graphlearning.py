@@ -1520,6 +1520,7 @@ def poissonMBO_volume(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False,
 
     #Initialize u via Poisson learning
     u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda, beta=beta)
+    u = mu*u
 
     #Time step for stability
     dt = 1/np.max(degrees(W))
@@ -1533,9 +1534,7 @@ def poissonMBO_volume(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False,
 
     for i in range(T):
 
-        #Projection step
-        u,s = volume_label_projection(u,beta)
-
+        #Heat equation step
         if use_cuda:
 
             #Put on GPU and run heat equation
@@ -1550,6 +1549,9 @@ def poissonMBO_volume(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False,
             for j in range(Ns):
                 u = u*P + Db
 
+        #Projection step
+        u,s = volume_label_projection(u,beta)
+
         #Compute accuracy if all labels are provided
         if true_labels is not None:
             max_locations = np.argmax(u,axis=0)
@@ -1558,8 +1560,7 @@ def poissonMBO_volume(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False,
             acc = accuracy(labels,true_labels,len(I))
             print('Accuracy = %.2f'%acc)
     
-    _,s = volume_label_projection(u,beta)
-    return np.diag(s)@u
+    return u
 
 
 #Poisson Volume
