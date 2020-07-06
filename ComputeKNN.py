@@ -56,7 +56,7 @@ def ComputeKNN(dataset, metric='L2', k=30, knn_method='annoy', scatter_pca_dims=
     else:
         outfile = "kNNData/"+dataset+"_"+metric+".npz"
 
-    #For variational autoencoder, put vae data in Data/MNIST_vaeD100_20.npz, etc.
+    #For variational autoencoder the vae data, e.g., Data/MNIST_vae.npz must exist.
     if metric[0:3]=='vae':
         dataFile = "Data/"+dataset+"_"+metric+".npz"
     else:
