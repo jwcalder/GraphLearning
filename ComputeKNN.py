@@ -57,7 +57,7 @@ def ComputeKNN(dataset, metric='L2', k=30, knn_method='annoy', scatter_pca_dims=
         outfile = "kNNData/"+dataset+"_"+metric+".npz"
 
     #For variational autoencoder the vae data, e.g., Data/MNIST_vae.npz must exist.
-    if metric[0:3]=='vae':
+    if metric[0:3]=='vae' or metric[0:3]=='aet':
         dataFile = "Data/"+dataset+"_"+metric+".npz"
     else:
         dataFile = "Data/"+dataset+"_raw.npz"
@@ -101,6 +101,9 @@ def ComputeKNN(dataset, metric='L2', k=30, knn_method='annoy', scatter_pca_dims=
             similarity = metric
         else:
             similarity = 'euclidean'
+        
+        if metric[0:3] == 'aet':
+            similarity = 'angular'
 
         # Similarity can be "angular", "euclidean", "manhattan", "hamming", or "dot".
         I,J,D = gl.knnsearch_annoy(data,k, similarity) 
