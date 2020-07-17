@@ -39,7 +39,7 @@ python main.py -d MNIST -m vae -a Laplace -t 10
 python main.py -d MNIST -m vae -a Poisson -t 10
 ```
 
-The flag -d specifies the dataset (MNIST, FashionMNIST, WEBKB, or cifar), -m specifies the metric for constructing the graph (vae is the variational autoencoder weights as described in our paper; other options are L2 and scatter), -a is the choice of semi-supervised learning or clustering algorithm, and -t is the number of trials to run. All scripts have a help flag -h that shows a detailed list of options. For example, run
+The flag -d specifies the dataset (MNIST, FashionMNIST, WEBKB, or cifar), -m specifies the metric for constructing the graph, -a is the choice of semi-supervised learning or clustering algorithm, and -t is the number of trials to run. The choices for metric are 'L2' for all datasets, which is Eulcidean distance between raw data. MNIST and FashionMNIST have the option of 'vae', which is the variational autoencoder weights as described in our paper, as well as scatter, which uses the scattering transform. For cifar, the metric 'aet' is the AutoEncoding Transformations weights, as described in our paper. All scripts have a help flag -h that shows a detailed list of options. For example, run
 
 ```
 python main.py -h
