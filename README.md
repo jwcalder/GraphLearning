@@ -117,3 +117,4 @@ Several people have contributed to the development of this software:
 
 1. Mauricio Rios Flores (Machine Learning Researcher, Amazon)
 2. Brendan Cook (PhD Candidate in Mathematics, University of Minnesota)
+3. Matt Jacobs (Postdoc, UCLA)
