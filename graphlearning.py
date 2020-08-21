@@ -17,10 +17,15 @@ import scipy.sparse.csgraph as csgraph
 import sklearn.cluster as cluster
 from sklearn.decomposition import PCA
 import sys
+import getopt
 import time
 import csv
 import torch
 import os
+from joblib import Parallel, delayed
+import multiprocessing
+
+clustering_algorithms = ['incres','spectral','spectralshimalik','spectralngjordanweiss']
 
 # Print iterations progress
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█'):
@@ -61,11 +66,12 @@ def load_mbo_eig(dataset,metric,k):
 
 def load_label_permutation(dataset,label_perm='',t='-1'):
 
+    location = os.path.dirname(os.path.realpath(__file__))
+    dataFile = dataset+label_perm+"_permutations.npz"
+    dataFile_path = os.path.join(location, 'LabelPermutations', dataFile)
+
     #Load label permutation
     try:
-        location = os.path.dirname(os.path.realpath(__file__))
-        dataFile = dataset+label_perm+"_permutations.npz"
-        dataFile_path = os.path.join(location, 'LabelPermutations', dataFile)
         M = np.load(dataFile_path,allow_pickle=True)
         perm = M['perm']
     except:
@@ -91,10 +97,10 @@ def load_dataset(dataset,metric='L2'):
     else:
         dataFile = dataset+"_raw.npz"
 
+    location = os.path.dirname(os.path.realpath(__file__))
+    dataFile_path = os.path.join(location, 'Data', dataFile)
     #Try to Load data
     try:
-        location = os.path.dirname(os.path.realpath(__file__))
-        dataFile_path = os.path.join(location, 'Data', dataFile)
         M = np.load(dataFile_path,allow_pickle=True)
         data = M['data']
     except:
@@ -105,11 +111,12 @@ def load_dataset(dataset,metric='L2'):
 
 def load_labels(dataset):
 
+    location = os.path.dirname(os.path.realpath(__file__))
+    dataFile = dataset+"_labels.npz"
+    dataFile_path = os.path.join(location, 'Data', dataFile)
+
     #Load labels
     try:
-        location = os.path.dirname(os.path.realpath(__file__))
-        dataFile = dataset+"_labels.npz"
-        dataFile_path = os.path.join(location, 'Data', dataFile)
         M = np.load(dataFile_path,allow_pickle=True)
         labels = M['labels']
     except:
@@ -119,11 +126,13 @@ def load_labels(dataset):
     return labels
 
 def load_kNN_data(dataset,metric='L2'):
+
+    location = os.path.dirname(os.path.realpath(__file__))
+    dataFile = dataset+"_"+metric+".npz"
+    dataFile_path = os.path.join(location, 'kNNData', dataFile)
+
     #Load kNN data
     try:
-        location = os.path.dirname(os.path.realpath(__file__))
-        dataFile = dataset+"_"+metric+".npz"
-        dataFile_path = os.path.join(location, 'kNNData', dataFile)
         M = np.load(dataFile_path,allow_pickle=True)
         I = M['I']
         J = M['J']
@@ -2717,10 +2726,274 @@ def PageRank(W,alpha):
     return u
 
 
+#Print help
+def print_help():
+    
+    print('========================================================')
+    print('GraphLearning: Python package for graph-based learning. ')
+    print('========================================================')
+    print('========================================================')
+    print('Graph-based Clustering & Semi-Supervised Learning')
+    print('========================================================')
+    print('                                                        ')
+    print('Options:')
+    print('   -d (--dataset=): MNIST, FashionMNIST, WEBKB, cifar (default=MNIST)')
+    print('   -m (--metric=):  Metric for computing similarities (default=L2)')
+    print('          Choices:  vae, scatter, L2, aet')
+    print('   -a (--algorithm=): Learning algorithm (default=Laplace)')
+    print('   -k (--knn=): Number of nearest neighbors (default=10)')
+    print('   -t (--num_trials=): Number of trial permutations to run (default=all)')
+    print('   -l (--label_perm=): Choice of label permutation file (format=dataset<label_perm>_permutations.npz). (default is empty).')
+    print('   -p (--p=): Value of p for plaplace method (default=3)')
+    print('   -n (--normalization=): Laplacian normalization (default=none)')
+    print('                 Choices: none, normalized')
+    print('   -N (--num_classes): Number of clusters if choosing clustering algorithm (default=10)')
+    print('   -s (--speed=): Speed in INCRES method (1--10) (default=2)')
+    print('   -i (--num_iter=): Number of iterations for iterative methods (default=1000)')
+    print('   -x (--extra_dim=): Number of extra dimensions in spectral clustering (default=0)')
+    print('   -c (--cuda): Use GPU acceleration (when available)')
+    print('   -T (--temperature): Temperature for volume constrained MBO (default=0)')
+    print('   -v (--volume_constraint=): Volume constraint for MBO (default=0.5)')
+    print('   -j (--num_cores=): Number of cores to use in parallel processing (default=1)')
+    print('   -r (--results): Turns off automatic saving of results to .csv file')
+    print('   -b (--verbose): Turns on verbose mode (displaying more intermediate steps).')
+
+#Default settings
+def default_dataset(): return 'MNIST'
+def default_metric(): return 'L2'
+def default_algorithm(): return 'laplace'
+def default_k(): return 10
+def default_t(): return '-1'
+def default_label_perm(): return ''
+def default_p(): return 3
+def default_norm(): return "none"
+def default_use_cuda(): return False
+def default_T(): return 0
+def default_num_cores(): return 1
+def default_results(): return True
+def default_num_classes(): return 10
+def default_speed(): return 2
+def default_num_iter(): return 1000
+def default_extra_dim(): return 0
+def default_volume_constraint(): return 0.5
+def default_verbose(): return False
+def default_poisson_training_balance(): return True
+
+#Main subroutine. Is calleable from other scripts as graphlearning.main(...)
+def main(dataset = default_dataset(), metric = default_metric(), algorithm = default_algorithm(), k = default_k(), t = default_t(), label_perm = default_label_perm(), p = default_p(), norm = default_norm(), use_cuda = default_use_cuda(), T = default_T(), num_cores = default_num_cores(), results = default_results(), num_classes = default_num_classes(), speed = default_speed(), num_iter = default_num_iter(), extra_dim = default_extra_dim(), volume_constraint = default_volume_constraint(), verbose = default_verbose(), poisson_training_balance = default_poisson_training_balance()):
+
+    #Load labels
+    labels = load_labels(dataset)
+
+    #Load nearest neighbor data
+    I,J,D = load_kNN_data(dataset,metric=metric)
+
+    #Consturct weight matrix and distance matrix
+    W = weight_matrix(I,J,D,k)
+    Wdist = dist_matrix(I,J,D,k)
+
+    #Load label permutation (including restrictions in t)
+    perm = load_label_permutation(dataset,label_perm=label_perm,t=t)
+
+    #Load eigenvector data if MBO selected
+    if algorithm == 'mbo':
+        eigvals,eigvecs = load_mbo_eig(dataset,metric,k)
+    else:
+        eigvals = None
+        eigvecs = None
+
+    #Output file
+    outfile = "Results/"+dataset+label_perm+"_"+metric+"_k%d"%k
+    if algorithm == 'plaplace':
+        outfile = outfile+"_p%.1f"%p+algorithm[1:]+"_"+norm
+    elif algorithm == 'eikonal':
+        outfile = outfile+"_p%.1f"%p+algorithm
+    else:
+        outfile = outfile+"_"+algorithm
+
+    if algorithm == 'volumembo' or algorithm == 'poissonvolumembo':
+        outfile = outfile+"_T%.3f"%T
+        outfile = outfile+"_V%.3f"%volume_constraint
+
+    if algorithm == 'poisson' and poisson_training_balance == False:
+        outfile = outfile+"_NoBal"
+
+    outfile = outfile+"_accuracy.csv"
+
+    #Print basic info
+    print('========================================================')
+    print('GraphLearning: Python package for graph-based learning. ')
+    print('========================================================')
+    print('========================================================')
+    print('Graph-based Clustering & Semi-Supervised Learning')
+    print('========================================================')
+    print('                                                        ')
+    print('Dataset: '+dataset)
+    print('Metric: '+metric)
+    print('Number of neighbors: %d'%k)
+    print('Learning algorithm: '+algorithm)
+    print('Laplacian normalization: '+norm)
+    if algorithm == 'plaplace' or algorithm == 'eikonal':
+        print("p-Laplace/eikonal value p=%.2f" % p)
+    if algorithm in clustering_algorithms:
+        print('Number of clusters: %d'%num_classes)
+        if algorithm == 'INCRES':
+            print('INCRES speed: %.2f'%speed)
+            print('Number of iterations: %d'%num_iter)
+        if algorithm[:8] == 'Spectral':
+            print('Number of extra dimensions: %d'%extra_dim)
+    else:
+        print('Number of trial permutations: %d'%len(perm))
+        print('Permutations file: LabelPermutations/'+dataset+label_perm+'_permutations.npz')
+
+        if algorithm == 'volumembo' or algorithm == 'poissonvolumembo':
+            print("Using temperature=%.3f"%T)
+            print("Volume constraints = [%.3f,%.3f]"%(volume_constraint,2-volume_constraint))
+
+        #If output file selected
+        if results:
+            print('Output file: '+outfile)
+
+    print('                                                        ')
+    print('========================================================')
+    print('                                                        ')
+
+    true_labels = None
+    if verbose:
+        true_labels = labels
+
+    #If clustering algorithm was chosen
+    if algorithm in clustering_algorithms:
+        #Clustering
+        u = graph_clustering(W,num_classes,labels,method=algorithm,T=num_iter,speed=speed,extra_dim=extra_dim)
+
+        #Compute accuracy
+        acc = clustering_accuracy(u,labels)
+
+        #Print to terminal
+        print("Accuracy: %.2f" % acc+"%")
+
+    #If semi-supervised algorithms chosen
+    else:
+        #If output file selected
+        if results:
+            #Check if Results directory exists
+            if not os.path.exists('Results'):
+                os.makedirs('Results')
+
+            now = datetime.datetime.now()
+            
+            #Add time stamp to output file
+            f = open(outfile,"a+")
+            f.write("Date/Time, "+now.strftime("%Y-%m-%d_%H:%M")+"\n")
+            f.close()
+
+        #Loop over label permutations
+        print("Number of labels, Accuracy")
+        def one_trial(label_ind):
+
+            #Number of labels
+            m = len(label_ind)
+
+            #Label proportions (used by some algroithms)
+            beta = label_proportions(labels)
+
+            start_time = time.time()
+            #Graph-based semi-supervised learning
+            u = graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,method=algorithm,epsilon=0.3,p=p,norm=norm,eigvals=eigvals,eigvecs=eigvecs,dataset=dataset,T=T,use_cuda=use_cuda,volume_mult=volume_constraint,true_labels=true_labels,poisson_training_balance=poisson_training_balance)
+            print("--- %s seconds ---" % (time.time() - start_time))
+
+            #Compute accuracy
+            acc = accuracy(u,labels,m)
+            
+            #Print to terminal
+            print("%d" % m + ",%.2f" % acc)
+
+            #Write to file
+            if results:
+                f = open(outfile,"a+")
+                f.write("%d" % m + ",%.2f\n" % acc)
+                f.close()
+
+        #Number of cores for parallel processing
+        num_cores = min(multiprocessing.cpu_count(),num_cores)
+        Parallel(n_jobs=num_cores)(delayed(one_trial)(label_ind) for label_ind in perm)
 
 
+if __name__ == '__main__':
 
+    #Default settings
+    dataset = default_dataset()
+    metric = default_metric()
+    algorithm = default_algorithm()
+    k = default_k()
+    t = default_t()
+    label_perm = default_label_perm()
+    p = default_p()
+    norm = default_norm()
+    use_cuda = default_use_cuda()
+    T = default_T()
+    num_cores = default_num_cores()
+    results = default_results()
+    num_classes = default_num_classes()
+    speed = default_speed()
+    num_iter = default_num_iter()
+    extra_dim = default_extra_dim()
+    volume_constraint = default_volume_constraint()
+    verbose = default_verbose()
+    poisson_training_balance = default_poisson_training_balance()
 
+    #Read command line arguments
+    try:
+        opts, args = getopt.getopt(sys.argv[1:],"hd:m:k:a:p:n:v:N:s:i:x:t:cl:T:j:rbo",["dataset=","metric=","knn=","algorithm=","p=","normalization=","volume_constraint=","num_classes=","speed=","num_iter=","extra_dim=","num_trials=","cuda","label_perm=","temperature=","--num_cores=","results","verbose","poisson_training_balance"])
+    except getopt.GetoptError:
+        print_help()
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print_help()
+            sys.exit()
+        elif opt in ("-d", "--dataset"):
+            dataset = arg
+        elif opt in ("-m", "--metric"):
+            metric = arg
+        elif opt in ("-k", "--knn"):
+            k = int(arg)
+        elif opt in ("-a", "--algorithm"):
+            algorithm = arg.lower()
+        elif opt in ("-p", "--p"):
+            p = float(arg)
+        elif opt in ("-n", "--normalization"):
+            norm = arg
+        elif opt in ("-v", "--volume_constraint"):
+            volume_constraint = float(arg)
+        elif opt in ("-N", "--num_classes"):
+            num_classes = int(arg)
+        elif opt in ("-s", "--speed"):
+            speed = float(arg)
+        elif opt in ("-i", "--num_iter"):
+            num_iter = int(arg)
+        elif opt in ("-x", "--extra_dim"):
+            extra_dim = int(arg)
+        elif opt in ("-t", "--num_trials"):
+            t = arg
+        elif opt in ("-c", "--cuda"):
+            use_cuda = True
+        elif opt in ("-l", "--label_perm"):
+            label_perm = arg
+        elif opt in ("-T", "--temperature"):
+            T = float(arg)
+        elif opt in ("-j", "--num_cores"):
+            num_cores = int(arg)
+        elif opt in ("-r", "--results"):
+            results = False
+        elif opt in ("-b", "--verbose"):
+            verbose = True
+        elif opt in ("-o", "--poisson_training_balance"):
+            poisson_training_balance = False
+
+    #Call main subroutine
+    main(dataset=dataset, metric=metric, algorithm=algorithm, k=k, t=t, label_perm=label_perm, p=p, norm=norm, use_cuda=use_cuda, T=T, num_cores=num_cores, results=results, num_classes=num_classes, speed=speed, num_iter=num_iter, extra_dim=extra_dim, volume_constraint=volume_constraint, verbose=verbose, poisson_training_balance=poisson_training_balance)
 
 
 
