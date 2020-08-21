@@ -153,57 +153,22 @@ for opt, arg in opts:
         poisson_training_balance = False
 
 #Load labels
-try:
-    M = np.load("Data/"+dataset+"_labels.npz",allow_pickle=True)
-    labels = M['labels']
-except:
-    print('Cannot find dataset Data/'+dataset+'_labels.npz')
-    sys.exit(2)
+labels = gl.load_labels(dataset)
 
+#Load nearest neighbor data
+I,J,D = gl.load_kNN_data(dataset,metric=metric)
 
-#Load kNN data and build weight matrix
-try:
-    M = np.load("kNNData/"+dataset+"_"+metric+".npz",allow_pickle=True)
-    I = M['I']
-    J = M['J']
-    D = M['D']
-    W = gl.weight_matrix(I,J,D,k)
-    Wdist = gl.dist_matrix(I,J,D,k)
-except:
-    print('Cannot find kNNData/'+dataset+'_'+metric+'.npz')
-    print('You need to run ComputeKNN.py.')
-    sys.exit(2)
+#Consturct weight matrix and distance matrix
+W = gl.weight_matrix(I,J,D,k)
+Wdist = gl.dist_matrix(I,J,D,k)
 
-
-#Load label permutations
-try:
-    M = np.load("LabelPermutations/"+dataset+label_perm+"_permutations.npz",allow_pickle=True)
-    perm = M['perm']
-except:
-    print('Cannot find LabelPermutations/'+dataset+label_perm+'_permutations.npz')
-    print('You need to run CreateLabelPermutation.py first.')
-    sys.exit(2)
-
-#Restrict trials
-t = [int(e)  for e in t.split(',')]
-if t[0] > -1:
-    if len(t) == 1:
-        perm = perm[0:t[0]]
-    else:
-        perm = perm[(t[0]-1):t[1]]
+#Load label permutation (including restrictions in t)
+perm = gl.load_label_permutation(dataset,label_perm=label_perm,t=t)
 
 #Load eigenvector data if MBO selected
-eigvals = None
-eigvecs = None
 if algorithm == 'mbo':
-    try:
-        M = np.load("MBOdata/"+dataset+"_"+metric+"_k%d"%k+"_spectrum.npz")
-        eigvals = M['eigenvalues']
-        eigvecs = M['eigenvectors']
-    except:
-        print("Could not find MBOdata/"+dataset+"_"+metric+"_k%d"%k+"_spectrum.npz")
-        print('You need to run ComputeEigenvectorsMBO.py first.')
-        sys.exit(2)
+    eigvals,eigvecs = gl.load_mbo_eig(dataset,metric,k)
+
 #Output file
 outfile = "Results/"+dataset+label_perm+"_"+metric+"_k%d"%k
 if algorithm == 'plaplace':
@@ -255,11 +220,8 @@ else:
         f.write("Date/Time, "+now.strftime("%Y-%m-%d_%H:%M")+"\n")
         f.close()
 
-
-
     #Loop over label permutations
     print("Number of labels, Accuracy")
-
     def one_trial(label_ind):
 
         #Number of labels

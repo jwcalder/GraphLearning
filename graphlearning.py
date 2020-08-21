@@ -20,6 +20,7 @@ import sys
 import time
 import csv
 import torch
+import os
 
 # Print iterations progress
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█'):
@@ -41,6 +42,98 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
     # Print New Line on Complete
     if iteration == total: 
         print()
+
+def load_mbo_eig(dataset,metric,k):
+
+    #Load eigenvector data if MBO selected
+    try:
+        location = os.path.dirname(os.path.realpath(__file__))
+        dataFile = dataset+"_"+metric+"_k%d"%k+"_spectrum.npz"
+        dataFile_path = os.path.join(location, 'MBOdata', dataFile)
+        M = np.load(dataFile_path,allow_pickle=True)
+        eigvals = M['eigenvalues']
+        eigvecs = M['eigenvectors']
+    except:
+        print("Could not find MBOdata/"+dataset+"_"+metric+"_k%d"%k+"_spectrum.npz")
+        print('You need to run ComputeEigenvectorsMBO.py first.')
+        sys.exit(2)
+    return eigvals,eigvecs
+
+def load_label_permutation(dataset,label_perm='',t='-1'):
+
+    #Load label permutation
+    try:
+        location = os.path.dirname(os.path.realpath(__file__))
+        dataFile = dataset+label_perm+"_permutations.npz"
+        dataFile_path = os.path.join(location, 'LabelPermutations', dataFile)
+        M = np.load(dataFile_path,allow_pickle=True)
+        perm = M['perm']
+    except:
+        print('Cannot find '+dataFile)
+        print('You need to run CreateLabelPermutation.py first.')
+        sys.exit(2)
+
+    #Restrict trials
+    t = [int(e)  for e in t.split(',')]
+    if t[0] > -1:
+        if len(t) == 1:
+            perm = perm[0:t[0]]
+        else:
+            perm = perm[(t[0]-1):t[1]]
+
+    return perm
+
+def load_dataset(dataset,metric='L2'):
+
+    #For variational autoencoder the vae data, e.g., Data/MNIST_vae.npz must exist.
+    if metric[0:3]=='vae' or metric[0:3]=='aet':
+        dataFile = dataset+"_"+metric+".npz"
+    else:
+        dataFile = dataset+"_raw.npz"
+
+    #Try to Load data
+    try:
+        location = os.path.dirname(os.path.realpath(__file__))
+        dataFile_path = os.path.join(location, 'Data', dataFile)
+        M = np.load(dataFile_path,allow_pickle=True)
+        data = M['data']
+    except:
+        print('Cannot find '+dataFile+'.')
+        sys.exit(2)
+    
+    return data
+
+def load_labels(dataset):
+
+    #Load labels
+    try:
+        location = os.path.dirname(os.path.realpath(__file__))
+        dataFile = dataset+"_labels.npz"
+        dataFile_path = os.path.join(location, 'Data', dataFile)
+        M = np.load(dataFile_path,allow_pickle=True)
+        labels = M['labels']
+    except:
+        print('Cannot find dataset Data/'+dataFile)
+        sys.exit(2)
+
+    return labels
+
+def load_kNN_data(dataset,metric='L2'):
+    #Load kNN data
+    try:
+        location = os.path.dirname(os.path.realpath(__file__))
+        dataFile = dataset+"_"+metric+".npz"
+        dataFile_path = os.path.join(location, 'kNNData', dataFile)
+        M = np.load(dataFile_path,allow_pickle=True)
+        I = M['I']
+        J = M['J']
+        D = M['D']
+    except:
+        print('Cannot find '+dataFile)
+        print('You need to run ComputeKNN.py.')
+        sys.exit(2)
+
+    return I,J,D
 
 #Compute sizes of each class
 def label_proportions(labels):
@@ -2077,7 +2170,7 @@ def nearestneighbor(W,I,g):
         I = np.ascontiguousarray(I,dtype=np.int32)
 
         cgp.dijkstra(d,l,WI,K,WV,I,1.0)
-
+        
     except: #Use python version, which is slower
 
         #Initialization
