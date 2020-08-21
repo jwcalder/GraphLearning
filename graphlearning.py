@@ -519,6 +519,45 @@ def weight_matrix(I,J,D,k,f=exp_weight,symmetrize=True):
 
     return W
 
+#Compute boundary points
+#k = number of neighbors to use
+def boundary_points(X,k,I=None,J=None,D=None):
+
+    if (I is None) or (J is None) or (D is None):
+        n = X.shape[0]
+        d = X.shape[1]
+        if d == 2:
+            I,J,D = knnsearch(X,k)
+        else:
+            I,J,D = knnsearch_annoy(X,k)
+    
+    #Restrict I,J,D to k neighbors
+    k = np.minimum(I.shape[1],k)
+    n = X.shape[0]
+    I = I[:,:k]
+    J = J[:,:k]
+    D = D[:,:k]
+
+    W = weight_matrix(I,J,D,k,f=lambda x : np.ones_like(x),symmetrize=False)
+    L = graph_laplacian(W)
+    
+    #Estimates of normal vectors
+    nu = -L*X
+    nu = np.transpose(nu)
+    norms = np.sqrt(np.sum(nu*nu,axis=0))
+    nu = nu/norms
+    nu = np.transpose(nu)
+
+    #Boundary test
+    Y = np.swapaxes(X[J],0,1)*nu
+    Y = np.sum(Y,axis=2) 
+    Y = Y - Y[0,:]
+    Y = np.min(Y[1:,:],axis=0)
+    
+    #return (3/2)*Y/D[:,k-1]
+    return Y
+
+
 #Construct k-nn sparse distance matrix
 #Note: Matrix is not symmetric
 def knn_weight_matrix(X,k,f=exp_weight):
@@ -546,6 +585,35 @@ def pcg_solve(L,f,x0=None,tol=1e-10):
     #print("--- %s seconds ---" % (time.time() - start_time))
 
     return u
+
+#Finds k Dirichlet eigenvectors
+#Solves Lu = lambda u subject to u(I)=0
+def dirichlet_eigenvectors(L,I,k):
+
+    L = L.tocsr()
+    n = L.shape[0]
+
+    #Locations of labels
+    idx = np.full((n,), True, dtype=bool)
+    idx[I] = False
+
+    #Left hand side matrix
+    A = L[idx,:]
+    A = A[:,idx]
+    
+    #Eigenvector solver
+    vals, vec = sparse.linalg.eigs(A,k=k,which='SM')
+    vec = vec.real
+    vals = vals.real
+    
+    #Add labels back into array
+    u = np.zeros((n,k))
+    u[idx,:] = vec
+
+    if k == 1:
+        u = u.flatten()
+
+    return u,vals
 
 #Constrained linear solve
 #Solves Lu = f subject to u(I)=g
@@ -1470,23 +1538,27 @@ def vec_acc(u,I,g,true_labels):
 #    
 #    return ClosestVertex(np.diag(s)@u),s
 
-def volume_label_projection(u,beta,s=None):
+def volume_label_projection(u,beta,s=None,dt=None):
 
     k = u.shape[0]
     n = u.shape[1]
     if s is None:
         s = np.ones((k,))
-    dt = 10
+    if dt is None:
+        dt = 10
     #print(np.around(100*beta,decimals=1))
     #print(np.around(100*np.sum(ClosestVertex(np.diag(s)@u),axis=1)/n,decimals=1))
     for i in range(100):
-        grad = beta - np.sum(ClosestVertex(np.diag(s)@u),axis=1)/n
+        class_size = np.sum(ClosestVertex(np.diag(s)@u),axis=1)/n
+        grad = beta - class_size 
+        #print(np.around(100*class_size,decimals=1))
         #err = np.max(np.absolute(grad))
 
         #if err == 0:
         #    break
         s = np.clip(s + dt*grad,0.5,2)
     
+    #print(np.around(100*beta,decimals=1))
     #print(np.around(100*np.sum(ClosestVertex(np.diag(s)@u),axis=1)/n,decimals=1))
     #print(np.around(100*beta - 100*np.sum(ClosestVertex(np.diag(s)@u),axis=1)/n,decimals=4))
     return ClosestVertex(np.diag(s)@u),s
@@ -1842,6 +1914,142 @@ def PushHeap(d,h,s,p,i):
 
     return s+1
 
+def stencil_solver(ui,u,w=None):
+
+    if w is None:
+        w = np.ones((len(u),))
+
+    m = len(u)
+
+    #Sort neighbors
+    I = np.argsort(u)
+    u = u[I]
+    w = w[I]
+
+    f = np.zeros((m+1,))
+    for i in range(m):
+        f[i] = np.sum(np.maximum(u[i]-u,0)**2)
+
+    f[m] = np.maximum(1,f[m-1])
+    k = np.argmin(f < 1)
+
+    b = np.sum(u[:k])
+    c = np.sum(u[:k]**2)
+    t = (b + np.sqrt(b*b - k*c + k))/k
+
+    check = np.sum(np.maximum(t - u,0)**2)
+
+    if(abs(check - 1) > 1e-5):
+        print("Error")
+
+    return t
+    #return np.min(u) + 1
+
+#Solve a general HJ equation with fast marching
+def HJsolver(WI,WV,K,I,g,n):
+
+    k = len(I)
+    u = np.ones((n,))*1e10          #HJ Solver
+
+    #Initialization
+    s = 0                           #Size of heap
+    h = -np.ones((n+1,),dtype=int)  #Active points heap (indices of active points)
+    A = np.zeros((n,),dtype=bool)   #Active flag
+    p = -np.ones((n,),dtype=int)    #Pointer back to heap
+    V = np.zeros((n,),dtype=bool)   #Finalized flag
+    l = -np.ones((n,),dtype=int)    #Index of closest label
+
+    #Build active points heap and set distance = 0 for initial points
+    for i in range(k):
+        s = PushHeap(u,h,s,p,I[i])
+        u[I[i]] = g[i]      #Initialize distance to zero
+        A[I[i]] = True   #Set active flag to true
+        l[I[i]] = I[i]   #Set index of closest label
+    
+    #Dijkstra's algorithm 
+    while s > 0:
+        i,s = PopHeap(u,h,s,p) #Pop smallest element off of heap
+
+        #Finalize this point
+        V[i] = True  #Mark as finalized
+        A[i] = False #Set active flag to false
+
+        #Update neighbors
+        for j in WI[K[i]:K[i+1]]:
+            if j != i and V[j] == False:
+                nn_ind = WI[K[j]:K[j+1]]
+                w_vals = WV[K[j]:K[j+1]]
+                u_vals = u[nn_ind]
+                u_tmp = stencil_solver(u[j],u_vals,w=w_vals)
+                if A[j]:  #If j is already active
+                    if u_tmp < u[j]: #Need to update heap
+                        u[j] = u_tmp
+                        SiftUp(u,h,s,p,p[j])
+                        l[j] = l[i]
+                else: #If j is not active
+                    #Add to heap and initialize distance, active flag, and label index
+                    s = PushHeap(u,h,s,p,j)
+                    u[j] = u_tmp
+                    A[j] = True  
+                    l[j] = l[i]
+
+    return u
+
+#eikonal classifier
+def eikonalSSL(W,I,g,p=2,beta=None):
+
+    
+    k = len(I) #Number of labels
+    n = W.shape[0] #Number of datapoints
+    d = np.zeros((n,))        #Distance function
+    l = -np.ones((n,),dtype=int)    #Index of closest label
+
+    #Reformat weight matrix W into form more useful for Dijkstra
+    WI,WJ,WV = sparse.find(W)
+    K = np.array((WJ[1:] - WJ[:-1]).nonzero()) + 1
+    K = np.append(0,np.append(K,len(WJ)))
+
+    c_code = False
+    try:  #Try to use fast C version, if compiled
+
+        import cmodules.cgraphpy as cgp
+
+        #Type casting and memory blocking
+        d = np.ascontiguousarray(d,dtype=np.float64)
+        l = np.ascontiguousarray(l,dtype=np.int32)
+        WI = np.ascontiguousarray(WI,dtype=np.int32)
+        WV = np.ascontiguousarray(WV,dtype=np.float64)
+        K = np.ascontiguousarray(K,dtype=np.int32)
+        I = np.ascontiguousarray(I,dtype=np.int32)
+
+        c_code = True
+    except:
+        c_code = False
+
+
+    labels = np.unique(g)
+    numl = len(labels)
+
+    u = np.zeros((numl,n))
+    for i in range(numl):
+        ind = I[g == labels[i]]
+        lab = np.zeros((len(ind),))
+
+        if c_code:
+            ind = np.ascontiguousarray(ind,dtype=np.int32)
+            lab = np.ascontiguousarray(lab,dtype=np.int32)
+            cgp.HJsolver(d,l,WI,K,WV,ind,lab,1.0,p,0.0)
+            u[i,:] = -d
+        else:
+            u[i,:] = -HJsolver(WI,WV,K,ind,lab,n)
+        
+
+    if beta is not None:
+        _,s = volume_label_projection(u,beta,dt=-0.5)
+        u = np.diag(s)@u
+    return u
+
+
 #Nearest neighbor classifier (graph geodesic distance)
 def nearestneighbor(W,I,g):
 
@@ -1896,10 +2104,12 @@ def nearestneighbor(W,I,g):
             A[i] = False #Set active flag to false
 
             #Update neighbors
-            for j in WI[K[i]:K[i+1]]:
+            #for j in WI[K[i]:K[i+1]]:
+            for jj in range(K[i],K[i+1]):
+                j = WI[jj]
                 if j != i and V[j] == False:
                     if A[j]:  #If j is already active
-                        tmp_dist = d[i] + WV[j]
+                        tmp_dist = d[i] + WV[jj]
                         if tmp_dist < d[j]: #Need to update heap
                             d[j] = tmp_dist
                             SiftUp(d,h,s,p,p[j])
@@ -1907,7 +2117,7 @@ def nearestneighbor(W,I,g):
                     else: #If j is not active
                         #Add to heap and initialize distance, active flag, and label index
                         s = PushHeap(d,h,s,p,j)
-                        d[j] = d[i] + WV[j]
+                        d[j] = d[i] + WV[jj]
                         A[j] = True  
                         l[j] = l[i]
 
@@ -2058,7 +2268,7 @@ def graph_clustering(W,k,true_labels=None,method="incres",speed=5,T=100,extra_di
 #   Options: laplace, poisson, poisson_nodeg, wnll, properlyweighted, plaplace, randomwalk
 def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,eigvals=None,eigvecs=None,dataset=None,T=0,use_cuda=False,return_vector=False,poisson_training_balance=True):
 
-    one_shot_methods = ["mbo","poisson","poissonbalanced","poissonvolume","poissonmbo_volume","poissonmbo","poissonl1","nearestneighbor","poissonmbobalanced","volumembo","poissonvolumembo","dynamiclabelpropagation","sparselabelpropagation","centeredkernel"]
+    one_shot_methods = ["mbo","poisson","poissonbalanced","poissonvolume","poissonmbo_volume","poissonmbo","poissonl1","nearestneighbor","poissonmbobalanced","volumembo","poissonvolumembo","dynamiclabelpropagation","sparselabelpropagation","centeredkernel","eikonal"]
 
     n = W.shape[0]
 
@@ -2107,11 +2317,17 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
         elif method=="centeredkernel":
             u = CenteredKernel(W,I,g,true_labels=true_labels)
         elif method=="nearestneighbor":
-            #USe distance matrix if provided, instead of weight matrix
+            #Use distance matrix if provided, instead of weight matrix
             if D is None:
                 u = nearestneighbor(W,I,g)
             else:
                 u = nearestneighbor(D,I,g)
+        elif method=="eikonal":
+            #Use distance matrix if provided, instead of weight matrix
+            if D is None:
+                u = eikonalSSL(W,I,g,p=p,beta=beta)
+            else:
+                u = eikonalSSL(W,I,g,p=p,beta=beta)
 
     else:  #One vs rest methods
 

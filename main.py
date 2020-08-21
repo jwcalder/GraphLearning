@@ -57,8 +57,8 @@ def print_info():
     print('Number of neighbors: %d'%k)
     print('Learning algorithm: '+algorithm)
     print('Laplacian normalization: '+norm)
-    if algorithm == 'plaplace':
-        print("p-Laplace value p=%.2f" % p)
+    if algorithm == 'plaplace' or algorithm == 'eikonal':
+        print("p-Laplace/eikonal value p=%.2f" % p)
     if algorithm in clustering_algorithms:
         print('Number of clusters: %d'%num_classes)
         if algorithm == 'INCRES':
@@ -208,6 +208,8 @@ if algorithm == 'mbo':
 outfile = "Results/"+dataset+label_perm+"_"+metric+"_k%d"%k
 if algorithm == 'plaplace':
     outfile = outfile+"_p%.1f"%p+algorithm[1:]+"_"+norm
+elif algorithm == 'eikonal':
+    outfile = outfile+"_p%.1f"%p+algorithm
 else:
     outfile = outfile+"_"+algorithm
 
