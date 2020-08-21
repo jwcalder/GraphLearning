@@ -519,45 +519,6 @@ def weight_matrix(I,J,D,k,f=exp_weight,symmetrize=True):
 
     return W
 
-#Compute boundary points
-#k = number of neighbors to use
-def boundary_points(X,k,I=None,J=None,D=None):
-
-    if (I is None) or (J is None) or (D is None):
-        n = X.shape[0]
-        d = X.shape[1]
-        if d == 2:
-            I,J,D = knnsearch(X,k)
-        else:
-            I,J,D = knnsearch_annoy(X,k)
-    
-    #Restrict I,J,D to k neighbors
-    k = np.minimum(I.shape[1],k)
-    n = X.shape[0]
-    I = I[:,:k]
-    J = J[:,:k]
-    D = D[:,:k]
-
-    W = weight_matrix(I,J,D,k,f=lambda x : np.ones_like(x),symmetrize=False)
-    L = graph_laplacian(W)
-    
-    #Estimates of normal vectors
-    nu = -L*X
-    nu = np.transpose(nu)
-    norms = np.sqrt(np.sum(nu*nu,axis=0))
-    nu = nu/norms
-    nu = np.transpose(nu)
-
-    #Boundary test
-    Y = np.swapaxes(X[J],0,1)*nu
-    Y = np.sum(Y,axis=2) 
-    Y = Y - Y[0,:]
-    Y = np.min(Y[1:,:],axis=0)
-    
-    #return (3/2)*Y/D[:,k-1]
-    return Y
-
-
 #Construct k-nn sparse distance matrix
 #Note: Matrix is not symmetric
 def knn_weight_matrix(X,k,f=exp_weight):
@@ -585,35 +546,6 @@ def pcg_solve(L,f,x0=None,tol=1e-10):
     #print("--- %s seconds ---" % (time.time() - start_time))
 
     return u
-
-#Finds k Dirichlet eigenvectors
-#Solves Lu = lambda u subject to u(I)=0
-def dirichlet_eigenvectors(L,I,k):
-
-    L = L.tocsr()
-    n = L.shape[0]
-
-    #Locations of labels
-    idx = np.full((n,), True, dtype=bool)
-    idx[I] = False
-
-    #Left hand side matrix
-    A = L[idx,:]
-    A = A[:,idx]
-    
-    #Eigenvector solver
-    vals, vec = sparse.linalg.eigs(A,k=k,which='SM')
-    vec = vec.real
-    vals = vals.real
-    
-    #Add labels back into array
-    u = np.zeros((n,k))
-    u[idx,:] = vec
-
-    if k == 1:
-        u = u.flatten()
-
-    return u,vals
 
 #Constrained linear solve
 #Solves Lu = f subject to u(I)=g
