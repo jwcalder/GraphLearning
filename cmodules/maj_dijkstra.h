@@ -53,7 +53,7 @@ static void dijkstra_distances(int *indicies, distance_type *edgeWeights, int *n
 
 static void labeled_single_dijkstra_iteration(implicit_heap *heap, int *indicies, distance_type *edgeWeights, int *nnCounts, distance_type *distances, int *labels, unsigned int dstride){
     
-    unsigned int i;
+    int i;
     
     distance_type minDist=heap->root[0].key;
     int minPosition=heap->root[0].originalIndex;
@@ -183,7 +183,7 @@ static void k_centers_initialization(int *indicies, distance_type *edgeWeights, 
 
 
 void internal_distances_dijkstra_iteration(implicit_heap *heap, int *indicies, distance_type *edgeWeights, int *nnCounts, distance_type *distances, int *labels){
-    unsigned int i;
+    int i;
     distance_type minDist=heap->root[0].key;
     int minPosition=heap->root[0].originalIndex;
     //distances[minPosition*dstride]=minDist;
