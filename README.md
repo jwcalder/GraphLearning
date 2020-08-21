@@ -10,7 +10,7 @@ Download the package locally with
 git clone https://github.com/jwcalder/GraphLearning
 ```
 
-The main python file is graphlearning.py. The demo scripts semi-supervised_demo.py and clustering_demo.py give basic examples of how to use the package on synthetic data. The clustering script reproduces the figures above, which are the result of spectral clustering on toy examples. The file main.py implements a user-friendly interface to run experiments comparing different datasets and algorithms over randomization of labeled and unlabeled data.
+The main python file is graphlearning.py. The demo scripts semi-supervised_demo.py and clustering_demo.py give basic examples of how to use the package on synthetic data. The clustering script reproduces the figures above, which are the result of spectral clustering on toy examples. The file graphlearning.py contains a main subroutine that implements a user-friendly interface to run experiments comparing different datasets and algorithms over randomization of labeled and unlabeled data.
 
 This package also reproduces experiments from our paper
 
@@ -35,21 +35,21 @@ python cmodules/cgraphpy_setup.py build_ext --inplace
 A basic experiment comparing Laplace learning/Label propagation to Poisson learning on MNIST can be run with the commands below.
 
 ```
-python main.py -d MNIST -m vae -a Laplace -t 10
-python main.py -d MNIST -m vae -a Poisson -t 10
+python graphlearning.py -d MNIST -m vae -a Laplace -t 10
+python graphlearning.py -d MNIST -m vae -a Poisson -t 10
 ```
 
 The flag -d specifies the dataset (MNIST, FashionMNIST, WEBKB, or cifar), -m specifies the metric for constructing the graph, -a is the choice of semi-supervised learning or clustering algorithm, and -t is the number of trials to run. The choices for metric are 'L2' for all datasets, which is Eulcidean distance between raw data. MNIST and FashionMNIST have the option of 'vae', which is the variational autoencoder weights as described in our paper, as well as scatter, which uses the scattering transform. For cifar, the metric 'aet' is the AutoEncoding Transformations weights, as described in our paper. All scripts have a help flag -h that shows a detailed list of options. For example, run
 
 ```
-python main.py -h
+python graphlearning.py -h
 ```
 
 to see the list of all options for the main graph-based learning script. The package also has implementations of some graph-based clustering algorithms. For example, run 
 
 ```
-python main.py -d MNIST -m vae -a SpectralNgJordanWeiss -x 4
-python main.py -d MNIST -m vae -a INCRES
+python graphlearning.py -d MNIST -m vae -a SpectralNgJordanWeiss -x 4
+python graphlearning.py -d MNIST -m vae -a INCRES
 ```
 
 to perform spectral clustering and INCRES clustering method on MNIST. The package will detect whether to perform clustering or semi-supervised learning based on the choice of algorithm provided with the -a flag.
@@ -78,7 +78,7 @@ The flag -m controls the label rate; the command above uses 1,2,3,4, and 5, labe
 
 ## Nearest neighbor data
 
-All datasets have been preprocessed with a feature transformation followed by a k-nearest neighbor search. The k-nearest neighbor information is stored in the subdirectory kNNData/, and this data is loaded by main.py to construct a weight matrix for the graph. This allows the user flexibility in the construction of the graph, and removes the need to constantly recompute the k-nearest neighbors, which is computationally expensive.
+All datasets have been preprocessed with a feature transformation followed by a k-nearest neighbor search. The k-nearest neighbor information is stored in the subdirectory kNNData/, and this data is loaded by graphlearning.py to construct a weight matrix for the graph. This allows the user flexibility in the construction of the graph, and removes the need to constantly recompute the k-nearest neighbors, which is computationally expensive.
 
 In particular, the raw data from which the kNN data is computed is not provided in github, due to file size restrictions. If needed, the user can download the raw data
 
@@ -100,8 +100,8 @@ The deep learning-based feature transformations (e.g., variational autoencoder (
 The accuracy results for each trial are saved to .csv files in the subdirectory Results/. The package has built-in functions to easily create plots and LaTeX tables of accuracy scores. To run experiments comparing Laplace and Poisson learning and generate accuracy plots and tables, run
 
 ```
-python main.py -d MNIST -m vae -a Laplace -t 10
-python main.py -d MNIST -m vae -a Poisson -t 10
+python graphlearning.py -d MNIST -m vae -a Laplace -t 10
+python graphlearning.py -d MNIST -m vae -a Poisson -t 10
 python plot.py
 python table.py
 ```
