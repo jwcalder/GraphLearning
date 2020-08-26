@@ -107,9 +107,10 @@ static PyObject* dijkstra(PyObject* self, PyObject* args)
    PyArrayObject *K_array;
    PyArrayObject *WV_array;
    PyArrayObject *I_array;
+   PyArrayObject *g_array;
 
    /*  parse arguments */
-   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!d", &PyArray_Type, &d_array, &PyArray_Type, &l_array, &PyArray_Type, &WI_array, &PyArray_Type, &K_array, &PyArray_Type, &WV_array, &PyArray_Type, &I_array,  &progd))
+   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!d", &PyArray_Type, &d_array, &PyArray_Type, &l_array, &PyArray_Type, &WI_array, &PyArray_Type, &K_array, &PyArray_Type, &WV_array, &PyArray_Type, &I_array, &PyArray_Type, &g_array, &progd))
       return NULL;
 
    npy_intp *dim =  PyArray_DIMS(d_array);
@@ -125,10 +126,11 @@ static PyObject* dijkstra(PyObject* self, PyObject* args)
    int *K = (int *) PyArray_DATA(K_array);
    double *WV = (double *) PyArray_DATA(WV_array);
    int *I = (int *) PyArray_DATA(I_array);
+   double *g = (double *) PyArray_DATA(g_array);
    bool prog = (bool)progd;
 
    //Call main function from C code
-   dijkstra_main(d,l,WI,K,WV,I,prog,n,M,k);
+   dijkstra_main(d,l,WI,K,WV,I,g,prog,n,M,k);
 
    Py_INCREF(Py_None);
    return Py_None;
