@@ -16,14 +16,8 @@ import scipy.sparse.linalg as splinalg
 import scipy.sparse.csgraph as csgraph
 import sklearn.cluster as cluster
 from sklearn.decomposition import PCA
-import sys
-import getopt
-import time
-import csv
-import torch
-import os
+import sys, getopt, time, csv, torch, os, multiprocessing
 from joblib import Parallel, delayed
-import multiprocessing
 
 clustering_algorithms = ['incres','spectral','spectralshimalik','spectralngjordanweiss']
 
@@ -653,10 +647,9 @@ def boundary_points(X,k,I=None,J=None,D=None):
     #Boundary test
     Y = np.swapaxes(X[J],0,1)*nu
     Y = np.sum(Y,axis=2) 
-    Y = Y - Y[0,:]
-    Y = np.min(Y[1:,:],axis=0)
+    Y = Y[0,:] - Y
+    Y = np.max(Y[1:,:],axis=0)
     
-    #return (3/2)*Y/D[:,k-1]
     return Y
 
 
@@ -763,6 +756,23 @@ def constrained_solve(L,I,g,f=None,x0=None,tol=1e-10):
 def rand(n,d):
     return random.rand(n,d)
 
+#Returns n random points in unit ball in R^d
+def rand_ball(n,d):
+
+    N = 0
+    X = np.zeros((1,d))
+    while X.shape[0] <= n:
+
+        Y = 2*rand(n,d) - 1
+        I = np.sum(Y*Y,axis=1) < 1
+        Y = Y[I,:]
+        X = np.vstack((X,Y))
+
+
+    X = X[1:(n+1)]
+    return X
+
+
 def randn(n,d):
     X = np.zeros((n,d))
     for i in range(d):
@@ -794,9 +804,42 @@ def bean_data(n,h):
 
     return X
 
+    
+def mesh(X):
+    T = spatial.Delaunay(X[:,:2]);
+    return T.simplices
+
+def box_mesh(X,u=None):
+
+    n = X.shape[0]
+    d = X.shape[1]
+    if d > 2:
+        X = X[:,0:2]
+
+    x1 = X[:,0].min()
+    x2 = X[:,0].max()
+    y1 = X[:,1].min()
+    y2 = X[:,1].max()
+    corners = np.array([[x1,y1],[x2,y2],[x1,y2],[x2,y1]])
+    X = np.append(X,corners,axis=0)
+
+    Tri = mesh(X)
+    
+    if u is not None:
+        u = np.append(u,[0,0,0,0])
+        for i in range(n,n+4):
+            I = (Tri[:,0] == i) | (Tri[:,1] == i) | (Tri[:,2] == i)
+            nn_tri = Tri[I,:].flatten()
+            nn_tri = np.unique(nn_tri[nn_tri < n])
+            #u[i] = np.mean(u[nn_tri])
+            u[i] = np.max(u[nn_tri])
+
+        return X,Tri,u
+    else:
+        return X,Tri
 
 #Triangulation of domain
-def mesh(X):
+def improved_mesh(X):
 
     n = X.shape[0]
     d = X.shape[1]
@@ -836,12 +879,12 @@ def mesh(X):
 
     return Tri
 
-#def plot(X,u):
-#    Tri = mesh(X)
-#
-#    import mayavi.mlab as mlab
-#    mlab.triangular_mesh(X[:,0],X[:,1],u,Tri)
-#    mlab.view(azimuth=-45,elevation=60)
+def plot(X,u):
+    Tri = mesh(X)
+
+    import mayavi.mlab as mlab
+    mlab.triangular_mesh(X[:,0],X[:,1],u,Tri)
+    mlab.view(azimuth=-45,elevation=60)
 
 #Laplace learning
 #Zhu, Xiaojin, Zoubin Ghahramani, and John D. Lafferty. "Semi-supervised learning using gaussian fields and harmonic functions." Proceedings of the 20th International conference on Machine learning (ICML-03). 2003.
@@ -2047,53 +2090,112 @@ def stencil_solver(ui,u,w=None):
     return t
     #return np.min(u) + 1
 
-#Solve a general HJ equation with fast marching
-def HJsolver(WI,WV,K,I,g,n):
+#C code version of dijkstra
+def cDijkstra(W,I,g,WI=None,WJ=None,K=None):
 
+    n = W.shape[0]
     k = len(I)
     u = np.ones((n,))*1e10          #HJ Solver
-
-    #Initialization
-    s = 0                           #Size of heap
-    h = -np.ones((n+1,),dtype=int)  #Active points heap (indices of active points)
-    A = np.zeros((n,),dtype=bool)   #Active flag
-    p = -np.ones((n,),dtype=int)    #Pointer back to heap
-    V = np.zeros((n,),dtype=bool)   #Finalized flag
     l = -np.ones((n,),dtype=int)    #Index of closest label
 
-    #Build active points heap and set distance = 0 for initial points
-    for i in range(k):
-        s = PushHeap(u,h,s,p,I[i])
-        u[I[i]] = g[i]      #Initialize distance to zero
-        A[I[i]] = True   #Set active flag to true
-        l[I[i]] = I[i]   #Set index of closest label
-    
-    #Dijkstra's algorithm 
-    while s > 0:
-        i,s = PopHeap(u,h,s,p) #Pop smallest element off of heap
+    if (WI == None) or (WJ == None) or (K==None):
+        #Reformat weight matrix W into form more useful for Dijkstra
+        WI,WJ,WV = sparse.find(W)
+        K = np.array((WJ[1:] - WJ[:-1]).nonzero()) + 1
+        K = np.append(0,np.append(K,len(WJ)))
 
-        #Finalize this point
-        V[i] = True  #Mark as finalized
-        A[i] = False #Set active flag to false
+    try:  #Try to use fast C version, if compiled
 
-        #Update neighbors
-        for j in WI[K[i]:K[i+1]]:
-            if j != i and V[j] == False:
-                nn_ind = WI[K[j]:K[j+1]]
-                w_vals = WV[K[j]:K[j+1]]
-                u_vals = u[nn_ind]
-                u_tmp = stencil_solver(u[j],u_vals,w=w_vals)
-                if A[j]:  #If j is already active
-                    if u_tmp < u[j]: #Need to update heap
+        import cmodules.cgraphpy as cgp
+
+        #Type casting and memory blocking
+        u = np.ascontiguousarray(u,dtype=np.float64)
+        l = np.ascontiguousarray(l,dtype=np.int32)
+        WI = np.ascontiguousarray(WI,dtype=np.int32)
+        WV = np.ascontiguousarray(WV,dtype=np.float64)
+        K = np.ascontiguousarray(K,dtype=np.int32)
+        I = np.ascontiguousarray(I,dtype=np.int32)
+        g = np.ascontiguousarray(g,dtype=np.float64)
+
+        cgp.dijkstra(u,l,WI,K,WV,I,g,1.0)
+    except:
+        print("You need to compile the cmodules!")
+        sys.exit(2)
+
+    return u
+
+#Solve a general HJ equation with fast marching
+def HJsolver(W,I,g,WI=None,WJ=None,K=None,p=1):
+
+    n = W.shape[0]
+    k = len(I)
+    u = np.ones((n,))*1e10          #HJ Solver
+    l = -np.ones((n,),dtype=int)    #Index of closest label
+
+    if (WI == None) or (WJ == None) or (K==None):
+        #Reformat weight matrix W into form more useful for Dijkstra
+        WI,WJ,WV = sparse.find(W)
+        K = np.array((WJ[1:] - WJ[:-1]).nonzero()) + 1
+        K = np.append(0,np.append(K,len(WJ)))
+
+    try:  #Try to use fast C version, if compiled
+
+        import cmodules.cgraphpy as cgp
+
+        #Type casting and memory blocking
+        u = np.ascontiguousarray(u,dtype=np.float64)
+        l = np.ascontiguousarray(l,dtype=np.int32)
+        WI = np.ascontiguousarray(WI,dtype=np.int32)
+        WV = np.ascontiguousarray(WV,dtype=np.float64)
+        K = np.ascontiguousarray(K,dtype=np.int32)
+        I = np.ascontiguousarray(I,dtype=np.int32)
+        g = np.ascontiguousarray(g,dtype=np.int32)
+
+        cgp.HJsolver(u,l,WI,K,WV,I,g,1.0,p,0.0)
+
+    except:
+
+        #Initialization
+        s = 0                           #Size of heap
+        h = -np.ones((n+1,),dtype=int)  #Active points heap (indices of active points)
+        A = np.zeros((n,),dtype=bool)   #Active flag
+        p = -np.ones((n,),dtype=int)    #Pointer back to heap
+        V = np.zeros((n,),dtype=bool)   #Finalized flag
+        l = -np.ones((n,),dtype=int)    #Index of closest label
+
+        #Build active points heap and set distance = 0 for initial points
+        for i in range(k):
+            s = PushHeap(u,h,s,p,I[i])
+            u[I[i]] = g[i]      #Initialize distance to zero
+            A[I[i]] = True   #Set active flag to true
+            l[I[i]] = I[i]   #Set index of closest label
+        
+        #Dijkstra's algorithm 
+        while s > 0:
+            i,s = PopHeap(u,h,s,p) #Pop smallest element off of heap
+
+            #Finalize this point
+            V[i] = True  #Mark as finalized
+            A[i] = False #Set active flag to false
+
+            #Update neighbors (the code below is wrong: compare against C sometime)
+            for j in WI[K[i]:K[i+1]]:
+                if j != i and V[j] == False:
+                    nn_ind = WI[K[j]:K[j+1]]
+                    w_vals = WV[K[j]:K[j+1]]
+                    u_vals = u[nn_ind]
+                    u_tmp = stencil_solver(u[j],u_vals,w=w_vals)
+                    if A[j]:  #If j is already active
+                        if u_tmp < u[j]: #Need to update heap
+                            u[j] = u_tmp
+                            SiftUp(u,h,s,p,p[j])
+                            l[j] = l[i]
+                    else: #If j is not active
+                        #Add to heap and initialize distance, active flag, and label index
+                        s = PushHeap(u,h,s,p,j)
                         u[j] = u_tmp
-                        SiftUp(u,h,s,p,p[j])
+                        A[j] = True  
                         l[j] = l[i]
-                else: #If j is not active
-                    #Add to heap and initialize distance, active flag, and label index
-                    s = PushHeap(u,h,s,p,j)
-                    u[j] = u_tmp
-                    A[j] = True  
-                    l[j] = l[i]
 
     return u
 
@@ -2143,7 +2245,7 @@ def eikonalSSL(W,I,g,p=2,beta=None):
             cgp.HJsolver(d,l,WI,K,WV,ind,lab,1.0,p,0.0)
             u[i,:] = -d
         else:
-            u[i,:] = -HJsolver(WI,WV,K,ind,lab,n)
+            u[i,:] = -HJsolver(W,ind,lab,WI=WI,WV=WV,K=K,p=p)
         
 
     if beta is not None:
@@ -2177,8 +2279,9 @@ def nearestneighbor(W,I,g):
         WV = np.ascontiguousarray(WV,dtype=np.float64)
         K = np.ascontiguousarray(K,dtype=np.int32)
         I = np.ascontiguousarray(I,dtype=np.int32)
+        init = np.ascontiguousarray(np.zeros_like(I),dtype=np.float64)
 
-        cgp.dijkstra(d,l,WI,K,WV,I,1.0)
+        cgp.dijkstra(d,l,WI,K,WV,I,init,1.0)
         
     except: #Use python version, which is slower
 
@@ -2192,10 +2295,10 @@ def nearestneighbor(W,I,g):
         
         #Build active points heap and set distance = 0 for initial points
         for i in range(k):
-            s = PushHeap(d,h,s,p,I[i])
             d[I[i]] = 0      #Initialize distance to zero
             A[I[i]] = True   #Set active flag to true
             l[I[i]] = I[i]   #Set index of closest label
+            s = PushHeap(d,h,s,p,I[i])
         
         #Dijkstra's algorithm 
         while s > 0:
@@ -2218,10 +2321,10 @@ def nearestneighbor(W,I,g):
                             l[j] = l[i]
                     else: #If j is not active
                         #Add to heap and initialize distance, active flag, and label index
-                        s = PushHeap(d,h,s,p,j)
                         d[j] = d[i] + WV[jj]
                         A[j] = True  
                         l[j] = l[i]
+                        s = PushHeap(d,h,s,p,j)
 
     #Set labels based on nearest neighbor
     u = np.zeros((n,))
