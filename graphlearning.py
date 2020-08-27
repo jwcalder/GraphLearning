@@ -6,6 +6,7 @@ See README.md file for usage.
 Author: Jeff Calder, 2020
 '''
 import numpy as np
+import datetime
 import matplotlib.pyplot as plt
 import matplotlib 
 import scipy.spatial as spatial
