@@ -18,7 +18,7 @@ m = 5 #5 labels per class
 ind = gl.randomize_labels(L,m)  #indices of labeled points
 
 #Semi-supervised learning 
-l = gl.graph_ssl(W,ind,L[ind],method='laplace')
+l = gl.graph_ssl(W,ind,L[ind],method='poisson')
 
 #Compute accuracy
 acc = gl.accuracy(l,L,m)   

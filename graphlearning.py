@@ -313,6 +313,23 @@ def degree_matrix(W,p=1):
 
     return D.tocsr()
 
+#Construct robin boundary condition matrix
+def robin_bc_matrix(X,nu,eps,gamma):
+
+    n = X.shape[0]
+    Xtree = spatial.cKDTree(X)
+    _,nn_ind = Xtree.query(X + eps*nu)
+    #nn_dist = np.linalg.norm(X - X[nn_ind,:],axis=1)
+    nn_dist = eps*np.ones((n,))
+
+    #Robin matrix
+    A = sparse.spdiags(gamma + (1-gamma)/nn_dist,0,n,n)
+    B = sparse.coo_matrix(((1-gamma)/nn_dist, (range(n),nn_ind)),shape=(n,n))
+    R = (A - B).tocsr()
+
+    return R
+
+
 #Laplace matrix
 #W = weight matrix
 #norm = type of normalization
@@ -407,7 +424,7 @@ def knnsearch(X,k):
     n = X.shape[0]
     Xtree = spatial.cKDTree(X)
     D, J = Xtree.query(X,k=k)
-    I = np.ones((n,k))*J[:,0][:,None]
+    I = np.ones((n,k),dtype=int)*J[:,0][:,None]
 
     return I,J,D
 
@@ -618,7 +635,7 @@ def weight_matrix(I,J,D,k,f=exp_weight,symmetrize=True):
 
 #Compute boundary points
 #k = number of neighbors to use
-def boundary_points(X,k,I=None,J=None,D=None):
+def boundary_points(X,k,I=None,J=None,D=None,ReturnNormals=False):
 
     if (I is None) or (J is None) or (D is None):
         n = X.shape[0]
@@ -651,7 +668,10 @@ def boundary_points(X,k,I=None,J=None,D=None):
     Y = Y[0,:] - Y
     Y = np.max(Y[1:,:],axis=0)
     
-    return Y
+    if ReturnNormals:
+        return Y,nu
+    else:
+        return Y
 
 
 #Construct k-nn sparse distance matrix
@@ -662,6 +682,33 @@ def knn_weight_matrix(X,k,f=exp_weight):
     W = weight_matrix(I,J,D,k,f=f)
    
     return W
+
+#Solves Lx=f subject to Rx=g at ind points
+def gmres_bc_solve(L,f,R,g,ind):
+
+    #Mix matrices based on boundary points
+    A = L.copy()
+    A = A.tolil()
+    A[ind,:] = R[ind,:]
+    A = A.tocsr()
+
+    #Right hand side
+    b = f.copy()
+    b[ind] = g[ind]
+
+    #Preconditioner
+    m = A.shape[0]
+    M = A.diagonal()
+    M = sparse.spdiags(1/M,0,m,m).tocsr()
+
+    #GMRES solver
+    #start_time = time.time()
+    u,info = sparse.linalg.gmres(A,b,M=M)
+    #print("--- %s seconds ---" % (time.time() - start_time))
+
+    #print('gmres_err = %f'%np.max(np.absolute(A*u-b)))
+
+    return u
 
 #Poisson solve
 #Solves Lu = f with preconditioned conjugate gradient
@@ -832,8 +879,8 @@ def box_mesh(X,u=None):
             I = (Tri[:,0] == i) | (Tri[:,1] == i) | (Tri[:,2] == i)
             nn_tri = Tri[I,:].flatten()
             nn_tri = np.unique(nn_tri[nn_tri < n])
-            #u[i] = np.mean(u[nn_tri])
-            u[i] = np.max(u[nn_tri])
+            u[i] = np.mean(u[nn_tri])
+            #u[i] = np.max(u[nn_tri])
 
         return X,Tri,u
     else:
@@ -2152,7 +2199,7 @@ def HJsolver(W,I,g,WI=None,WJ=None,K=None,p=1):
         I = np.ascontiguousarray(I,dtype=np.int32)
         g = np.ascontiguousarray(g,dtype=np.int32)
 
-        cgp.HJsolver(u,l,WI,K,WV,I,g,1.0,p,0.0)
+        cgp.HJsolver(u,l,WI,K,WV,I,g,1.0,p,1.0)
 
     except:
 
@@ -2378,6 +2425,10 @@ def spectral_embedding(W,k,method='NgJordanWeiss'):
 
     return vec
 
+def kmeans(X,k):
+    KM = cluster.KMeans(n_clusters=k).fit(X)
+    return KM.labels_
+
 #Spectral Clustering
 def spectral_cluster(W,k,method='NgJordanWeiss',extra_dim=0):
 
@@ -2435,6 +2486,14 @@ def incres_cluster(W,k,speed,T,labels):
 
     return u
 
+#Check if graph is connected
+def isconnected(W):
+    num_comp,comp = csgraph.connected_components(W)
+    if num_comp == 1:
+        return True
+    else:
+        return False
+
 #Graph-based clustering
 #W = sparse weight matrix describing graph
 #method = SSL method
@@ -2447,10 +2506,9 @@ def graph_clustering(W,k,true_labels=None,method="incres",speed=5,T=100,extra_di
     W = (W + W.transpose())/2
 
     #Check if connected
-    num_comp,comp = csgraph.connected_components(W)
-    if num_comp != 1:
+    if not isconnected(W):
         print('Warning: Graph is not connected!')
-
+    
     #Clustering
     if method=="incres":
         labels = incres_cluster(W,k,speed,T,true_labels)
@@ -2465,6 +2523,7 @@ def graph_clustering(W,k,true_labels=None,method="incres",speed=5,T=100,extra_di
         sys.exit()
 
     return labels
+
 
 #Graph-based semi-supervised learning
 #W = sparse weight matrix describing graph
@@ -2488,9 +2547,7 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
     if D is not None:
         D = sparse_max(D,D.transpose())
 
-    #Check if connected
-    num_comp,comp = csgraph.connected_components(W)
-    if num_comp != 1:
+    if not isconnected(W):
         print('Warning: Graph is not connected!')
     
     #One shot methods
@@ -2541,8 +2598,7 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
         u = np.zeros((k,n))
         i = 0
         for l in np.unique(g):
-            #Convert to +1/-1 labels
-            h = 2*(g==l)-1 
+            h = g==l 
 
             #Solve binary classification problem
             if method=="laplace":
