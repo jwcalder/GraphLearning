@@ -2680,10 +2680,10 @@ def accuracy_statistics(filename):
 #Makes an accuracy table to be included in LaTeX documents
 #dataset = name of dataset
 #ssl_methods = list of names of methods to compare
-def accuracy_table_icml(dataset,ssl_method_list,legend_list,num_of_classes,testerror=False,savefile='tables.tex',title='',quantile=False,append=False):
+def accuracy_table_icml(dataset,ssl_method_list,legend_list,num_of_classes,testerror=False,savefile='tables.tex',title='',quantile=False,append=False,directory='Results',fontsize='small',small_caps=True,two_column=True):
 
     #Retrieve number of different label rates m
-    accfile = "Results/"+dataset+"_"+ssl_method_list[0]+"_accuracy.csv"
+    accfile = directory+"/"+dataset+"_"+ssl_method_list[0]+"_accuracy.csv"
     acc,stddev,N,quant,num_trials = accuracy_statistics(accfile)
     m = len(N)
 
@@ -2692,7 +2692,8 @@ def accuracy_table_icml(dataset,ssl_method_list,legend_list,num_of_classes,teste
     best_score = [0]*m
     i=0
     for ssl_method in ssl_method_list:
-        accfile = "Results/"+dataset+"_"+ssl_method+"_accuracy.csv"
+
+        accfile = directory+"/"+dataset+"_"+ssl_method+"_accuracy.csv"
         acc,stddev,N,quant,num_trials = accuracy_statistics(accfile)
         if quantile:
             acc = quant
@@ -2717,15 +2718,19 @@ def accuracy_table_icml(dataset,ssl_method_list,legend_list,num_of_classes,teste
         f.write("\\begin{document}\n")
 
     f.write("\n\n\n")
-    f.write("\\begin{table*}[t]\n")
+    if two_column:
+        f.write("\\begin{table*}[t!]\n")
+    else:
+        f.write("\\begin{table}[t!]\n")
     f.write("\\vspace{-3mm}\n")
-    f.write("\\caption{"+title+": Average accuracy scores over %d trials with standard deviation in brackets.}\n"%num_trials)
+    f.write("\\caption{"+title+": Average (standard deviation) classification accuracy over %d trials.}\n"%num_trials)
     f.write("\\vspace{-3mm}\n")
     f.write("\\label{tab:"+title+"}\n")
     f.write("\\vskip 0.15in\n")
     f.write("\\begin{center}\n")
-    f.write("\\begin{small}\n")
-    f.write("\\begin{sc}\n")
+    f.write("\\begin{"+fontsize+"}\n")
+    if small_caps:
+        f.write("\\begin{sc}\n")
     f.write("\\begin{tabular}{l")
     for i in range(m):
         f.write("l")
@@ -2739,23 +2744,29 @@ def accuracy_table_icml(dataset,ssl_method_list,legend_list,num_of_classes,teste
     i = 0
     for ssl_method in ssl_method_list:
         f.write(legend_list[i].ljust(15))
-        accfile = "Results/"+dataset+"_"+ssl_method+"_accuracy.csv"
+        accfile = directory+"/"+dataset+"_"+ssl_method+"_accuracy.csv"
         acc,stddev,N,quant,num_trials = accuracy_statistics(accfile)
         for j in range(m):
             if best[j] == i: 
                 f.write("&{\\bf %.1f"%acc[j]+" (%.1f)}"%stddev[j])
+                #f.write("&${\\bf %.1f"%acc[j]+"\\pm %.1f}$"%stddev[j])
             else:
                 f.write("&%.1f"%acc[j]+" (%.1f)      "%stddev[j])
+                #f.write("&$%.1f"%acc[j]+"\\pm %.1f$     "%stddev[j])
         f.write("\\\\\n")
         i+=1
 
     f.write("\\bottomrule\n")
     f.write("\\end{tabular}\n")
-    f.write("\\end{sc}\n")
-    f.write("\\end{small}\n")
+    if small_caps:
+        f.write("\\end{sc}\n")
+    f.write("\\end{"+fontsize+"}\n")
     f.write("\\end{center}\n")
     f.write("\\vskip -0.1in\n")
-    f.write("\\end{table*}")
+    if two_column:
+        f.write("\\end{table*}")
+    else:
+        f.write("\\end{table}")
     f.write("\n\n\n")
     f.write("\\end{document}\n")
     f.close()
