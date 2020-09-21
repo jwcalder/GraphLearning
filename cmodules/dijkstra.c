@@ -206,7 +206,7 @@ double stencil_solver(double ui, double *u, double *w, int n, double p){
       max_val = MAX(u[i],max_val);
       max_w = MAX(w[i],max_w);
    }
-   //max_w=1;
+   max_w=1;
 
    //Initial bounds for bisection
    double a = min_val;
@@ -264,11 +264,11 @@ void HJsolver_fmm(double *d, int *l, int *WI, int *K, double *WV, int *I, int *g
 
    //Build active points heap and set distance = 0 for initial points
    for(i=0; i<k; i++){
-      PushHeap(d,h,s,p,I[i]);
       s++;
       d[I[i]] = g[i];   //Initialize distance to zero
       A[I[i]] = 1;      //Set active flag to true
       l[I[i]] = I[i];   //Set index of closest label
+      PushHeap(d,h,s,p,I[i]);
    }
    
    int num_nn;
@@ -301,16 +301,16 @@ void HJsolver_fmm(double *d, int *l, int *WI, int *K, double *WV, int *I, int *g
             if(A[j]){  //If j is already active
                if(tmp < d[j]){ //Need to update heap
                   d[j] = tmp;
-                  SiftUp(d,h,s,p,p[j]);
                   l[j] = l[i];
+                  SiftUp(d,h,s,p,p[j]);
                }
             }else{ //If j is not active
                //Add to heap and initialize distance, active flag, and label index
-               PushHeap(d,h,s,p,j);
                s++;
                d[j] = tmp;
                A[j] = 1;  
                l[j] = l[i];
+               PushHeap(d,h,s,p,j);
             }
          }
       }
@@ -338,7 +338,7 @@ void HJsolver_fmm(double *d, int *l, int *WI, int *K, double *WV, int *I, int *g
          f+=v;
       }
 
-      //max_w=1;
+      max_w=1;
       if(Blah[i]==0){
          if(ABS(f - max_w) > 1e-2){
             printf("diff=%f\n",ABS(f - max_w));
@@ -408,7 +408,7 @@ void HJsolver_jacobi(double *d, int *l, int *WI, int *K, double *WV, int *I, int
                   v = pow(v,p_val);
                f+=v;
             }
-            //max_w=1;
+            max_w=1;
             err = MAX(ABS(f-max_w),err);
          }
       }
