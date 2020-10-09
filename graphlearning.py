@@ -635,12 +635,58 @@ def weight_matrix(I,J,D,k,f=exp_weight,symmetrize=True):
 
 #Compute boundary points
 #k = number of neighbors to use
-def boundary_points(X,k,I=None,J=None,D=None,ReturnNormals=False):
+def boundary_points_new(X,k,I=None,J=None,D=None,ReturnNormals=False):
 
     if (I is None) or (J is None) or (D is None):
         n = X.shape[0]
         d = X.shape[1]
-        if d == 2:
+        if d <= 5:
+            I,J,D = knnsearch(X,k)
+        else:
+            I,J,D = knnsearch_annoy(X,k)
+    
+    #Restrict I,J,D to k neighbors
+    k = np.minimum(I.shape[1],k)
+    n = X.shape[0]
+    I = I[:,:k]
+    J = J[:,:k]
+    D = D[:,:k]
+
+    W = weight_matrix(I,J,D,k,f=lambda x : np.ones_like(x),symmetrize=False)
+    L = graph_laplacian(W)
+    
+    #Estimates of normal vectors
+    nu = -L*X
+    nu = np.transpose(nu)
+    norms = np.sqrt(np.sum(nu*nu,axis=0))
+    nu = nu/norms
+    nu = np.transpose(nu)
+
+    print(nu.shape)
+
+    #Boundary test
+    NN = X[J]
+    NN = np.swapaxes(NN[:,1:,:],0,1) #This is kxnxd
+    V = NN - X #This is x^i-x^0 kxnxd array
+    NN_nu = nu[J]
+    W = (np.swapaxes(NN_nu[:,1:,:],0,1) + nu)/2
+    xd = np.sum(V*W,axis=2) #dist to boundary
+    Y = np.max(-xd,axis=0)
+    
+    if ReturnNormals:
+        return Y,nu
+    else:
+        return Y
+
+
+#Compute boundary points
+#k = number of neighbors to use
+def boundary_points(X,k,I=None,J=None,D=None,ReturnNormals=False,R=np.inf):
+
+    if (I is None) or (J is None) or (D is None):
+        n = X.shape[0]
+        d = X.shape[1]
+        if d <= 5:
             I,J,D = knnsearch(X,k)
         else:
             I,J,D = knnsearch_annoy(X,k)
@@ -663,10 +709,12 @@ def boundary_points(X,k,I=None,J=None,D=None,ReturnNormals=False):
     nu = np.transpose(nu)
 
     #Boundary test
-    Y = np.swapaxes(X[J],0,1)*nu
-    Y = np.sum(Y,axis=2) 
-    Y = Y[0,:] - Y
-    Y = np.max(Y[1:,:],axis=0)
+    NN = X[J]
+    NN = np.swapaxes(NN[:,1:,:],0,1) #This is kxnxd
+    V = NN - X #This is x^i-x^0 kxnxd array
+    xd = np.sum(V*nu,axis=2) #xd coordinate (kxn)
+    sqdist = np.sum(V*V,axis=2)
+    Y = np.max((xd*xd - sqdist)/(2*R) - xd,axis=0)
     
     if ReturnNormals:
         return Y,nu
@@ -803,6 +851,24 @@ def constrained_solve(L,I,g,f=None,x0=None,tol=1e-10):
 #Returns n random points in R^d
 def rand(n,d):
     return random.rand(n,d)
+
+#Returns n random points in annulus (r1,r2)
+def rand_annulus(n,d,r1,r2):
+
+    N = 0
+    X = np.zeros((1,d))
+    while X.shape[0] <= n:
+
+        Y = r2*(2*rand(n,d) - 1)
+        dist2 = np.sum(Y*Y,axis=1) 
+        I = (dist2 < r2*r2)&(dist2 > r1*r1)
+        Y = Y[I,:]
+        X = np.vstack((X,Y))
+
+
+    X = X[1:(n+1)]
+    return X
+
 
 #Returns n random points in unit ball in R^d
 def rand_ball(n,d):
@@ -1781,7 +1847,9 @@ def poissonMBO_volume(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False,
     b[I,:] = b[I,:]-c
     b = np.transpose(b)
 
-    L = graph_laplacian(W,norm='none')
+    D = degree_matrix(W)
+    #L = graph_laplacian(W,norm='none')
+    L = D - W.transpose()
 
     #Initialize u via Poisson learning
     u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda, beta=beta)
@@ -1863,16 +1931,21 @@ def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=Non
     b[I,:] = b[I,:]-c
 
     #Setup matrices
-    L = graph_laplacian(W,norm='none')
     D = degree_matrix(W + 1e-10*sparse.identity(n),p=-1)
-    P = sparse.identity(n) - D*L
+    #L = graph_laplacian(W,norm='none')
+    #P = sparse.identity(n) - D*L #Line below is equivalent when W symmetric
+    P = D*W.transpose()
     Db = D*b
 
     v = np.max(Kg,axis=0)
     v = v/np.sum(v)
     vinf = degrees(W)/np.sum(degrees(W))
-    RW = W*D
+    RW = W.transpose()*D
     u = np.zeros((n,k))
+
+    #vals, vec = sparse.linalg.eigs(RW,k=1,which='LM')
+    #vinf = np.absolute(vec.flatten())
+    #vinf = vinf/np.sum(vinf)
 
     #Number of iterations
     T = 0
@@ -1883,7 +1956,7 @@ def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=Non
         Dbt = torch.from_numpy(Db).float().cuda()
 
         #start_time = time.time()
-        while T < min_iter or np.max(np.absolute(v-vinf)) > 1/n:
+        while (T < min_iter or np.max(np.absolute(v-vinf)) > 1/n) and (T < 1000):
             ut = torch.sparse.addmm(Dbt,Pt,ut)
             v = RW*v
             T = T + 1
@@ -1895,7 +1968,8 @@ def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=Non
     else: #Use CPU
 
         #start_time = time.time()
-        while T < min_iter or np.max(np.absolute(v-vinf)) > 1/n:
+        while (T < min_iter or np.max(np.absolute(v-vinf)) > 1/n) and (T < 1000):
+            uold = u.copy()
             u = Db + P*u
             v = RW*v
             T = T + 1
@@ -2531,7 +2605,7 @@ def graph_clustering(W,k,true_labels=None,method="incres",speed=5,T=100,extra_di
 #g = values of labels
 #method = SSL method
 #   Options: laplace, poisson, poisson_nodeg, wnll, properlyweighted, plaplace, randomwalk
-def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,eigvals=None,eigvecs=None,dataset=None,T=0,use_cuda=False,return_vector=False,poisson_training_balance=True):
+def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,eigvals=None,eigvecs=None,dataset=None,T=0,use_cuda=False,return_vector=False,poisson_training_balance=True,symmetrize=True):
 
     one_shot_methods = ["mbo","poisson","poissonbalanced","poissonvolume","poissonmbo_volume","poissonmbo","poissonl1","nearestneighbor","poissonmbobalanced","volumembo","poissonvolumembo","dynamiclabelpropagation","sparselabelpropagation","centeredkernel","eikonal"]
 
@@ -2543,9 +2617,10 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
         beta = np.ones((len(np.unique(g)),))
 
     #Symmetrize D,W, if not already symmetric
-    W = (W + W.transpose())/2
-    if D is not None:
-        D = sparse_max(D,D.transpose())
+    if symmetrize:
+        W = (W + W.transpose())/2
+        if D is not None:
+            D = sparse_max(D,D.transpose())
 
     if not isconnected(W):
         print('Warning: Graph is not connected!')
@@ -2949,9 +3024,10 @@ def default_extra_dim(): return 0
 def default_volume_constraint(): return 0.5
 def default_verbose(): return False
 def default_poisson_training_balance(): return True
+def default_directed_graph(): return False
 
 #Main subroutine. Is calleable from other scripts as graphlearning.main(...)
-def main(dataset = default_dataset(), metric = default_metric(), algorithm = default_algorithm(), k = default_k(), t = default_t(), label_perm = default_label_perm(), p = default_p(), norm = default_norm(), use_cuda = default_use_cuda(), T = default_T(), num_cores = default_num_cores(), results = default_results(), num_classes = default_num_classes(), speed = default_speed(), num_iter = default_num_iter(), extra_dim = default_extra_dim(), volume_constraint = default_volume_constraint(), verbose = default_verbose(), poisson_training_balance = default_poisson_training_balance()):
+def main(dataset = default_dataset(), metric = default_metric(), algorithm = default_algorithm(), k = default_k(), t = default_t(), label_perm = default_label_perm(), p = default_p(), norm = default_norm(), use_cuda = default_use_cuda(), T = default_T(), num_cores = default_num_cores(), results = default_results(), num_classes = default_num_classes(), speed = default_speed(), num_iter = default_num_iter(), extra_dim = default_extra_dim(), volume_constraint = default_volume_constraint(), verbose = default_verbose(), poisson_training_balance = default_poisson_training_balance(), directed_graph = default_directed_graph()):
 
     #Load labels
     labels = load_labels(dataset)
@@ -2960,7 +3036,7 @@ def main(dataset = default_dataset(), metric = default_metric(), algorithm = def
     I,J,D = load_kNN_data(dataset,metric=metric)
 
     #Consturct weight matrix and distance matrix
-    W = weight_matrix(I,J,D,k)
+    W = weight_matrix(I,J,D,k,symmetrize=False)
     Wdist = dist_matrix(I,J,D,k)
 
     #Load label permutation (including restrictions in t)
@@ -3071,7 +3147,7 @@ def main(dataset = default_dataset(), metric = default_metric(), algorithm = def
 
             start_time = time.time()
             #Graph-based semi-supervised learning
-            u = graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,method=algorithm,epsilon=0.3,p=p,norm=norm,eigvals=eigvals,eigvecs=eigvecs,dataset=dataset,T=T,use_cuda=use_cuda,volume_mult=volume_constraint,true_labels=true_labels,poisson_training_balance=poisson_training_balance)
+            u = graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,method=algorithm,epsilon=0.3,p=p,norm=norm,eigvals=eigvals,eigvecs=eigvecs,dataset=dataset,T=T,use_cuda=use_cuda,volume_mult=volume_constraint,true_labels=true_labels,poisson_training_balance=poisson_training_balance,symmetrize = not directed_graph)
             print("--- %s seconds ---" % (time.time() - start_time))
 
             #Compute accuracy
@@ -3113,10 +3189,11 @@ if __name__ == '__main__':
     volume_constraint = default_volume_constraint()
     verbose = default_verbose()
     poisson_training_balance = default_poisson_training_balance()
+    directed_graph = default_directed_graph()
 
     #Read command line arguments
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"hd:m:k:a:p:n:v:N:s:i:x:t:cl:T:j:rbo",["dataset=","metric=","knn=","algorithm=","p=","normalization=","volume_constraint=","num_classes=","speed=","num_iter=","extra_dim=","num_trials=","cuda","label_perm=","temperature=","--num_cores=","results","verbose","poisson_training_balance"])
+        opts, args = getopt.getopt(sys.argv[1:],"hd:m:k:a:p:n:v:N:s:i:x:t:cl:T:j:rboz",["dataset=","metric=","knn=","algorithm=","p=","normalization=","volume_constraint=","num_classes=","speed=","num_iter=","extra_dim=","num_trials=","cuda","label_perm=","temperature=","num_cores=","results","verbose","poisson_training_balance","directed"])
     except getopt.GetoptError:
         print_help()
         sys.exit(2)
@@ -3162,9 +3239,11 @@ if __name__ == '__main__':
             verbose = True
         elif opt in ("-o", "--poisson_training_balance"):
             poisson_training_balance = False
+        elif opt in ("-z", "--directed"):
+            directed_graph = True
 
     #Call main subroutine
-    main(dataset=dataset, metric=metric, algorithm=algorithm, k=k, t=t, label_perm=label_perm, p=p, norm=norm, use_cuda=use_cuda, T=T, num_cores=num_cores, results=results, num_classes=num_classes, speed=speed, num_iter=num_iter, extra_dim=extra_dim, volume_constraint=volume_constraint, verbose=verbose, poisson_training_balance=poisson_training_balance)
+    main(dataset=dataset, metric=metric, algorithm=algorithm, k=k, t=t, label_perm=label_perm, p=p, norm=norm, use_cuda=use_cuda, T=T, num_cores=num_cores, results=results, num_classes=num_classes, speed=speed, num_iter=num_iter, extra_dim=extra_dim, volume_constraint=volume_constraint, verbose=verbose, poisson_training_balance=poisson_training_balance, directed_graph=directed_graph)
 
 
 
