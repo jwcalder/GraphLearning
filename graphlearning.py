@@ -994,7 +994,7 @@ def improved_mesh(X):
     return Tri
 
 def plot(X,u):
-    Tri = mesh(X)
+    Tri = improved_mesh(X)
 
     import mayavi.mlab as mlab
     mlab.triangular_mesh(X[:,0],X[:,1],u,Tri)
@@ -1227,13 +1227,34 @@ def graph_gradient(W,u,I=None,J=None,V=None):
 
     return G
 
-#Divergence of vector field F (F should be skew-symmetric)
-#F = sparse matrix representing vector field
+#Divergence of F, need not be skew symmetric
+#F = sparse matrix representing function edges of the graph
 def graph_divergence(F,W):
     
     F = F.multiply(W)
     return 2*np.squeeze(np.array(np.sum(F,axis=1)))
 
+
+#Divergence of vector field F (F should be skew-symmetric)
+#F = sparse matrix representing vector field
+def div(F,W):
+    
+    F = F - F.transpose()
+    F = F.multiply(W)
+    return np.squeeze(np.array(np.sum(F,axis=1)))/2
+
+#Gradient of function on graph (unweighted)
+#W = sparse weight matrix
+#u = function on graph
+def grad(W,u,I=None,J=None,V=None):
+
+    n = W.shape[0]
+    if I is None or J is None:
+        I,J,V = sparse.find(W)
+
+    G = sparse.coo_matrix((u[J]-u[I], (I,J)),shape=(n,n)).tocsr()
+
+    return G
 
 #Random-walk SSL 
 #Zhou, Dengyong, et al. "Learning with local and global consistency." Advances in neural information processing systems. 2004.
@@ -2952,25 +2973,83 @@ def SelectLabels(labels,permold,rank):
     return perm
 
 #PageRank algorithm
-def PageRank(W,alpha):
+def PageRank(W,alpha=0.85,v=None,tol=1e-10):
 
     n = W.shape[0]
 
-    u = np.ones((n,))
-    v = np.ones((n,))
+    u = np.ones((n,))/n
+    if v is None:
+        v = np.ones((n,))/n
 
     D = degree_matrix(W,p=-1)
-    P = np.transpose(D*W)
+    P = W.T@D
 
-    err = 1
-    while err > 1e-10:
-        w = alpha*P*u + (1-alpha)*v
+    err = tol+1
+    while err > tol:
+        w = alpha*P@u + (1-alpha)*v
         err = np.max(np.absolute(w-u))
-        u = w
-
+        u = w.copy()
 
     return u
 
+#Displays a grid of images
+def image_grid(X, n_rows=10, n_cols=10, padding=2, title=None, normalize=False, fontsize=None, transpose=True):
+#X = (n,m) array of n grayscale images, flattened to length m arrays
+#OR X = (n_rows,n_cols,m) array, in which case n_rows and n_cols are read dirctly from X
+#n_rows: number of rows in grid (optional)
+#n_cols: number of columns in grid (optional)
+#padding: space between images in grid (optional)
+#fontsize: Font size for title (optional)
+#normalize: Whether to normalize pixel intensities for viewing
+#transpose: Whether to transpose images
+    
+    #Basic dimensions
+    if X.ndim == 3:
+        n_rows = X.shape[0]
+        n_cols = X.shape[1]
+        m = X.shape[2]
+        im_width = int(np.sqrt(m))
+  
+        #Reshape
+        X = np.reshape(X,(n_rows*n_cols,im_width,im_width))
+        n = X.shape[0]
+    else:
+        n = X.shape[0]
+        m = X.shape[1]
+        im_width = int(np.sqrt(m))
+  
+        #Reshape
+        X = np.reshape(X,(n,im_width,im_width))
+  
+    if normalize:
+        X = X - X.min()
+        X = X/X.max()
+  
+    #Declare memory for large image that contains the whole grid
+    I = np.ones(((n_rows-1)*padding+n_rows*im_width,(n_cols-1)*padding+n_cols*im_width))
+  
+    #Loop over the grid, placing each image in the correct position
+    c = 0
+    for j in range(n_rows):
+        row_pos = j*(im_width+padding)
+        for i in range(n_cols):
+            col_pos = i*(im_width+padding)
+            if c < n:
+                im = X[c,:,:]
+                if transpose:
+                    im = im.T
+                I[row_pos:row_pos+im_width,col_pos:col_pos+im_width] = im
+                c += 1
+  
+    #Create a new window and plot the image
+    plt.figure(figsize=(10,10))
+    plt.imshow(I,cmap='gray')
+    plt.axis('off')
+    if title is not None:
+        if fontsize is not None:
+            plt.title(title,fontsize=fontsize)
+        else:
+            plt.title(title)
 
 #Print help
 def print_help():
