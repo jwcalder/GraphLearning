@@ -22,12 +22,12 @@ if not path.isfile('./Data/FashionMNIST_vae.npz'):
     wget.download('http://www-users.math.umn.edu/~jwcalder/FashionMNIST_vae.npz','./Data/FashionMNIST_vae.npz')
     print('\n')
 
-if not path.isfile('./Data/cifar_raw.npz'):
-    print('Downloading CIFAR raw data...')
-    wget.download('http://www-users.math.umn.edu/~jwcalder/cifar_raw.npz','./Data/cifar_raw.npz')
-    print('\n')
+#if not path.isfile('./Data/cifar_raw.npz'):
+    #print('Downloading CIFAR raw data...')
+    #wget.download('http://www-users.math.umn.edu/~jwcalder/cifar_raw.npz','./Data/cifar_raw.npz')
+    #print('\n')
 
-if not path.isfile('./Data/cifar_aet.npz'):
-    print('Downloading CIFAR aet data...')
-    wget.download('http://www-users.math.umn.edu/~jwcalder/cifar_aet.npz','./Data/cifar_aet.npz')
-    print('\n')
+#if not path.isfile('./Data/cifar_aet.npz'):
+    #print('Downloading CIFAR aet data...')
+    #wget.download('http://www-users.math.umn.edu/~jwcalder/cifar_aet.npz','./Data/cifar_aet.npz')
+    #print('\n')
