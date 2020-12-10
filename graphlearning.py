@@ -1968,8 +1968,7 @@ def onehot_labels(I,g,n):
     K[I] = g
     Kg,_ = LabelsToVec(K)
     return Kg*J
-
-
+    
 #Poisson learning, alternative version
 def poisson2(W,I,g,true_labels=None,min_iter=50):
 
@@ -1982,11 +1981,10 @@ def poisson2(W,I,g,true_labels=None,min_iter=50):
 
     #Poisson source term
     Kg = onehot_labels(I,g,n)
-    c = np.mean(Kg,axis=1)
-    b = Kg.T - c
+    b = Kg.T - np.mean(Kg,axis=1)
 
     #Setup matrices
-    D = degree_matrix(W + 1e-10*sparse.identity(n),p=-1)
+    D = degree_matrix(W,p=-1)
     P = D*W.transpose()
     Db = D*b
 
@@ -2022,7 +2020,7 @@ def poisson2(W,I,g,true_labels=None,min_iter=50):
     
     #print("Grad Desc: %d iter: %s seconds ---" % (T,time.time() - start_time))
 
-    return np.transpose(u),T
+    return u.T,T
 
 
 
@@ -2036,15 +2034,8 @@ def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=Non
     #Zero out diagonal for faster convergence
     W = diag_multiply(W,0)
 
-    #Labels to vector and correct position
-    J = np.zeros(n,)
-    K = np.ones(n,)*g[0]
-    J[I] = 1
-    K[I] = g
-    Kg,_ = LabelsToVec(K)
-    Kg = Kg*J
-
     #Poisson source term
+    Kg = onehot_labels(I,g,n)
     c = np.sum(Kg,axis=1)/len(I)
     b = np.transpose(Kg)
     b[I,:] = b[I,:]-c
@@ -2135,12 +2126,7 @@ def poissonL1(W,I,g,dataset,norm="none",lam=100,mu=1000,Nouter=30,Ninner=6,true_
     u = np.zeros((k,n))
 
     #Set initial known labels
-    J = np.zeros(n,)
-    K = np.ones(n,)*g[0]
-    J[I] = 1
-    K[I] = g
-    Kg,_ = LabelsToVec(K)
-    Kg = Kg*J
+    Kg = onehot_labels(I,g,n)
 
     #Poisson parameters
     c = np.sum(Kg,axis=1)/len(I)
