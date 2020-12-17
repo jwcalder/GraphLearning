@@ -11,6 +11,9 @@
 #include "lp_iterate.h"
 #include "mnist_benchmark.h"
 #include "dijkstra.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 static PyObject* lp_iterate(PyObject* self, PyObject* args)
 {
@@ -187,22 +190,23 @@ static PyMethodDef CGraphPyMethods[] =
    {"lp_iterate", lp_iterate, METH_VARARGS, "C Code acceleration for Lplearning"},
    {"volume_mbo", volume_mbo, METH_VARARGS, "Volume Constrained MBO"},
    {"dijkstra", dijkstra, METH_VARARGS, "Dijkstra's algorithm"},
-   {"HJsolver", HJsolver, METH_VARARGS, "Hamilton-Jacobi solver via Fast Marching"}
+   {"HJsolver", HJsolver, METH_VARARGS, "Hamilton-Jacobi solver via Fast Marching"},
+   {NULL, NULL, 0, NULL}
 };
 
 /* module initialization */
 static struct PyModuleDef cModPyDem =
 {
    PyModuleDef_HEAD_INIT,
-   "cgraphpy", "Some documentation",
+   "cgraphpy", 
+   "C code accelereation for graphlearning Python package",
    -1,
    CGraphPyMethods
 };
 
-PyMODINIT_FUNC
-PyInit_cgraphpy(void)
+PyMODINIT_FUNC PyInit_cgraphpy(void)
 {
-   import_array();
+   import_array(); //This is not in fputs
    return PyModule_Create(&cModPyDem);
 }
 
