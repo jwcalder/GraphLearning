@@ -30,6 +30,8 @@ Some parts of the package rely on C code acceleration that needs to be compiled.
 python cmodules/cgraphpy_setup.py build_ext --inplace
 ```
 
+This requires a C code compiler in your path. Only the algorithms VolumeMBO, pLaplace, and NearestNeighbor use C code acceleration. If you do not plan to use these algorithms, you can skip compiling the C code.
+
 ## Getting started with basic experiments
 
 A basic experiment comparing Laplace learning/Label propagation to Poisson learning on MNIST can be run with the commands below.
