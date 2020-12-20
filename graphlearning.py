@@ -19,6 +19,7 @@ import sklearn.cluster as cluster
 from sklearn.decomposition import PCA
 import sys, getopt, time, csv, torch, os, multiprocessing
 from joblib import Parallel, delayed
+import urllib.request
 
 clustering_algorithms = ['incres','spectral','spectralshimalik','spectralngjordanweiss']
 
@@ -43,7 +44,22 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
     if iteration == total: 
         print()
 
+def standarize_dataset_name(dataset):
+
+    if dataset.lower()=='mnist':
+        dataset='MNIST'
+    if dataset.lower()=='fashionmnist':
+        dataset='FashionMNIST'
+    if dataset.lower()=='cifar':
+        dataset='cifar'
+
+    return dataset
+
+
 def load_mbo_eig(dataset,metric,k):
+
+    #Standardize case of dataset
+    dataset = standarize_dataset_name(dataset)
 
     #Load eigenvector data if MBO selected
     try:
@@ -57,9 +73,13 @@ def load_mbo_eig(dataset,metric,k):
         print("Could not find MBOdata/"+dataset+"_"+metric+"_k%d"%k+"_spectrum.npz")
         print('You need to run ComputeEigenvectorsMBO.py first.')
         sys.exit(2)
+
     return eigvals,eigvecs
 
 def load_label_permutation(dataset,label_perm='',t='-1'):
+
+    #Standardize case of dataset
+    dataset = standarize_dataset_name(dataset)
 
     location = os.path.dirname(os.path.realpath(__file__))
     dataFile = dataset+label_perm+"_permutations.npz"
@@ -86,6 +106,9 @@ def load_label_permutation(dataset,label_perm='',t='-1'):
 
 def load_dataset(dataset,metric='L2'):
 
+    #Standardize case of dataset
+    dataset = standarize_dataset_name(dataset)
+
     #For variational autoencoder the vae data, e.g., Data/MNIST_vae.npz must exist.
     if metric[0:3]=='vae' or metric[0:3]=='aet':
         dataFile = dataset+"_"+metric+".npz"
@@ -94,17 +117,27 @@ def load_dataset(dataset,metric='L2'):
 
     location = os.path.dirname(os.path.realpath(__file__))
     dataFile_path = os.path.join(location, 'Data', dataFile)
-    #Try to Load data
+
+    #Try to Load data and/or download dataset
+    if not os.path.exists(dataFile_path):
+        urlpath = 'http://www-users.math.umn.edu/~jwcalder/'+dataFile
+        try:
+            print('Downloading '+urlpath+' to '+dataFile_path+'...')
+            urllib.request.urlretrieve(urlpath, dataFile_path)
+        except:
+            sys.exit('Error: Cannot find '+dataFile+', and could not downoad '+urlpath+'.')
     try:
         M = np.load(dataFile_path,allow_pickle=True)
         data = M['data']
     except:
-        print('Cannot find '+dataFile+'.')
-        sys.exit(2)
+        sys.exit('Error: Cannot open '+dataFile+'.')
     
     return data
 
 def load_labels(dataset):
+
+    #Standardize case of dataset
+    dataset = standarize_dataset_name(dataset)
 
     location = os.path.dirname(os.path.realpath(__file__))
     dataFile = dataset+"_labels.npz"
@@ -121,6 +154,9 @@ def load_labels(dataset):
     return labels
 
 def load_kNN_data(dataset,metric='L2'):
+
+    #Standardize case of dataset
+    dataset = standarize_dataset_name(dataset)
 
     location = os.path.dirname(os.path.realpath(__file__))
     dataFile = dataset+"_"+metric+".npz"
@@ -3193,8 +3229,17 @@ def default_directed_graph(): return False
 #Main subroutine. Is calleable from other scripts as graphlearning.main(...)
 def main(dataset = default_dataset(), metric = default_metric(), algorithm = default_algorithm(), k = default_k(), t = default_t(), label_perm = default_label_perm(), p = default_p(), norm = default_norm(), use_cuda = default_use_cuda(), T = default_T(), num_cores = default_num_cores(), results = default_results(), num_classes = default_num_classes(), speed = default_speed(), num_iter = default_num_iter(), extra_dim = default_extra_dim(), volume_constraint = default_volume_constraint(), verbose = default_verbose(), poisson_training_balance = default_poisson_training_balance(), directed_graph = default_directed_graph()):
 
+    #Standardize case of dataset
+    dataset = standarize_dataset_name(dataset)
+
     #Load labels
     labels = load_labels(dataset)
+
+    #Load raw data for properly weighted Laplacian
+    #Otherwise data is not needed, since knn data is stored
+    data = None
+    if algorithm == 'properlyweighted': 
+        data = load_dataset(dataset, metric=metric)
 
     #Load nearest neighbor data
     I,J,D = load_kNN_data(dataset,metric=metric)
@@ -3311,7 +3356,7 @@ def main(dataset = default_dataset(), metric = default_metric(), algorithm = def
 
             start_time = time.time()
             #Graph-based semi-supervised learning
-            u = graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,method=algorithm,epsilon=0.3,p=p,norm=norm,eigvals=eigvals,eigvecs=eigvecs,dataset=dataset,T=T,use_cuda=use_cuda,volume_mult=volume_constraint,true_labels=true_labels,poisson_training_balance=poisson_training_balance,symmetrize = not directed_graph)
+            u = graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,method=algorithm,epsilon=0.3,p=p,norm=norm,eigvals=eigvals,eigvecs=eigvecs,dataset=dataset,T=T,use_cuda=use_cuda,volume_mult=volume_constraint,true_labels=true_labels,poisson_training_balance=poisson_training_balance,symmetrize = not directed_graph, X=data)
             print("--- %s seconds ---" % (time.time() - start_time))
 
             #Compute accuracy
