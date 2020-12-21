@@ -69,17 +69,8 @@ print('                                                       ')
 
 
 #Load kNN data
-try:
-    M = np.load("kNNData/"+dataset+"_"+metric+".npz",allow_pickle=True)
-except:
-    print('Could not find kNNData/'+dataset+'_'+metric+'.npz')
-    print('You need to run ComputeKNN.py first.')
-    sys.exit(2)
+I,J,D = load_kNN_data(dataset,metric=metric)
 
-#Compute weight matrix and symmetrize
-I = M['I']
-J = M['J']
-D = M['D']
 if k > I.shape[1]:
     print('kNNData only has %d'%I.shape[1]+'-nearest neighbor information. Aborting...')
     sys.exit(2)

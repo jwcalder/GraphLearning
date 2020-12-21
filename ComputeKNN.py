@@ -56,20 +56,7 @@ def ComputeKNN(dataset, metric='L2', k=30, knn_method='annoy', scatter_pca_dims=
     else:
         outfile = "kNNData/"+dataset+"_"+metric+".npz"
 
-    #For variational autoencoder the vae data, e.g., Data/MNIST_vae.npz must exist.
-    if metric[0:3]=='vae' or metric[0:3]=='aet':
-        dataFile = "Data/"+dataset+"_"+metric+".npz"
-    else:
-        dataFile = "Data/"+dataset+"_raw.npz"
-
-    #Try to Load data
-    try:
-        M = np.load(dataFile,allow_pickle=True)
-    except:
-        print('Cannot find '+dataFile+'.')
-        sys.exit(2)
-
-    data = M['data']
+    data = load_dataset(dataset, metric=metric)
 
     #Apply transformations (just scatter now, but others could be included)
     if metric == 'scatter' or metric == 'scatter_pca':

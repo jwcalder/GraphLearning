@@ -20,6 +20,7 @@ from sklearn.decomposition import PCA
 import sys, getopt, time, csv, torch, os, multiprocessing
 from joblib import Parallel, delayed
 import urllib.request
+import importlib
 
 clustering_algorithms = ['incres','spectral','spectralshimalik','spectralngjordanweiss']
 
@@ -1147,6 +1148,21 @@ def properlyweighted_solve(W,I,g,X,alpha,zeta,r):
 
     return constrained_solve(L,I,g)
 
+#Tries to compile C extensions
+def compile_C_extensions():
+
+    cwd = os.getcwd()
+    os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)),'cmodules'))
+
+    if os.path.exists('cgraphpy_setup.py'):
+        os.system('python3 cgraphpy_setup.py build_ext --inplace')
+    else:
+        print('Could not compile C extensions.')
+        print('To compile, run from GraphLearning/cmodules/ the command')
+        print('       python3 cgraphpy_setup.py build_ext --inplace.')
+
+    os.chdir(cwd)
+
 #Game theoretic p-Laplace learning
 #Rios, Mauricio Flores, Jeff Calder, and Gilad Lerman. "Algorithms for $\ell_p$-based semi-supervised learning on graphs." arXiv preprint arXiv:1901.05031 (2019).
 def plaplace_solve(W,I,g,p,sol_method="SemiImplicit",norm="none"):
@@ -1194,10 +1210,11 @@ def plaplace_solve(W,I,g,p,sol_method="SemiImplicit",norm="none"):
 
     if sol_method=="GradientDescentCcode":
         try:
+            #Try to find or build C extensions
+            if importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
             import cmodules.cgraphpy as cgp
         except:
-            print("cgraphpy cmodule not found. You may just need to compile it.")
-            sys.exit()
+            sys.exit("cgraphpy cmodule not found. You may just need to compile it.")
 
         #Type casting and memory blocking
         uu = np.ascontiguousarray(uu,dtype=np.float64)
@@ -1424,10 +1441,11 @@ def poisson_volumeMBO(W,I,g,dataset,beta,T,volume_mult):
     W = diag_multiply(W,0)
 
     try:
+        #Try to find or build C extensions
+        if importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
     except:
-        print("cgraphpy cmodule not found. You may just need to compile it.")
-        sys.exit()
+        sys.exit("cgraphpy cmodule not found. You may just need to compile it.")
 
     #Solve Poisson problem and compute labels
     u,_ = poisson(W,I,g)
@@ -1466,10 +1484,11 @@ def volumeMBO(W,I,g,dataset,beta,T,volume_mult):
     W = diag_multiply(W,0)
 
     try:
+        #Try to find or build C extensions
+        if importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
     except:
-        print("cgraphpy cmodule not found. You may just need to compile it.")
-        sys.exit()
+        sys.exit("cgraphpy cmodule not found. You may just need to compile it.")
 
     n = W.shape[0]
     k = len(np.unique(g))
@@ -2368,6 +2387,8 @@ def cDijkstra(W,I,g,WI=None,WJ=None,K=None):
 
     try:  #Try to use fast C version, if compiled
 
+        #Try to find or build C extensions
+        if importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
 
         #Type casting and memory blocking
@@ -2381,8 +2402,7 @@ def cDijkstra(W,I,g,WI=None,WJ=None,K=None):
 
         cgp.dijkstra(u,l,WI,K,WV,I,g,1.0)
     except:
-        print("You need to compile the cmodules!")
-        sys.exit(2)
+        sys.exit("cgraphpy cmodule not found. You may just need to compile it.")
 
     return u
 
@@ -2402,6 +2422,8 @@ def HJsolver(W,I,g,WI=None,WJ=None,K=None,p=1):
 
     try:  #Try to use fast C version, if compiled
 
+        #Try to find or build C extensions
+        if importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
 
         #Type casting and memory blocking
@@ -2478,6 +2500,8 @@ def eikonalSSL(W,I,g,p=2,beta=None):
     c_code = False
     try:  #Try to use fast C version, if compiled
 
+        #Try to find or build C extensions
+        if importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
 
         #Type casting and memory blocking
@@ -2530,8 +2554,10 @@ def nearestneighbor(W,I,g):
     K = np.array((WJ[1:] - WJ[:-1]).nonzero()) + 1
     K = np.append(0,np.append(K,len(WJ)))
 
-    try:  #Try to use fast C version of dijkstra, if compiled
+    try:  #Try to use fast C version of dijkstra
 
+        #Try to find or build C extensions
+        if importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
 
         #Type casting and memory blocking
@@ -2547,6 +2573,7 @@ def nearestneighbor(W,I,g):
         
     except: #Use python version, which is slower
 
+        print('Could not find C extensions, defaulting to Python code.')
         #Initialization
         s = 0                           #Size of heap
         h = -np.ones((n+1,),dtype=int)  #Active points heap (indices of active points)
@@ -2710,9 +2737,9 @@ def isconnected(W):
 
 #Graph-based clustering
 #W = sparse weight matrix describing graph
-#method = SSL method
+#algorithm = SSL method
 #   Options: incres
-def graph_clustering(W,k,true_labels=None,method="incres",speed=5,T=100,extra_dim=0):
+def graph_clustering(W,k,true_labels=None,algorithm="incres",speed=5,T=100,extra_dim=0):
 
     n = W.shape[0]
     
@@ -2724,13 +2751,13 @@ def graph_clustering(W,k,true_labels=None,method="incres",speed=5,T=100,extra_di
         print('Warning: Graph is not connected!')
     
     #Clustering
-    if method=="incres":
+    if algorithm=="incres":
         labels = incres_cluster(W,k,speed,T,true_labels)
-    elif method=="spectral":
+    elif algorithm=="spectral":
         labels = spectral_cluster(W,k,method="unnormalized",extra_dim=extra_dim)
-    elif method=="spectralshimalik":
+    elif algorithm=="spectralshimalik":
         labels = spectral_cluster(W,k,method="ShiMalik",extra_dim=extra_dim)
-    elif method=="spectralngjordanweiss":
+    elif algorithm=="spectralngjordanweiss":
         labels = spectral_cluster(W,k,method="NgJordanWeiss",extra_dim=extra_dim)
     else:
         print("Invalid choice of clustering method.")
@@ -2743,15 +2770,15 @@ def graph_clustering(W,k,true_labels=None,method="incres",speed=5,T=100,extra_di
 #W = sparse weight matrix describing graph
 #I = indices of labeled datapoints
 #g = values of labels
-#method = SSL method
+#algorithm = SSL method
 #   Options: laplace, poisson, poisson_nodeg, wnll, properlyweighted, plaplace, randomwalk
-def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,eigvals=None,eigvecs=None,dataset=None,T=0,use_cuda=False,return_vector=False,poisson_training_balance=True,symmetrize=True):
+def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,eigvals=None,eigvecs=None,dataset=None,T=0,use_cuda=False,return_vector=False,poisson_training_balance=True,symmetrize=True):
 
-    one_shot_methods = ["mbo","poisson","poissonbalanced","poissonvolume","poissonmbo_volume","poissonmbo","poissonl1","nearestneighbor","poissonmbobalanced","volumembo","poissonvolumembo","dynamiclabelpropagation","sparselabelpropagation","centeredkernel","eikonal","poisson2"]
+    one_shot_algorithms = ["mbo","poisson","poissonbalanced","poissonvolume","poissonmbo_volume","poissonmbo","poissonl1","nearestneighbor","poissonmbobalanced","volumembo","poissonvolumembo","dynamiclabelpropagation","sparselabelpropagation","centeredkernel","eikonal","poisson2"]
 
     n = W.shape[0]
 
-    method = method.lower()
+    algorithm = algorithm.lower()
 
     if beta is None:
         beta = np.ones((len(np.unique(g)),))
@@ -2765,51 +2792,51 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
     if not isconnected(W):
         print('Warning: Graph is not connected!')
     
-    #One shot methods
-    if method in one_shot_methods:
+    #One shot algorithms
+    if algorithm in one_shot_algorithms:
 
-        if method=="mbo":
+        if algorithm=="mbo":
             u = multiclassMBO(W,I,g,eigvals,eigvecs,dataset,true_labels=true_labels)
-        elif method=="volumembo":
+        elif algorithm=="volumembo":
             u = volumeMBO(W,I,g,dataset,beta,T,volume_mult)
-        elif method=="poissonvolumembo":
+        elif algorithm=="poissonvolumembo":
             u = poisson_volumeMBO(W,I,g,dataset,beta,T,volume_mult)
-        elif method=="poissonmbo_old":
+        elif algorithm=="poissonmbo_old":
             u = poissonMBO(W,I,g,dataset,np.ones_like(beta),true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu,T=numT)
-        elif method=="poissonmbobalanced":
+        elif algorithm=="poissonmbobalanced":
             u = poissonMBO(W,I,g,dataset,beta,true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu,T=numT)
-        elif method=="poissonl1":
+        elif algorithm=="poissonl1":
             u = poissonL1(W,I,g,dataset,true_labels=true_labels)
-        elif method=="poisson2":
+        elif algorithm=="poisson2":
             u,_ = poisson2(W,I,g,true_labels=true_labels)
-        elif method=="poisson":
+        elif algorithm=="poisson":
             u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance)
-        elif method=="poissonbalanced":
+        elif algorithm=="poissonbalanced":
             u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance,beta = beta)
-        elif method=="poissonvolume":
+        elif algorithm=="poissonvolume":
             u = PoissonVolume(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance,beta = beta)
-        elif method=="poissonmbo":
+        elif algorithm=="poissonmbo":
             u = poissonMBO_volume(W,I,g,dataset,beta,true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu)
-        elif method=="dynamiclabelpropagation":
+        elif algorithm=="dynamiclabelpropagation":
             u = DynamicLabelPropagation(W,I,g,true_labels=true_labels)
-        elif method=="sparselabelpropagation":
+        elif algorithm=="sparselabelpropagation":
             u = SparseLabelPropagation(W,I,g,true_labels=true_labels)
-        elif method=="centeredkernel":
+        elif algorithm=="centeredkernel":
             u = CenteredKernel(W,I,g,true_labels=true_labels)
-        elif method=="nearestneighbor":
+        elif algorithm=="nearestneighbor":
             #Use distance matrix if provided, instead of weight matrix
             if D is None:
                 u = nearestneighbor(W,I,g)
             else:
                 u = nearestneighbor(D,I,g)
-        elif method=="eikonal":
+        elif algorithm=="eikonal":
             #Use distance matrix if provided, instead of weight matrix
             if D is None:
                 u = eikonalSSL(W,I,g,p=p,beta=beta)
             else:
                 u = eikonalSSL(W,I,g,p=p,beta=beta)
 
-    else:  #One vs rest methods
+    else:  #One vs rest algorithms
 
         k = len(np.unique(g))  #Number of labels
         u = np.zeros((k,n))
@@ -2818,25 +2845,25 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,method="laplace",p=3,vol
             h = g==l 
 
             #Solve binary classification problem
-            if method=="laplace":
+            if algorithm=="laplace":
                 v = laplace_solve(W,I,h,norm=norm)
-            elif method=="shift":
+            elif algorithm=="shift":
                 v = shift_solve(W,I,h)       
-            elif method=="meanshift":
+            elif algorithm=="meanshift":
                 v = meanshift_solve(W,I,h)       
-            elif method=="wnll":
+            elif algorithm=="wnll":
                 v = wnll_solve(W,I,h)
-            elif method=="properlyweighted":
+            elif algorithm=="properlyweighted":
                 if X is None:
                     print("Must supply raw data points for properly weighted Laplacian.")
                     sys.exit()
                 v = properlyweighted_solve(W,I,h,X,alpha,zeta,r)
-            elif method=="plaplace":
+            elif algorithm=="plaplace":
                 v = plaplace_solve(W,I,h,p,sol_method=plaplace_solver,norm=norm)
-            elif method=="randomwalk":
+            elif algorithm=="randomwalk":
                 v = randomwalk_solve(W,I,h,epsilon)
             else:
-                print("Invalid choice of SSL method.")
+                print("Invalid choice of SSL algorithm.")
                 sys.exit()
 
             #Update labels
@@ -3249,6 +3276,8 @@ def main(dataset = default_dataset(), metric = default_metric(), algorithm = def
     Wdist = dist_matrix(I,J,D,k)
 
     #Load label permutation (including restrictions in t)
+    if isinstance(t,int) or isinstance(t,float):
+        t = str(int(t))
     perm = load_label_permutation(dataset,label_perm=label_perm,t=t)
 
     #Load eigenvector data if MBO selected
@@ -3321,7 +3350,7 @@ def main(dataset = default_dataset(), metric = default_metric(), algorithm = def
     #If clustering algorithm was chosen
     if algorithm in clustering_algorithms:
         #Clustering
-        u = graph_clustering(W,num_classes,labels,method=algorithm,T=num_iter,speed=speed,extra_dim=extra_dim)
+        u = graph_clustering(W,num_classes,labels,algorithm=algorithm,T=num_iter,speed=speed,extra_dim=extra_dim)
 
         #Compute accuracy
         acc = clustering_accuracy(u,labels)
@@ -3356,7 +3385,7 @@ def main(dataset = default_dataset(), metric = default_metric(), algorithm = def
 
             start_time = time.time()
             #Graph-based semi-supervised learning
-            u = graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,method=algorithm,epsilon=0.3,p=p,norm=norm,eigvals=eigvals,eigvecs=eigvecs,dataset=dataset,T=T,use_cuda=use_cuda,volume_mult=volume_constraint,true_labels=true_labels,poisson_training_balance=poisson_training_balance,symmetrize = not directed_graph, X=data)
+            u = graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,algorithm=algorithm,epsilon=0.3,p=p,norm=norm,eigvals=eigvals,eigvecs=eigvecs,dataset=dataset,T=T,use_cuda=use_cuda,volume_mult=volume_constraint,true_labels=true_labels,poisson_training_balance=poisson_training_balance,symmetrize = not directed_graph, X=data)
             print("--- %s seconds ---" % (time.time() - start_time))
 
             #Compute accuracy

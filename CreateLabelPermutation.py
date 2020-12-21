@@ -72,14 +72,7 @@ print('=======================================================')
 print('                                                       ') 
 
 #Load labels
-try:
-    M = np.load("Data/"+dataset+"_labels.npz",allow_pickle=True)
-except:
-    print('Cannot find dataset Data/'+dataset+'_labels.npz')
-    sys.exit(2)
-
-#Extract labels
-labels = M['labels']
+labels = load_labels(dataset)
 
 #Convert string to int list
 m = [int(e)  for e in m.split(',')]
