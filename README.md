@@ -62,6 +62,14 @@ python graphlearning.py -d MNIST -m vae -a SpectralNgJordanWeiss -x 4
 python graphlearning.py -d MNIST -m vae -a INCRES
 ```
 
+from a shell, or equivalently in Python run 
+
+```
+import graphlearning as gl
+gl.main(dataset='mnist',metric='vae',algorithm='spectralngjordanweiss',num_classes=10,extra_dim=4)
+gl.main(dataset='mnist',metric='vae',algorithm='incres',num_classes=10)
+```
+
 to perform spectral clustering and INCRES clustering method on MNIST. The package will detect whether to perform clustering or semi-supervised learning based on the choice of algorithm provided with the -a flag.
 
 ### List of currently supported algorithms
