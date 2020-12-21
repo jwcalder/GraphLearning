@@ -60,6 +60,7 @@ gl.main(dataset='mnist',metric='vae',algorithm='incres',num_classes=10)
 
 to perform spectral clustering and INCRES clustering method on MNIST. The package will detect whether to perform clustering or semi-supervised learning based on the choice of algorithm.
 
+The commands shown above are rather high level, and can be split into several important subroutines when needed. The code below shows how to generate a weight matrix on the MNIST dataset, choose training data randomly, run Laplace and Poisson learning, and compute accuracy scores.
 
 ```
 import graphlearning as gl
