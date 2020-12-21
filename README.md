@@ -110,13 +110,14 @@ The flag -m controls the label rate; the command above uses 1,2,3,4, and 5, labe
 
 All datasets have been preprocessed with a feature transformation followed by a k-nearest neighbor search. The k-nearest neighbor information is stored in the subdirectory kNNData/, and this data is loaded by graphlearning.py to construct a weight matrix for the graph. This allows the user flexibility in the construction of the graph, and removes the need to constantly recompute the k-nearest neighbors, which is computationally expensive.
 
-In particular, the raw data from which the kNN data is computed is not provided in github, due to file size restrictions. If needed, the user can download the raw data
+Therefore, the raw data (e.g., MNIST images) is rarely required to run experiments, and due to size restrictions is not provided in GitHub. To download and load the raw data, use the graphlearning.load_dataset function, as in
 
 ```
-python download_data.py
+import graphlearing as gl
+data = gl.load_dataset('mnist')
 ```
 
-Then the script ComputeKNN.py can be used to perform the preprocessing steps of applying a feature transformation followed by a k-nearest neighbor search. To run this on MNIST with the scattering transform as the feature transformation, run 
+The script ComputeKNN.py can be used to perform the preprocessing steps of applying a feature transformation followed by a k-nearest neighbor search. To run this on MNIST with the scattering transform as the feature transformation, run 
 
 ```
 python ComputeKNN.py -d MNIST -m scatter
