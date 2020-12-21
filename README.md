@@ -49,13 +49,17 @@ gl.main(dataset='mnist',metric='vae',algorithm='laplace',k=10,t=10)
 gl.main(dataset='mnist',metric='vae',algorithm='laplace',k=10,t=10)
 ```
 
-The flag -d specifies the dataset (MNIST, FashionMNIST, WEBKB, or cifar), -m specifies the metric for constructing the graph, -a is the choice of semi-supervised learning or clustering algorithm, -k is the number of nearest neighbors in the graph construction, and -t is the number of trials to run. The choices for metric are 'L2' for all datasets, which is Eulcidean distance between raw data. MNIST and FashionMNIST have the option of 'vae', which is the variational autoencoder weights as described in our paper, as well as scatter, which uses the scattering transform. For cifar, the metric 'aet' is the AutoEncoding Transformations weights, as described in our paper. All scripts have a help flag -h that shows a detailed list of options. For example, run
+The flag -d specifies the dataset (MNIST, FashionMNIST, WEBKB, or cifar), -m specifies the metric for constructing the graph, -a is the choice of semi-supervised learning or clustering algorithm, -k is the number of nearest neighbors in the graph construction, and -t is the number of trials to run. The choices for metric are 'L2' for all datasets, which is Eulcidean distance between raw data. MNIST and FashionMNIST have the option of 'vae', which is the variational autoencoder weights as described in our paper, as well as scatter, which uses the scattering transform. For cifar, the metric 'aet' is the AutoEncoding Transformations weights, as described in our paper. 
+
+The accuracy scores are saved in the subdirectory Results/ using a separate .csv file for each experiment. These can be loaded to generate plots and tables (see plot.py and table.py). The directory ResultsFromPaper/ contains all results from our ICML paper.
+
+All options for the graphlaerning.py script can be dislayed by running the code with the -h option
 
 ```
 python graphlearning.py -h
 ```
 
-to see the list of all options for the main graph-based learning script. The package also has implementations of some graph-based clustering algorithms. For example, run 
+The package also has implementations of some graph-based clustering algorithms. For example, run 
 
 ```
 python graphlearning.py -d MNIST -m vae -a SpectralNgJordanWeiss -x 4
