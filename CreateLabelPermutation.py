@@ -72,7 +72,7 @@ print('=======================================================')
 print('                                                       ') 
 
 #Load labels
-labels = load_labels(dataset)
+labels = gl.load_labels(dataset)
 
 #Convert string to int list
 m = [int(e)  for e in m.split(',')]

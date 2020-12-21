@@ -56,7 +56,7 @@ def ComputeKNN(dataset, metric='L2', k=30, knn_method='annoy', scatter_pca_dims=
     else:
         outfile = "kNNData/"+dataset+"_"+metric+".npz"
 
-    data = load_dataset(dataset, metric=metric)
+    data = gl.load_dataset(dataset, metric=metric)
 
     #Apply transformations (just scatter now, but others could be included)
     if metric == 'scatter' or metric == 'scatter_pca':

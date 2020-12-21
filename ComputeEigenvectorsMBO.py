@@ -69,7 +69,7 @@ print('                                                       ')
 
 
 #Load kNN data
-I,J,D = load_kNN_data(dataset,metric=metric)
+I,J,D = gl.load_kNN_data(dataset,metric=metric)
 
 if k > I.shape[1]:
     print('kNNData only has %d'%I.shape[1]+'-nearest neighbor information. Aborting...')
