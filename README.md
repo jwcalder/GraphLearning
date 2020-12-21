@@ -34,14 +34,22 @@ This requires a C code compiler in your path. Only the algorithms VolumeMBO, pLa
 
 ## Getting started with basic experiments
 
-A basic experiment comparing Laplace learning/Label propagation to Poisson learning on MNIST can be run with the commands below.
+A basic experiment comparing Laplace learning/Label propagation to Poisson learning on MNIST can be run from a shell with the commands
 
 ```
-python graphlearning.py -d MNIST -m vae -a Laplace -t 10
-python graphlearning.py -d MNIST -m vae -a Poisson -t 10
+python graphlearning.py -d MNIST -m vae -a Laplace -k 10 -t 10
+python graphlearning.py -d MNIST -m vae -a Poisson -k 10 -t 10
 ```
 
-The flag -d specifies the dataset (MNIST, FashionMNIST, WEBKB, or cifar), -m specifies the metric for constructing the graph, -a is the choice of semi-supervised learning or clustering algorithm, and -t is the number of trials to run. The choices for metric are 'L2' for all datasets, which is Eulcidean distance between raw data. MNIST and FashionMNIST have the option of 'vae', which is the variational autoencoder weights as described in our paper, as well as scatter, which uses the scattering transform. For cifar, the metric 'aet' is the AutoEncoding Transformations weights, as described in our paper. All scripts have a help flag -h that shows a detailed list of options. For example, run
+or equivalentyl from a python script with the code
+
+```
+import graphlearning as gl
+gl.main(dataset='mnist',metric='vae',algorithm='laplace',k=10,t=10)
+gl.main(dataset='mnist',metric='vae',algorithm='laplace',k=10,t=10)
+```
+
+The flag -d specifies the dataset (MNIST, FashionMNIST, WEBKB, or cifar), -m specifies the metric for constructing the graph, -a is the choice of semi-supervised learning or clustering algorithm, -k is the number of nearest neighbors in the graph construction, and -t is the number of trials to run. The choices for metric are 'L2' for all datasets, which is Eulcidean distance between raw data. MNIST and FashionMNIST have the option of 'vae', which is the variational autoencoder weights as described in our paper, as well as scatter, which uses the scattering transform. For cifar, the metric 'aet' is the AutoEncoding Transformations weights, as described in our paper. All scripts have a help flag -h that shows a detailed list of options. For example, run
 
 ```
 python graphlearning.py -h
