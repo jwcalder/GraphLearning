@@ -37,7 +37,7 @@ The flag -d specifies the dataset (MNIST, FashionMNIST, WEBKB, or cifar), -m spe
 
 The accuracy scores are saved in the subdirectory Results/ using a separate .csv file for each experiment. These can be loaded to generate plots and tables (see plot.py and table.py). The directory ResultsFromPaper/ contains all results from our ICML paper.
 
-All options for the graphlaerning.py script can be displayed by running the code with the -h option
+All options for the graphlearning.py script can be displayed by running the code with the -h option
 
 ```
 python graphlearning.py -h
