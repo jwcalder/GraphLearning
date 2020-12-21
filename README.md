@@ -58,7 +58,30 @@ gl.main(dataset='mnist',metric='vae',algorithm='spectralngjordanweiss',num_class
 gl.main(dataset='mnist',metric='vae',algorithm='incres',num_classes=10)
 ```
 
-to perform spectral clustering and INCRES clustering method on MNIST. The package will detect whether to perform clustering or semi-supervised learning based on the choice of algorithm provided with the -a flag.
+to perform spectral clustering and INCRES clustering method on MNIST. The package will detect whether to perform clustering or semi-supervised learning based on the choice of algorithm.
+
+
+```
+import graphlearning as gl
+
+#Load labels, knndata, an build 10-nearest neighbor weight matrix
+labels = gl.load_labels('mnist')
+I,J,D = gl.load_kNN_data('mnist',metric='vae')
+W = gl.weight_matrix(I,J,D,10)
+
+#Randomly chose training datapoints
+num_train_per_class = 1 
+train_ind = gl.randomize_labels(labels, num_train_per_class)
+train_labels = labels[train_ind]
+
+#Run Laplace and Poisson learning
+labels_laplace = gl.graph_ssl(W,train_ind,train_labels,algorithm='laplace')
+labels_poisson = gl.graph_ssl(W,train_ind,train_labels,algorithm='poisson')
+
+#Compute and print accuracy
+print('Laplace learning: %.2f%%'%gl.accuracy(labels,labels_laplace,num_train_per_class))
+print('Poisson learning: %.2f%%'%gl.accuracy(labels,labels_poisson,num_train_per_class))
+```
 
 ### List of currently supported algorithms
 
