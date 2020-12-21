@@ -16,22 +16,6 @@ This package also reproduces experiments from our paper
 
 Calder, Cook, Thorpe, Slepcev. [Poisson Learning: Graph Based Semi-Supervised Learning at Very Low Label Rates.](https://arxiv.org/abs/2006.11184) To appear in International Conference on Machine Learning (ICML) 2020. 
 
-## Python requirements and C code extensions
-
-To install required non-standard packages:
-
-```
-pip install -r requirements.txt
-```
-
-Some parts of the package rely on C code acceleration that needs to be compiled. To compile the C code run
-
-```
-python cmodules/cgraphpy_setup.py build_ext --inplace
-```
-
-This requires a C code compiler in your path. Only the algorithms VolumeMBO, pLaplace, and NearestNeighbor use C code acceleration. If you do not plan to use these algorithms, you can skip compiling the C code.
-
 ## Getting started with basic experiments
 
 A basic experiment comparing Laplace learning/Label propagation to Poisson learning on MNIST can be run from a shell with the commands
@@ -127,6 +111,22 @@ python graphlearning.py -d MNIST -m vae -a Poisson -t 10
 python plot.py
 python table.py
 ```
+
+## Python requirements and C code extensions
+
+To install required non-standard packages:
+
+```
+pip install -r requirements.txt
+```
+
+Some parts of the package rely on C code acceleration that needs to be compiled. The package will attempt to automatically compile the C extensions when they are needed. If this does not work for you, the command to compile them manually is 
+
+```
+python cmodules/cgraphpy_setup.py build_ext --inplace
+```
+
+This requires a C code compiler in your path. Only the algorithms VolumeMBO, pLaplace, and NearestNeighbor use C code acceleration. If you do not plan to use these algorithms, you can skip compiling the C code.
 
 ### Contact and questions
 
