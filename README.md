@@ -145,7 +145,7 @@ To install required non-standard packages:
 pip install -r requirements.txt
 ```
 
-Some parts of the package rely on C code acceleration that needs to be compiled. The package will attempt to automatically compile the C extensions when they are needed. If this does not work for you, the command to compile them manually is 
+Some parts of the package rely on C code acceleration that needs to be compiled. Binaries are provided for Ubuntu Linux and MacOS. If these do not work, the package will attempt to automatically compile the C extensions if/when they are needed. If this does not work for you, the command to compile them manually is 
 
 ```
 python cmodules/cgraphpy_setup.py build_ext --inplace
