@@ -41,7 +41,7 @@ python graphlearning.py -d MNIST -m vae -a Laplace -k 10 -t 10
 python graphlearning.py -d MNIST -m vae -a Poisson -k 10 -t 10
 ```
 
-or equivalentyl from a python script with the code
+or equivalently from a python script with the code
 
 ```
 import graphlearning as gl
