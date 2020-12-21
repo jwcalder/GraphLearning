@@ -2025,7 +2025,7 @@ def onehot_labels(I,g,n):
     return Kg*J
     
 #Poisson learning, alternative version
-def poisson2(W,I,g,true_labels=None,min_iter=50):
+def poisson2(W,I,g,true_labels=None,min_iter=50,solver='GradientDescent'):
 
     n = W.shape[0]
     unique_labels = np.unique(g)
@@ -2038,42 +2038,49 @@ def poisson2(W,I,g,true_labels=None,min_iter=50):
     Kg = onehot_labels(I,g,n)
     b = Kg.T - np.mean(Kg,axis=1)
 
-    #Setup matrices
-    D = degree_matrix(W,p=-1)
-    P = D*W.transpose()
-    Db = D*b
+    #Check solver method (conjgrad or gradientdescent)
+    if solver.lower() == "conjgrad":
+        L = graph_laplacian(W,norm='normalized')
+        D = degree_matrix(W,p=-1/2)
+        u,T = conjgrad(L, D@b, tol=1e-5)
+        u = D@u
+    else:
+        #Setup matrices
+        D = degree_matrix(W,p=-1)
+        P = D*W.transpose()
+        Db = D*b
 
-    v = np.max(Kg,axis=0)
-    v = v/np.sum(v)
-    vinf = degrees(W)/np.sum(degrees(W))
-    RW = W.transpose()*D
-    u = np.zeros((n,k))
+        v = np.max(Kg,axis=0)
+        v = v/np.sum(v)
+        vinf = degrees(W)/np.sum(degrees(W))
+        RW = W.transpose()*D
+        u = np.zeros((n,k))
 
 
-    #start_time = time.time()
-    #L = graph_laplacian(W,norm='none')
-    #D2 = degree_matrix(W,p=-0.5)
-    #cu,i = conjgrad(D2*L*D2, D2*b, tol=1e-5)
-    #cu = D2*cu
-    #print("ConjGrad: %d iter: %s seconds ---" % (i,time.time() - start_time))
+        #start_time = time.time()
+        #L = graph_laplacian(W,norm='none')
+        #D2 = degree_matrix(W,p=-0.5)
+        #cu,i = conjgrad(D2*L*D2, D2*b, tol=1e-5)
+        #cu = D2*cu
+        #print("ConjGrad: %d iter: %s seconds ---" % (i,time.time() - start_time))
 
-    #Number of iterations
-    T = 0
-    #start_time = time.time()
-    while (T < min_iter or np.max(np.absolute(v-vinf)) > 1/n) and (T < 1000):
-        u = Db + P*u
-        v = RW*v
-        T = T + 1
+        #Number of iterations
+        T = 0
+        #start_time = time.time()
+        while (T < min_iter or np.max(np.absolute(v-vinf)) > 1/n) and (T < 1000):
+            u = Db + P*u
+            v = RW*v
+            T = T + 1
 
-        #Compute accuracy if all labels are provided
-        if true_labels is not None:
-            max_locations = np.argmax(u,axis=1)
-            labels = (np.unique(g))[max_locations]
-            labels[I] = g
-            acc = accuracy(labels,true_labels,len(I))
-            print('%d,Accuracy = %.2f'%(T,acc))
-    
-    #print("Grad Desc: %d iter: %s seconds ---" % (T,time.time() - start_time))
+            #Compute accuracy if all labels are provided
+            if true_labels is not None:
+                max_locations = np.argmax(u,axis=1)
+                labels = (np.unique(g))[max_locations]
+                labels[I] = g
+                acc = accuracy(labels,true_labels,len(I))
+                print('%d,Accuracy = %.2f'%(T,acc))
+        
+        #print("Grad Desc: %d iter: %s seconds ---" % (T,time.time() - start_time))
 
     return u.T,T
 
@@ -2772,7 +2779,7 @@ def graph_clustering(W,k,true_labels=None,algorithm="incres",speed=5,T=100,extra
 #g = values of labels
 #algorithm = SSL method
 #   Options: laplace, poisson, poisson_nodeg, wnll, properlyweighted, plaplace, randomwalk
-def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,eigvals=None,eigvecs=None,dataset=None,T=0,use_cuda=False,return_vector=False,poisson_training_balance=True,symmetrize=True):
+def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,eigvals=None,eigvecs=None,dataset=None,T=0,use_cuda=False,return_vector=False,poisson_training_balance=True,symmetrize=True,poisson_solver="GradientDescent"):
 
     one_shot_algorithms = ["mbo","poisson","poissonbalanced","poissonvolume","poissonmbo_volume","poissonmbo","poissonl1","nearestneighbor","poissonmbobalanced","volumembo","poissonvolumembo","dynamiclabelpropagation","sparselabelpropagation","centeredkernel","eikonal","poisson2"]
 
@@ -2808,7 +2815,7 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,
         elif algorithm=="poissonl1":
             u = poissonL1(W,I,g,dataset,true_labels=true_labels)
         elif algorithm=="poisson2":
-            u,_ = poisson2(W,I,g,true_labels=true_labels)
+            u,_ = poisson2(W,I,g,true_labels=true_labels,solver=poisson_solver)
         elif algorithm=="poisson":
             u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance)
         elif algorithm=="poissonbalanced":
