@@ -86,14 +86,24 @@ def load_label_permutation(dataset,label_perm='',t='-1'):
     dataFile = dataset+label_perm+"_permutations.npz"
     dataFile_path = os.path.join(location, 'LabelPermutations', dataFile)
 
-    #Load label permutation
+    #Check if Data directory exists
+    data_dir = os.path.join(location,'LabelPermutations')
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
+    #Try to Load kNNdata and/or download it
+    if not os.path.exists(dataFile_path):
+        urlpath = 'https://github.com/jwcalder/GraphLearning/raw/master/LabelPermutations/'+dataFile
+        try:
+            print('Downloading '+urlpath+' to '+dataFile_path+'...')
+            urllib.request.urlretrieve(urlpath, dataFile_path)
+        except:
+            sys.exit('Error: Cannot find '+dataFile+', and could not downoad '+urlpath+'.')
     try:
         M = np.load(dataFile_path,allow_pickle=True)
         perm = M['perm']
     except:
-        print('Cannot find '+dataFile)
-        print('You need to run CreateLabelPermutation.py first.')
-        sys.exit(2)
+        sys.exit('Error: Cannot open '+dataFile+'.')
 
     #Restrict trials
     t = [int(e)  for e in t.split(',')]
@@ -104,6 +114,7 @@ def load_label_permutation(dataset,label_perm='',t='-1'):
             perm = perm[(t[0]-1):t[1]]
 
     return perm
+
 
 def load_dataset(dataset,metric='L2'):
 
@@ -116,12 +127,18 @@ def load_dataset(dataset,metric='L2'):
     else:
         dataFile = dataset+"_raw.npz"
 
+    
     location = os.path.dirname(os.path.realpath(__file__))
     dataFile_path = os.path.join(location, 'Data', dataFile)
 
+    #Check if Data directory exists
+    data_dir = os.path.join(location,'Data')
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
     #Try to Load data and/or download dataset
     if not os.path.exists(dataFile_path):
-        urlpath = 'http://www-users.math.umn.edu/~jwcalder/'+dataFile
+        urlpath = 'http://www-users.math.umn.edu/~jwcalder/Data/'+dataFile
         try:
             print('Downloading '+urlpath+' to '+dataFile_path+'...')
             urllib.request.urlretrieve(urlpath, dataFile_path)
@@ -144,13 +161,24 @@ def load_labels(dataset):
     dataFile = dataset+"_labels.npz"
     dataFile_path = os.path.join(location, 'Data', dataFile)
 
-    #Load labels
+    #Check if Data directory exists
+    data_dir = os.path.join(location,'Data')
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
+    #Try to Load labels and/or download labels
+    if not os.path.exists(dataFile_path):
+        urlpath = 'https://github.com/jwcalder/GraphLearning/raw/master/Data/'+dataFile
+        try:
+            print('Downloading '+urlpath+' to '+dataFile_path+'...')
+            urllib.request.urlretrieve(urlpath, dataFile_path)
+        except:
+            sys.exit('Error: Cannot find '+dataFile+', and could not downoad '+urlpath+'.')
     try:
         M = np.load(dataFile_path,allow_pickle=True)
         labels = M['labels']
     except:
-        print('Cannot find dataset Data/'+dataFile)
-        sys.exit(2)
+        sys.exit('Error: Cannot open '+dataFile+'.')
 
     return labels
 
@@ -163,16 +191,26 @@ def load_kNN_data(dataset,metric='L2'):
     dataFile = dataset+"_"+metric+".npz"
     dataFile_path = os.path.join(location, 'kNNData', dataFile)
 
-    #Load kNN data
+    #Check if Data directory exists
+    data_dir = os.path.join(location,'kNNData')
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
+    #Try to Load kNNdata and/or download it
+    if not os.path.exists(dataFile_path):
+        urlpath = 'https://github.com/jwcalder/GraphLearning/raw/master/kNNData/'+dataFile
+        try:
+            print('Downloading '+urlpath+' to '+dataFile_path+'...')
+            urllib.request.urlretrieve(urlpath, dataFile_path)
+        except:
+            sys.exit('Error: Cannot find '+dataFile+', and could not downoad '+urlpath+'.')
     try:
         M = np.load(dataFile_path,allow_pickle=True)
         I = M['I']
         J = M['J']
         D = M['D']
     except:
-        print('Cannot find '+dataFile)
-        print('You need to run ComputeKNN.py.')
-        sys.exit(2)
+        sys.exit('Error: Cannot open '+dataFile+'.')
 
     return I,J,D
 
@@ -1151,10 +1189,39 @@ def properlyweighted_solve(W,I,g,X,alpha,zeta,r):
 #Tries to compile C extensions
 def compile_C_extensions():
 
+    c_files = ['cgraphpy.c',
+               'cgraphpy_setup.py',
+               'dijkstra.c',
+               'dijkstra.h',
+               'lp_iterate.c',
+               'lp_iterate.h',
+               'maj_dijkstra.h',
+               'maj_implicit_heap.h',
+               'maj_simple_implicit_heap.h',
+               'mbo_convolution.h',
+               'mbo_speedy_volume_preserving.c',
+               'memory_allocation.c',
+               'memory_allocation.h',
+               'mnist_benchmark.c',
+               'mnist_benchmark.h',
+               'vector_operations.h']
+
     cwd = os.getcwd()
-    os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)),'cmodules'))
+    cmod_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),'cmodules')
+
+    #If cmodules does not exists, create directory and download code
+    if not os.path.exists(cmod_path):
+        os.makedirs(cmod_path)
+        gitpath = 'https://github.com/jwcalder/GraphLearning/raw/master/cmodules/'
+        print('Downloading cmodules/ directory from '+gitpath+'...')
+        for f in c_files:
+            urllib.request.urlretrieve(gitpath+f, os.path.join(cmod_path,f))
+
+    #Change into c-code directory
+    os.chdir(cmod_path)
 
     if os.path.exists('cgraphpy_setup.py'):
+        print('Compiling C extensions...') 
         os.system('python3 cgraphpy_setup.py build_ext --inplace')
     else:
         print('Could not compile C extensions.')
@@ -1211,7 +1278,7 @@ def plaplace_solve(W,I,g,p,sol_method="SemiImplicit",norm="none"):
     if sol_method=="GradientDescentCcode":
         try:
             #Try to find or build C extensions
-            if importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
+            if not os.path.exists('cmodules') or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
             import cmodules.cgraphpy as cgp
         except:
             sys.exit("cgraphpy cmodule not found. You may just need to compile it.")
@@ -1442,7 +1509,7 @@ def poisson_volumeMBO(W,I,g,dataset,beta,T,volume_mult):
 
     try:
         #Try to find or build C extensions
-        if importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
+        if not os.path.exists('cmodules') or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
     except:
         sys.exit("cgraphpy cmodule not found. You may just need to compile it.")
@@ -1485,7 +1552,7 @@ def volumeMBO(W,I,g,dataset,beta,T,volume_mult):
 
     try:
         #Try to find or build C extensions
-        if importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
+        if not os.path.exists('cmodules') or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
     except:
         sys.exit("cgraphpy cmodule not found. You may just need to compile it.")
@@ -2395,7 +2462,7 @@ def cDijkstra(W,I,g,WI=None,WJ=None,K=None):
     try:  #Try to use fast C version, if compiled
 
         #Try to find or build C extensions
-        if importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
+        if not os.path.exists('cmodules') or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
 
         #Type casting and memory blocking
@@ -2430,7 +2497,7 @@ def HJsolver(W,I,g,WI=None,WJ=None,K=None,p=1):
     try:  #Try to use fast C version, if compiled
 
         #Try to find or build C extensions
-        if importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
+        if not os.path.exists('cmodules') or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
 
         #Type casting and memory blocking
@@ -2508,7 +2575,7 @@ def eikonalSSL(W,I,g,p=2,beta=None):
     try:  #Try to use fast C version, if compiled
 
         #Try to find or build C extensions
-        if importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
+        if not os.path.exists('cmodules') or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
 
         #Type casting and memory blocking
@@ -2564,7 +2631,7 @@ def nearestneighbor(W,I,g):
     try:  #Try to use fast C version of dijkstra
 
         #Try to find or build C extensions
-        if importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
+        if not os.path.exists('cmodules') or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
 
         #Type casting and memory blocking
@@ -3489,6 +3556,7 @@ if __name__ == '__main__':
 
     #Call main subroutine
     main(dataset=dataset, metric=metric, algorithm=algorithm, k=k, t=t, label_perm=label_perm, p=p, norm=norm, use_cuda=use_cuda, T=T, num_cores=num_cores, results=results, num_classes=num_classes, speed=speed, num_iter=num_iter, extra_dim=extra_dim, volume_constraint=volume_constraint, verbose=verbose, poisson_training_balance=poisson_training_balance, directed_graph=directed_graph)
+
 
 
 
