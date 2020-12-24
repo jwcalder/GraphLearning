@@ -56,6 +56,21 @@ def standarize_dataset_name(dataset):
 
     return dataset
 
+#Get working graphlearning.py directory
+#Returns directory where the graphlearning.py script resides, if it is
+#writable. Otherwise it returns the current working Python direcotry
+def GL_dir(): 
+
+    d = os.path.dirname(os.path.realpath(__file__))
+    if not os.access(d,os.W_OK):
+        d = os.getcwd()
+
+    return d
+def Data_dir(): return os.path.join(GL_dir(),'Data')
+def kNNData_dir(): return os.path.join(GL_dir(),'kNNData')
+def LabelPermutations_dir(): return os.path.join(GL_dir(),'LabelPermutations')
+def cmodules_dir(): return os.path.join(GL_dir(),'cmodules')
+def MBOdata_dir(): return os.path.join(GL_dir(),'MBOdata')
 
 def load_mbo_eig(dataset,metric,k):
 
@@ -64,9 +79,8 @@ def load_mbo_eig(dataset,metric,k):
 
     #Load eigenvector data if MBO selected
     try:
-        location = os.path.dirname(os.path.realpath(__file__))
         dataFile = dataset+"_"+metric+"_k%d"%k+"_spectrum.npz"
-        dataFile_path = os.path.join(location, 'MBOdata', dataFile)
+        dataFile_path = os.path.join(MBOdata_dir(), dataFile)
         M = np.load(dataFile_path,allow_pickle=True)
         eigvals = M['eigenvalues']
         eigvecs = M['eigenvectors']
@@ -82,14 +96,12 @@ def load_label_permutation(dataset,label_perm='',t='-1'):
     #Standardize case of dataset
     dataset = standarize_dataset_name(dataset)
 
-    location = os.path.dirname(os.path.realpath(__file__))
     dataFile = dataset+label_perm+"_permutations.npz"
-    dataFile_path = os.path.join(location, 'LabelPermutations', dataFile)
+    dataFile_path = os.path.join(LabelPermutations_dir(), dataFile)
 
     #Check if Data directory exists
-    data_dir = os.path.join(location,'LabelPermutations')
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
+    if not os.path.exists(LabelPermutations_dir()):
+        os.makedirs(LabelPermutations_dir())
 
     #Try to Load kNNdata and/or download it
     if not os.path.exists(dataFile_path):
@@ -127,14 +139,11 @@ def load_dataset(dataset,metric='L2'):
     else:
         dataFile = dataset+"_raw.npz"
 
-    
-    location = os.path.dirname(os.path.realpath(__file__))
-    dataFile_path = os.path.join(location, 'Data', dataFile)
+    dataFile_path = os.path.join(Data_dir(), dataFile)
 
     #Check if Data directory exists
-    data_dir = os.path.join(location,'Data')
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
+    if not os.path.exists(Data_dir()):
+        os.makedirs(Data_dir())
 
     #Try to Load data and/or download dataset
     if not os.path.exists(dataFile_path):
@@ -157,14 +166,12 @@ def load_labels(dataset):
     #Standardize case of dataset
     dataset = standarize_dataset_name(dataset)
 
-    location = os.path.dirname(os.path.realpath(__file__))
     dataFile = dataset+"_labels.npz"
-    dataFile_path = os.path.join(location, 'Data', dataFile)
+    dataFile_path = os.path.join(Data_dir(), dataFile)
 
     #Check if Data directory exists
-    data_dir = os.path.join(location,'Data')
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
+    if not os.path.exists(Data_dir()):
+        os.makedirs(Data_dir())
 
     #Try to Load labels and/or download labels
     if not os.path.exists(dataFile_path):
@@ -187,14 +194,12 @@ def load_kNN_data(dataset,metric='L2'):
     #Standardize case of dataset
     dataset = standarize_dataset_name(dataset)
 
-    location = os.path.dirname(os.path.realpath(__file__))
     dataFile = dataset+"_"+metric+".npz"
-    dataFile_path = os.path.join(location, 'kNNData', dataFile)
+    dataFile_path = os.path.join(kNNData_dir(), dataFile)
 
     #Check if Data directory exists
-    data_dir = os.path.join(location,'kNNData')
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
+    if not os.path.exists(kNNData_dir()):
+        os.makedirs(kNNData_dir())
 
     #Try to Load kNNdata and/or download it
     if not os.path.exists(dataFile_path):
@@ -1207,18 +1212,17 @@ def compile_C_extensions():
                'vector_operations.h']
 
     cwd = os.getcwd()
-    cmod_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),'cmodules')
 
     #If cmodules does not exists, create directory and download code
-    if not os.path.exists(cmod_path):
-        os.makedirs(cmod_path)
+    if not os.path.exists(cmodules_dir()):
+        os.makedirs(cmodules_dir())
         gitpath = 'https://github.com/jwcalder/GraphLearning/raw/master/cmodules/'
-        print('Downloading cmodules/ directory from '+gitpath+'...')
+        print('Downloading cmodules/ directory from '+gitpath+' to '+cmodules_dir()+'...')
         for f in c_files:
-            urllib.request.urlretrieve(gitpath+f, os.path.join(cmod_path,f))
+            urllib.request.urlretrieve(gitpath+f, os.path.join(cmodules_dir(),f))
 
     #Change into c-code directory
-    os.chdir(cmod_path)
+    os.chdir(cmodules_dir())
 
     if os.path.exists('cgraphpy_setup.py'):
         print('Compiling C extensions...') 
@@ -1278,7 +1282,7 @@ def plaplace_solve(W,I,g,p,sol_method="SemiImplicit",norm="none"):
     if sol_method=="GradientDescentCcode":
         try:
             #Try to find or build C extensions
-            if not os.path.exists('cmodules') or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
+            if not os.path.exists(cmodules_dir()) or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
             import cmodules.cgraphpy as cgp
         except:
             sys.exit("cgraphpy cmodule not found. You may just need to compile it.")
@@ -1509,7 +1513,7 @@ def poisson_volumeMBO(W,I,g,dataset,beta,T,volume_mult):
 
     try:
         #Try to find or build C extensions
-        if not os.path.exists('cmodules') or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
+        if not os.path.exists(cmodules_dir()) or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
     except:
         sys.exit("cgraphpy cmodule not found. You may just need to compile it.")
@@ -1552,7 +1556,7 @@ def volumeMBO(W,I,g,dataset,beta,T,volume_mult):
 
     try:
         #Try to find or build C extensions
-        if not os.path.exists('cmodules') or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
+        if not os.path.exists(cmodules_dir()) or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
     except:
         sys.exit("cgraphpy cmodule not found. You may just need to compile it.")
@@ -2462,7 +2466,7 @@ def cDijkstra(W,I,g,WI=None,WJ=None,K=None):
     try:  #Try to use fast C version, if compiled
 
         #Try to find or build C extensions
-        if not os.path.exists('cmodules') or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
+        if not os.path.exists(cmodules_dir()) or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
 
         #Type casting and memory blocking
@@ -2497,7 +2501,7 @@ def HJsolver(W,I,g,WI=None,WJ=None,K=None,p=1):
     try:  #Try to use fast C version, if compiled
 
         #Try to find or build C extensions
-        if not os.path.exists('cmodules') or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
+        if not os.path.exists(cmodules_dir()) or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
 
         #Type casting and memory blocking
@@ -2575,7 +2579,7 @@ def eikonalSSL(W,I,g,p=2,beta=None):
     try:  #Try to use fast C version, if compiled
 
         #Try to find or build C extensions
-        if not os.path.exists('cmodules') or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
+        if not os.path.exists(cmodules_dir()) or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
 
         #Type casting and memory blocking
@@ -2631,7 +2635,7 @@ def nearestneighbor(W,I,g):
     try:  #Try to use fast C version of dijkstra
 
         #Try to find or build C extensions
-        if not os.path.exists('cmodules') or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
+        if not os.path.exists(cmodules_dir()) or importlib.util.find_spec("cmodules.cgraphpy") is None: compile_C_extensions() 
         import cmodules.cgraphpy as cgp
 
         #Type casting and memory blocking
