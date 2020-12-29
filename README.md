@@ -16,8 +16,9 @@ To install from the github source, which is updated more frequently, run
 
 ```
 git clone https://github.com/jwcalder/GraphLearning
-pip install -r GraphLearning/requirements.txt
-python GraphLearning/setup.py install --user
+cd GraphLearning
+pip install -r requirements.txt
+python setup.py install --user
 ```
 
 There are some C extensions that need to be compiled when building the package. 
