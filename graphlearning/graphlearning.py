@@ -409,11 +409,11 @@ def create_label_permutations(labels,T,m,multiplier=None,dataset=None,name=None,
             L = np.array(L)
             perm.append(L)
     
-    #Convert to numpy array
-    perm = np.array(perm,dtype=object)
 
     #If dataset name is provided, save permutations to file
     if not dataset is None:
+
+        perm = np.array(perm,dtype=object)
 
         dataset = standardize_dataset_name(dataset)
 
