@@ -1,3 +1,7 @@
+numpy
+scipy
 torch
-kymatio
 annoy
+sklearn
+kymatio
+matplotlib
