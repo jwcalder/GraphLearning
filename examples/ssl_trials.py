@@ -30,7 +30,7 @@ params = {'lambda':1}
 
 #Run experiments (we'll just do t=4 trials to save time)
 for alg in algorithm_list:
-    results = gl.ssl_trials(dataset=dataset,metric=metric,algorithm=alg,num_cores=2,t=10,label_perm='new',params=params,require_eigen_data=True)
+    results = gl.ssl_trials(dataset=dataset,metric=metric,algorithm=alg,num_cores=2,t=10,label_perm='new',params=params)
     results_files.append(results)
 
 #Generate plots
