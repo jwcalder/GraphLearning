@@ -384,7 +384,6 @@ def create_label_permutations_rate(labels,T,R):
 #m = vector of number of labels
 def create_label_permutations(labels,T,m,multiplier=None,dataset=None,name=None,overwrite=False):
     
-    dataset = standardize_dataset_name(dataset)
 
     #Find all unique labels >= 0
     #Negative numbers indicate unlabeled nodes
@@ -415,6 +414,9 @@ def create_label_permutations(labels,T,m,multiplier=None,dataset=None,name=None,
 
     #If dataset name is provided, save permutations to file
     if not dataset is None:
+
+        dataset = standardize_dataset_name(dataset)
+
         #data file name
         dataFile = dataset
         if not name is None:
