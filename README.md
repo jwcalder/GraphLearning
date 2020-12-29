@@ -37,7 +37,7 @@ gl.run_trials(dataset='mnist',metric='vae',algorithm='laplace',k=10,t=10)
 gl.run_trials(dataset='mnist',metric='vae',algorithm='laplace',k=10,t=10)
 ```
 
-Supported datasets include MNIST, FashionMNIST, WEBKB, and cifar. The metric is used for constructing the graph, and can be 'L2' for all datasets, which is Euclidean distance between raw data, 'vae' for MNIST and FashionMNIST, which is the variational autoencoder weights as described in our paper, 'scatter', which uses the scattering transform, or 'aet' for cifar, which uses the AutoEncoding Transformations weights, also described in our paper. The 'k=10' specifies how many nearest neighbors to use in constucting the graph, and 't=10' specifies how many trials to run, randomly assigning training/testing data. There are many other optional arguments, and full documentation is coming soon.
+Supported datasets include MNIST, FashionMNIST, WEBKB, and cifar. The metric is used for constructing the graph, and can be 'L2' for all datasets, which is Euclidean distance between raw data, 'vae' for MNIST and FashionMNIST, which is the variational autoencoder weights as described in our paper, 'scatter', which uses the scattering transform, or 'aet' for cifar, which uses the AutoEncoding Transformations weights, also described in our paper. The 'k=10' specifies how many nearest neighbors to use in constructing the graph, and 't=10' specifies how many trials to run, randomly assigning training/testing data. There are many other optional arguments, and full documentation is coming soon.
 
 Below is a list of currently supported algorithms with links to the corresponding papers.
 
