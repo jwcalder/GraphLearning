@@ -16,7 +16,7 @@ Install with
 pip install graphlearning
 ```
 
-Wheels are provided for Windows, Mac and Linux. Required packages include numpy, scipy, sklearn, matplotlib, and torch. The packages annoy and kymatio are required for running nearest neighbor searches and the scattering transform, respectively, but the rest of the code will run fine without those packages.
+Required packages include numpy, scipy, sklearn, matplotlib, and torch. The packages annoy and kymatio are required for running nearest neighbor searches and the scattering transform, respectively, but the rest of the code will run fine without those packages.
 
 To install from the github source, which is updated more frequently, run
 
