@@ -1,7 +1,7 @@
 /* lplearn.h - C code acceleration for Lplearning
  *
  *
- *  Used by the graphpy package
+ *  Used by the graphlearning package
  *
  * Inputs:
  *  uu = initial upper values nx1 array

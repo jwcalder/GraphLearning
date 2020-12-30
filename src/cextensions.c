@@ -1,4 +1,4 @@
-/* cextensions.c: C code for acceleration of graphpy library 
+/* cextensions.c: C code for acceleration of graphlearning library 
  *
  * *  Author: Jeff Calder, 2019.
  *

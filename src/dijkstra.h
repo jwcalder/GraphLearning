@@ -1,4 +1,4 @@
-/* dijkstra.h: C code for acceleration of graphpy library 
+/* dijkstra.h: C code for acceleration of graphlearning library 
  *
  * *  Author: Jeff Calder, 2020.
  *
