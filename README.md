@@ -76,12 +76,12 @@ print('Poisson learning: %.2f%%'%gl.accuracy(labels,labels_poisson,num_train_per
 ```
 
 
-### Contact and questions
+## Contact and questions
 
 
 Email <jwcalder@umn.edu> with any questions or comments.
 
-### Acknowledgments
+## Acknowledgments
 
 Several people have contributed to the development of this software:
 
