@@ -6,7 +6,7 @@ This python package is devoted to efficient implementations of modern graph-base
 
 This package reproduces experiments from our paper
 
-Calder, Cook, Thorpe, Slepcev. [Poisson Learning: Graph Based Semi-Supervised Learning at Very Low Label Rates.](https://arxiv.org/abs/2006.11184) To appear in International Conference on Machine Learning (ICML) 2020. 
+Calder, Cook, Thorpe, Slepcev. [Poisson Learning: Graph Based Semi-Supervised Learning at Very Low Label Rates.](http://proceedings.mlr.press/v119/calder20a.html), Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1306-1316, 2020.
 
 ## Installation
 
