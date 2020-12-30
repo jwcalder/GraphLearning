@@ -1,7 +1,7 @@
 '''
-GraphPy: Python Module for Graph-based learning algorithms. Efficient implementations of modern methods for graph-based semi-supervised learning, and graph clustering.
+GraphLearning:  This python package is devoted to efficient implementations of modern graph-based learning algorithms for both semi-supervised learning and clustering. The package implements many popular datasets (currently MNIST, FashionMNIST, cifar-10, and WEBKB) in a way that makes it simple for users to test out new algorithms and rapidly compare against existing methods.
 
-See README.md file for usage.
+See README.md file for usage on GitHub: https://github.com/jwcalder/GraphLearning
 
 Author: Jeff Calder, 2020
 '''
@@ -3381,9 +3381,6 @@ def print_help():
     print('========================================================')
     print('GraphLearning: Python package for graph-based learning. ')
     print('========================================================')
-    print('========================================================')
-    print('Graph-based Clustering & Semi-Supervised Learning')
-    print('========================================================')
     print('                                                        ')
     print('Options:')
     print('   -d (--dataset=): MNIST, FashionMNIST, WEBKB, cifar (default=MNIST)')
@@ -3493,9 +3490,6 @@ def ssl_trials(dataset = default_dataset(), metric = default_metric(), algorithm
     #Print basic info
     print('========================================================')
     print('GraphLearning: Python package for graph-based learning. ')
-    print('========================================================')
-    print('========================================================')
-    print('Graph-based Clustering & Semi-Supervised Learning')
     print('========================================================')
     print('                                                        ')
     print('Dataset: '+dataset)
