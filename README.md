@@ -4,13 +4,19 @@
 
 This python package is devoted to efficient implementations of modern graph-based learning algorithms for both semi-supervised learning and clustering. The package implements many popular datasets (currently MNIST, FashionMNIST, cifar-10, and WEBKB) in a way that makes it simple for users to test out new algorithms and rapidly compare against existing methods.
 
-Install a built version of the package with
+This package reproduces experiments from our paper
+
+Calder, Cook, Thorpe, Slepcev. [Poisson Learning: Graph Based Semi-Supervised Learning at Very Low Label Rates.](https://arxiv.org/abs/2006.11184) To appear in International Conference on Machine Learning (ICML) 2020. 
+
+##Installation
+
+Install with
 
 ```
 pip install graphlearning
 ```
 
-Wheels are built for Windows, Mac and Linux. Required packages include numpy, scipy, sklearn, matplotlib, and torch. The packages annoy and kymatio are required for running nearest neighbor searches and the scattering transform, respectively, but the rest of the code will run fine without those packages (annoy currently does not install well on MacOS).
+Wheels are provided for Windows, Mac and Linux. Required packages include numpy, scipy, sklearn, matplotlib, and torch. The packages annoy and kymatio are required for running nearest neighbor searches and the scattering transform, respectively, but the rest of the code will run fine without those packages.
 
 To install from the github source, which is updated more frequently, run
 
@@ -20,12 +26,6 @@ cd GraphLearning
 pip install -r requirements.txt
 python setup.py install --user
 ```
-
-There are some C extensions that need to be compiled when building the package. 
-
-This package reproduces experiments from our paper
-
-Calder, Cook, Thorpe, Slepcev. [Poisson Learning: Graph Based Semi-Supervised Learning at Very Low Label Rates.](https://arxiv.org/abs/2006.11184) To appear in International Conference on Machine Learning (ICML) 2020. 
 
 ## Getting started with basic experiments
 Below we outline some basic ways the package can be used. The [examples](https://github.com/jwcalder/GraphLearning/tree/master/examples) page from our GitHub repository contains several detailed example scripts that are useful for getting started.
