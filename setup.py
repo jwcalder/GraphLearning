@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="graphlearning-jwcalder", # Replace with your own username
+    name="graphlearning", 
     version="0.0.1",
     author="Jeff Calder",
     author_email="jwcalder@umn.edu",
