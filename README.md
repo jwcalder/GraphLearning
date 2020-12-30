@@ -8,7 +8,7 @@ This package reproduces experiments from our paper
 
 Calder, Cook, Thorpe, Slepcev. [Poisson Learning: Graph Based Semi-Supervised Learning at Very Low Label Rates.](https://arxiv.org/abs/2006.11184) To appear in International Conference on Machine Learning (ICML) 2020. 
 
-##Installation
+## Installation
 
 Install with
 
