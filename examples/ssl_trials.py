@@ -28,7 +28,7 @@ gl.create_label_permutations(gl.load_labels(dataset),100,[1,2,4,8,16],dataset='m
 #Parameters specific to the new algorithm alg_name 
 params = {'lambda':1} 
 
-#Run experiments (we'll just do t=4 trials to save time)
+#Run experiments (we'll just do t=10 trials to save time)
 for alg in algorithm_list:
     results = gl.ssl_trials(dataset=dataset,metric=metric,algorithm=alg,num_cores=2,t=10,label_perm='new',params=params)
     results_files.append(results)
