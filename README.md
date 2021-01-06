@@ -1,4 +1,4 @@
-# Graph-based Clustering and Semi-Supervised Learning
+## Graph-based Clustering and Semi-Supervised Learning
 
 ![Clustering](https://github.com/jwcalder/GraphLearning/raw/master/images/clustering.png)
 
