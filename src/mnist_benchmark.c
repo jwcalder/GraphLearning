@@ -140,8 +140,8 @@ void mbo_main(int *labels, int *I, int *J, float *W, int *ind, int *val, int *cl
    //float sampleRatio[lcount];
    //memset(realRatio,0,lcount*sizeof(float));
    //memset(sampleRatio,0,lcount*sizeof(float));
-   float *realRatio = (float *) calloc(lcount, sizeof(float));
-   float *sampleRatioRatio = (float *) calloc(lcount, sizeof(float));
+   //float *realRatio = (float *) calloc(lcount, sizeof(float));
+   //float *sampleRatioRatio = (float *) calloc(lcount, sizeof(float));
 
    //Compute number of neighbors of each vertex and vertex degrees
    int *nncounts = vector_int(pcount+1,0);    //number of neighbors
