@@ -74,13 +74,17 @@ def LabelPermutations_dir(): return os.path.abspath(os.path.join(os.getcwd(),os.
 def Eigen_dir(): return os.path.abspath(os.path.join(os.getcwd(),os.pardir,'EigenData'))
 def Results_dir(): return os.path.join(os.getcwd(),'Results')
 
-def load_eig(dataset,metric,k):
+def load_eig(dataset,metric,k,gamma=0):
 
     #Standardize case of dataset
     dataset = standardize_dataset_name(dataset)
 
     #Filenames
-    dataFile = dataset+"_"+metric+"_k%d"%k+"_spectrum.npz"
+    if gamma == 0:
+        dataFile = dataset+"_"+metric+"_k%d"%k+"_spectrum.npz"
+    else:
+        dataFile = dataset+"_"+metric+"_k%d"%k+"_g%.2f"%gamma+"_spectrum.npz"
+
     dataFile_path = os.path.join(Eigen_dir(), dataFile)
 
     #Load eigenvector data if MBO selected
@@ -98,14 +102,27 @@ def load_eig(dataset,metric,k):
             sys.exit('kNNData only has %d'%I.shape[1]+'-nearest neighbor information. Aborting...')
         else:
             W = weight_matrix(I,J,D,k)
+        n = W.shape[0]
+        deg = degrees(W)
+        m = np.sum(deg)/2 
 
         #UnNormalized Laplacian
         L = graph_laplacian(W)
-        vals, vecs = sparse.linalg.eigs(L,k=300,which='SM')
+        def M(v):
+            v = v.flatten()
+            return (L*v).flatten() + (gamma/m)*(deg.T@v)*deg
+        A = sparse.linalg.LinearOperator((n,n), matvec=M)
+        vals, vecs = sparse.linalg.eigs(A,k=300,which='SM')
+        vals = vals.real; vecs = vecs.real
 
         #Normalized Laplacian
-        L = graph_laplacian(W,norm="normalized")
-        vals_norm, vecs_norm = sparse.linalg.eigs(L,k=300,which='SM')
+        Lnorm = graph_laplacian(W,norm="normalized")
+        def Mnorm(v):
+            v = v.flatten()
+            return (Lnorm*v).flatten() + (gamma/m)*(deg.T@v)*deg
+        Anorm = sparse.linalg.LinearOperator((n,n), matvec=Mnorm)
+        vals_norm, vecs_norm = sparse.linalg.eigs(Anorm,k=300,which='SM')
+        vals_norm = vals_norm.real; vecs_norm = vecs_norm.real
 
         #Check if Data directory exists
         if not os.path.exists(Eigen_dir()):
@@ -923,14 +940,19 @@ def boundary_points(X,k,I=None,J=None,D=None,ReturnNormals=False,R=np.inf):
         return Y
 
 
-#Construct k-nn sparse distance matrix
-#Note: Matrix is not symmetric
-def knn_weight_matrix(X,k,f=exp_weight):
+#Compute weight matrix from dataset info
+#k = number of neighbors
+def knn_weight_matrix(k,data=None,dataset=None,metric='raw',f=exp_weight,symmetrize=True):
 
-    I,J,D = knnsearch_annoy(X,k)
-    W = weight_matrix(I,J,D,k,f=f)
-   
-    return W
+    if data is not None:
+        I,J,D = knnsearch_annoy(data,k)
+    elif dataset is not None:
+        I,J,D = load_kNN_data(dataset,metric=metric)
+    else:
+        sys.exit("Must provide data or a dataset name.")
+
+    return weight_matrix(I,J,D,k,f=f,symmetrize=symmetrize)
+
 
 #Solves Lx=f subject to Rx=g at ind points
 def gmres_bc_solve(L,f,R,g,ind):
@@ -1634,6 +1656,58 @@ def volumeMBO(W,I,g,dataset,beta,T,volume_mult):
     u,_ = LabelsToVec(u)
     return u
 
+#Modularity MBO
+#Boyd ZM, Bae E, Tai XC, Bertozzi AL. Simplified energy landscape for modularity using total variation. SIAM Journal on Applied Mathematics. 2018;78(5):2439-64.
+def modularityMBO(W,I,g,vals,vecs,gamma=0.5,eps=1,lamb=1,true_labels=None):
+
+    #One-hot initialization
+    n = W.shape[0]
+    num_classes = len(np.unique(g))
+    train_onehot = np.zeros((len(I),num_classes))
+    train_onehot[range(len(I)),g] = 1
+    u = np.zeros((n,num_classes))
+    u[I,:] = train_onehot
+
+    #Spectral data
+    num_eig = 5*num_classes
+    D = vals[:num_eig]
+    V = vecs[:,:num_eig]
+
+    #Time step selection
+    deg = degrees(W)
+    dtlow = 0.15/((gamma+1)*np.max(deg))
+    dthigh = np.log(np.linalg.norm(u)/eps)/D[0]
+    dt = np.sqrt(dtlow*dthigh)
+
+    #Diffusion matrix
+    P = sparse.spdiags(np.exp(-D*dt),0,num_eig,num_eig)@V.T
+
+    #Main MBO iterations
+    for i in range(20):
+
+        #Diffusion 
+        u = V@(P@u)
+
+        #Training labels
+        if lamb > 0:
+            for _ in range(5):
+                u[I,:] -= (dt/5)*lamb*(u[I,:] - train_onehot)
+
+        #Threshold to labels
+        labels = np.argmax(u,axis=1)
+        
+        #Convert to 1-hot vectors
+        u = np.zeros((n,num_classes))
+        u[range(n),labels] = 1
+
+        if true_labels is not None:
+            max_locations = np.argmax(u,axis=1)
+            labels = (np.unique(g))[max_locations]
+            labels[I] = g
+            acc = accuracy(labels,true_labels,len(I))
+            print('Accuracy = %.2f'%acc)
+
+    return u.T
 
 #Multiclass MBO
 #Garcia-Cardona, Cristina, et al. "Multiclass data segmentation using diffuse interface methods on graphs." IEEE transactions on pattern analysis and machine intelligence 36.8 (2014): 1600-1613.
@@ -2214,7 +2288,7 @@ def poisson2(W,I,g,true_labels=None,min_iter=50,solver='conjgrad'):
     Kg = onehot_labels(I,g,n)
     b = Kg.T - np.mean(Kg,axis=1)
 
-    #Check solver method (conjgrad or gradientdescent)
+    #Check solver method (conjgrad or graddesc)
     if solver.lower() == "conjgrad":
 
         L = graph_laplacian(W,norm='none')
@@ -2276,7 +2350,7 @@ def poisson2(W,I,g,true_labels=None,min_iter=50,solver='conjgrad'):
 
 
 #Poisson learning
-def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=None,min_iter=50):
+def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=None,min_iter=50,solver="conjgrad",cgtol=1e-3):
 
     n = W.shape[0]
     unique_labels = np.unique(g)
@@ -2291,58 +2365,69 @@ def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=Non
     b = np.transpose(Kg)
     b[I,:] = b[I,:]-c
 
-    #Setup matrices
-    D = degree_matrix(W + 1e-10*sparse.identity(n),p=-1)
-    #L = graph_laplacian(W,norm='none')
-    #P = sparse.identity(n) - D*L #Line below is equivalent when W symmetric
-    P = D*W.transpose()
-    Db = D*b
+    if solver == 'conjgrad':
+        #Conjugate gradient solver
+        L = graph_laplacian(W,norm='normalized')
+        D = degree_matrix(W + 1e-10*sparse.identity(n),p=-0.5)
+        u,T = conjgrad(L, D*b, tol=cgtol)
+        u = D*u
 
-    v = np.max(Kg,axis=0)
-    v = v/np.sum(v)
-    vinf = degrees(W)/np.sum(degrees(W))
-    RW = W.transpose()*D
-    u = np.zeros((n,k))
+    elif solver == "graddesc":
 
-    #vals, vec = sparse.linalg.eigs(RW,k=1,which='LM')
-    #vinf = np.absolute(vec.flatten())
-    #vinf = vinf/np.sum(vinf)
+        #Setup matrices
+        D = degree_matrix(W + 1e-10*sparse.identity(n),p=-1)
+        #L = graph_laplacian(W,norm='none')
+        #P = sparse.identity(n) - D*L #Line below is equivalent when W symmetric
+        P = D*W.transpose()
+        Db = D*b
 
-    #Number of iterations
-    T = 0
-    if use_cuda:
-        
-        Pt = torch_sparse(P).cuda()
-        ut = torch.from_numpy(u).float().cuda()
-        Dbt = torch.from_numpy(Db).float().cuda()
+        v = np.max(Kg,axis=0)
+        v = v/np.sum(v)
+        vinf = degrees(W)/np.sum(degrees(W))
+        RW = W.transpose()*D
+        u = np.zeros((n,k))
 
-        #start_time = time.time()
-        while (T < min_iter or np.max(np.absolute(v-vinf)) > 1/n) and (T < 1000):
-            ut = torch.sparse.addmm(Dbt,Pt,ut)
-            v = RW*v
-            T = T + 1
-        #print("--- %s seconds ---" % (time.time() - start_time))
+        #vals, vec = sparse.linalg.eigs(RW,k=1,which='LM')
+        #vinf = np.absolute(vec.flatten())
+        #vinf = vinf/np.sum(vinf)
 
-        #Transfer to CPU and convert to numpy
-        u = ut.cpu().numpy()
+        #Number of iterations
+        T = 0
+        if use_cuda:
+            
+            Pt = torch_sparse(P).cuda()
+            ut = torch.from_numpy(u).float().cuda()
+            Dbt = torch.from_numpy(Db).float().cuda()
 
-    else: #Use CPU
+            #start_time = time.time()
+            while (T < min_iter or np.max(np.absolute(v-vinf)) > 1/n) and (T < 1000):
+                ut = torch.sparse.addmm(Dbt,Pt,ut)
+                v = RW*v
+                T = T + 1
+            #print("--- %s seconds ---" % (time.time() - start_time))
 
-        #start_time = time.time()
-        while (T < min_iter or np.max(np.absolute(v-vinf)) > 1/n) and (T < 1000):
-            u = Db + P*u
-            v = RW*v
-            T = T + 1
+            #Transfer to CPU and convert to numpy
+            u = ut.cpu().numpy()
 
-            #Compute accuracy if all labels are provided
-            if true_labels is not None:
-                max_locations = np.argmax(u,axis=1)
-                labels = (np.unique(g))[max_locations]
-                labels[I] = g
-                acc = accuracy(labels,true_labels,len(I))
-                print('%d,Accuracy = %.2f'%(T,acc))
-        
-        #print("--- %s seconds ---" % (time.time() - start_time))
+        else: #Use CPU
+
+            #start_time = time.time()
+            while (T < min_iter or np.max(np.absolute(v-vinf)) > 1/n) and (T < 1000):
+                u = Db + P*u
+                v = RW*v
+                T = T + 1
+
+                #Compute accuracy if all labels are provided
+                if true_labels is not None:
+                    max_locations = np.argmax(u,axis=1)
+                    labels = (np.unique(g))[max_locations]
+                    labels[I] = g
+                    acc = accuracy(labels,true_labels,len(I))
+                    print('%d,Accuracy = %.2f'%(T,acc))
+            
+            #print("--- %s seconds ---" % (time.time() - start_time))
+    else:
+        sys.exit("Invalid Poisson solver")
 
     #Balancing for training data/class size discrepancy
     if training_balance:
@@ -2963,7 +3048,7 @@ def graph_clustering(W,k,true_labels=None,algorithm="incres",speed=5,T=100,extra
 #g = values of labels
 #algorithm = SSL method
 #   Options: laplace, poisson, poisson_nodeg, wnll, properlyweighted, plaplace, randomwalk
-def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,vals=None,vecs=None,vals_norm=None,vecs_norm=None,dataset=None,T=0,use_cuda=False,return_vector=False,poisson_training_balance=True,symmetrize=True,poisson_solver="conjgrad",params=None):
+def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,vals=None,vecs=None,vals_norm=None,vecs_norm=None,dataset=None,T=0,use_cuda=False,return_vector=False,poisson_training_balance=True,symmetrize=True,poisson_solver="conjgrad",params=None,gamma=0.5):
 
     #Convert to scipy.sparse format
     W = sparse.csr_matrix(W)
@@ -2985,6 +3070,8 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,
     
     if algorithm=="mbo":
         u = multiclassMBO(W,I,g,vals_norm,vecs_norm,dataset,true_labels=true_labels)
+    elif algorithm=="modularitymbo":
+        u = modularityMBO(W,I,g,vals,vecs,gamma=gamma,eps=epsilon,lamb=alpha,true_labels=true_labels)
     elif algorithm=="laplace":
         u = laplace_learning(W,I,g,norm=norm)
     elif algorithm=="randomwalk":
@@ -3014,9 +3101,9 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,
     elif algorithm=="poisson2":
         u,_ = poisson2(W,I,g,true_labels=true_labels,solver=poisson_solver)
     elif algorithm=="poisson":
-        u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance)
+        u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance,solver=poisson_solver)
     elif algorithm=="poissonbalanced":
-        u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance,beta = beta)
+        u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance,beta = beta,solver=poisson_solver)
     elif algorithm=="poissonvolume":
         u = PoissonVolume(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance,beta = beta)
     elif algorithm=="poissonmbo":
@@ -3317,7 +3404,7 @@ def PageRank(W,alpha=0.85,v=None,tol=1e-10):
     return u
 
 #Displays a grid of images
-def image_grid(X, n_rows=10, n_cols=10, padding=2, title=None, normalize=False, fontsize=None, transpose=True):
+def image_grid(X, n_rows=10, n_cols=10, padding=2, title=None, normalize=False, fontsize=None, transpose=True, return_image=False):
 #X = (n,m) array of n grayscale images, flattened to length m arrays
 #OR X = (n_rows,n_cols,m) array, in which case n_rows and n_cols are read dirctly from X
 #n_rows: number of rows in grid (optional)
@@ -3365,15 +3452,19 @@ def image_grid(X, n_rows=10, n_cols=10, padding=2, title=None, normalize=False, 
                 I[row_pos:row_pos+im_width,col_pos:col_pos+im_width] = im
                 c += 1
   
-    #Create a new window and plot the image
-    plt.figure(figsize=(10,10))
-    plt.imshow(I,cmap='gray')
-    plt.axis('off')
-    if title is not None:
-        if fontsize is not None:
-            plt.title(title,fontsize=fontsize)
-        else:
-            plt.title(title)
+    if return_image:
+        return I
+    else:
+        #Create a new window and plot the image
+        plt.figure(figsize=(10,10))
+        plt.imshow(I,cmap='gray')
+        plt.axis('off')
+        if title is not None:
+            if fontsize is not None:
+                plt.title(title,fontsize=fontsize)
+            else:
+                plt.title(title)
+
 
 #Print help
 def print_help():
@@ -3426,9 +3517,11 @@ def default_verbose(): return False
 def default_poisson_training_balance(): return True
 def default_directed_graph(): return False
 def default_require_eigen_data(): return False
+def default_poisson_solver(): return 'conjgrad'
+def default_gamma(): return 0.5
 
 #Main subroutine for ssl trials 
-def ssl_trials(dataset = default_dataset(), metric = default_metric(), algorithm = default_algorithm(), k = default_k(), t = default_t(), label_perm = default_label_perm(), p = default_p(), norm = default_norm(), use_cuda = default_use_cuda(), T = default_T(), num_cores = default_num_cores(), results = default_results(), num_classes = default_num_classes(), speed = default_speed(), num_iter = default_num_iter(), extra_dim = default_extra_dim(), volume_constraint = default_volume_constraint(), verbose = default_verbose(), poisson_training_balance = default_poisson_training_balance(), directed_graph = default_directed_graph(),params={},require_eigen_data=default_require_eigen_data()):
+def ssl_trials(dataset = default_dataset(), metric = default_metric(), algorithm = default_algorithm(), k = default_k(), t = default_t(), label_perm = default_label_perm(), p = default_p(), norm = default_norm(), use_cuda = default_use_cuda(), T = default_T(), num_cores = default_num_cores(), results = default_results(), num_classes = default_num_classes(), speed = default_speed(), num_iter = default_num_iter(), extra_dim = default_extra_dim(), volume_constraint = default_volume_constraint(), verbose = default_verbose(), poisson_training_balance = default_poisson_training_balance(), directed_graph = default_directed_graph(),params={},require_eigen_data=default_require_eigen_data(), poisson_solver=default_poisson_solver(), gamma=default_gamma()):
 
     #Standardize case of dataset
     dataset = standardize_dataset_name(dataset)
@@ -3455,8 +3548,8 @@ def ssl_trials(dataset = default_dataset(), metric = default_metric(), algorithm
     perm = load_label_permutation(dataset,label_perm=label_perm,t=t)
 
     #Load eigenvector data if MBO selected
-    if algorithm in ['mbo'] or require_eigen_data:
-        vals,vecs,vals_norm,vecs_norm = load_eig(dataset,metric,k)
+    if algorithm.lower() in ['mbo','modularitymbo'] or require_eigen_data:
+        vals,vecs,vals_norm,vecs_norm = load_eig(dataset,metric,k,gamma=gamma)
         params['vals']=vals
         params['vals_norm']=vals_norm
         params['vecs']=vecs
@@ -3551,7 +3644,7 @@ def ssl_trials(dataset = default_dataset(), metric = default_metric(), algorithm
 
         #start_time = time.time()
         #Graph-based semi-supervised learning
-        u = graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,algorithm=algorithm,epsilon=0.3,p=p,norm=norm,vals=vals,vecs=vecs,vals_norm=vals_norm,vecs_norm=vecs_norm,dataset=dataset,T=T,use_cuda=use_cuda,volume_mult=volume_constraint,true_labels=true_labels,poisson_training_balance=poisson_training_balance,symmetrize = not directed_graph, X=data, params=params)
+        u = graph_ssl(W,label_ind,labels[label_ind],D=Wdist,beta=beta,algorithm=algorithm,epsilon=0.3,p=p,norm=norm,vals=vals,vecs=vecs,vals_norm=vals_norm,vecs_norm=vecs_norm,dataset=dataset,T=T,use_cuda=use_cuda,volume_mult=volume_constraint,true_labels=true_labels,poisson_training_balance=poisson_training_balance,symmetrize = not directed_graph, X=data, params=params,poisson_solver=poisson_solver,gamma=gamma)
         #print("--- %s seconds ---" % (time.time() - start_time))
 
         #Compute accuracy
