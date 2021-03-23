@@ -71,8 +71,8 @@ labels_laplace = gl.graph_ssl(W,train_ind,train_labels,algorithm='laplace')
 labels_poisson = gl.graph_ssl(W,train_ind,train_labels,algorithm='poisson')
 
 #Compute and print accuracy
-print('Laplace learning: %.2f%%'%gl.accuracy(labels,labels_laplace,num_train_per_class))
-print('Poisson learning: %.2f%%'%gl.accuracy(labels,labels_poisson,num_train_per_class))
+print('Laplace learning: %.2f%%'%gl.accuracy(labels,labels_laplace,len(train_ind)))
+print('Poisson learning: %.2f%%'%gl.accuracy(labels,labels_poisson,len(train_ind)))
 ```
 
 
