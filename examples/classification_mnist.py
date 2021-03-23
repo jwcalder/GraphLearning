@@ -8,12 +8,10 @@ import graphlearning as gl
 
 #Load labels, knndata, and build 10-nearest neighbor weight matrix
 labels = gl.load_labels('mnist')
-I,J,D = gl.load_kNN_data('mnist',metric='vae')
-W = gl.weight_matrix(I,J,D,10)
+W = gl.knn_weight_matrix(10,dataset='mnist',metric='vae')
 
 #Equivalently, we can compute knndata from scratch
 #X = gl.load_dataset('mnist',metric='vae')
-#labels = gl.load_labels('mnist')
 #I,J,D = gl.knnsearch_annoy(X,10)
 #W = gl.weight_matrix(I,J,D,10)
 

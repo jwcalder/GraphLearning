@@ -13,8 +13,7 @@ X,L = datasets.make_moons(n_samples=n,noise=0.1)
 
 #Build a knn graph
 k = 10
-I,J,D = gl.knnsearch(X,k)
-W = gl.weight_matrix(I,J,D,k)
+W = gl.knn_weight_matrix(k,data=X)
 
 #Randomly choose labels
 m = 5 #5 labels per class
