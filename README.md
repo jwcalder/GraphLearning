@@ -57,8 +57,7 @@ import graphlearning as gl
 
 #Load labels, knndata, an build 10-nearest neighbor weight matrix
 labels = gl.load_labels('mnist')
-I,J,D = gl.load_kNN_data('mnist',metric='vae')
-W = gl.weight_matrix(I,J,D,10)
+W = gl.knn_weight_matrix(10,dataset='mnist',metric='vae')
 
 #Randomly chose training datapoints
 num_train_per_class = 1 
