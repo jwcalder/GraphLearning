@@ -20,12 +20,14 @@ k = 10
 I,J,D = gl.knnsearch(X,k)
 W = gl.weight_matrix(I,J,D,k,symmetrize=False) #W is not not symmetric
 
+
 #Randomly choose labels
 m = 5 #5 labels per class
 ind = gl.randomize_labels(L,m)  #indices of labeled points
 
 #Semi-supervised learning 
-l = gl.graph_ssl(W,ind,L[ind],algorithm='poisson',symmetrize=False)
+u,T = gl.poisson(W,ind,L[ind],solver='graddesc')  #Returns kxn matrix u
+l = np.argmax(u,axis=0)
 
 #Compute accuracy
 acc = gl.accuracy(l,L,len(ind))   
