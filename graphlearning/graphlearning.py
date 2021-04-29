@@ -21,6 +21,7 @@ import sys, getopt, time, csv, torch, os, multiprocessing
 from joblib import Parallel, delayed
 import urllib.request
 import importlib
+from matplotlib.ticker import MaxNLocator
 
 clustering_algorithms = ['incres','spectral','spectralshimalik','spectralngjordanweiss']
 
@@ -3306,13 +3307,18 @@ def plot_graph(X,W,l=None):
 #plot average and standard deviation of accuracy over many trials
 #dataset = name of dataset
 #ssl_methods = list of names of methods to compare
-def accuracy_plot(plot_list,legend_list,num_of_classes,title=None,errorbars=False,testerror=False,savefile=None,loglog=False):
+def accuracy_plot(plot_list,legend_list,num_of_classes,title=None,errorbars=False,testerror=False,savefile=None,loglog=False,ylim=None,fontsize=16,legend_fontsize=None,label_fontsize=None):
 
+    if legend_fontsize is None:
+        legend_fontsize = fontsize
+    if label_fontsize is None:
+        label_fontsize = fontsize
     #plt.ion()
-    plt.figure()
+    #plt.figure()
+    ax = plt.figure().gca()
     if errorbars:
         matplotlib.rcParams.update({'errorbar.capsize': 5})
-    matplotlib.rcParams.update({'font.size': 16})
+    matplotlib.rcParams.update({'font.size': fontsize})
     styles = ['^b-','or-','dg-','sk-','pm-','xc-','*y-']
     i = 0
     for plot in plot_list:
@@ -3326,21 +3332,24 @@ def accuracy_plot(plot_list,legend_list,num_of_classes,title=None,errorbars=Fals
             plt.errorbar(N/num_of_classes,acc,fmt=styles[i],yerr=stddev,label=legend_list[i])
         else:
             if loglog:
-                plt.loglog(N/num_of_classes,acc,styles[i],label=legend_list[i])
+                ax.loglog(N/num_of_classes,acc,styles[i],label=legend_list[i])
             else:
-                plt.plot(N/num_of_classes,acc,styles[i],label=legend_list[i])
+                ax.plot(N/num_of_classes,acc,styles[i],label=legend_list[i])
         i+=1
-    plt.xlabel('Number of labels per class')
+    plt.xlabel('Number of labels per class',fontsize=label_fontsize)
     if testerror:
-        plt.ylabel('Test error (%)')
-        plt.legend(loc='upper right')
+        plt.ylabel('Test error (%)',fontsize=label_fontsize)
+        plt.legend(loc='upper right',fontsize=legend_fontsize)
     else:
-        plt.ylabel('Accuracy (%)')
-        plt.legend(loc='lower right')
+        plt.ylabel('Accuracy (%)',fontsize=label_fontsize)
+        plt.legend(loc='lower right',fontsize=legend_fontsize)
     if title is not None:
         plt.title(title)
     plt.tight_layout()
     plt.grid(True)
+    if ylim is not None:
+        plt.ylim(ylim)
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     if savefile is not None:
         plt.savefig(savefile)
     else:
