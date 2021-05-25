@@ -2124,7 +2124,7 @@ def volume_label_projection(u,beta,s=None,dt=None):
     return ClosestVertex(np.diag(s)@u),s
 
 #Poisson MBO with volume constraints
-def poissonMBO_volume(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False,Ns=40,mu=1,T=20):
+def poissonMBO_volume(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False,Ns=40,mu=1,T=20,solver='conjgrad'):
 
     n = W.shape[0]
     k = len(np.unique(g))
@@ -2153,7 +2153,7 @@ def poissonMBO_volume(W,I,g,dataset,beta,true_labels=None,temp=0,use_cuda=False,
     L = D - W.transpose()
 
     #Initialize u via Poisson learning
-    u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda, beta=beta)
+    u,_ = poisson(W,I,g,true_labels=true_labels,use_cuda=use_cuda,beta=beta,solver=solver)
     u = mu*u
 
     #Time step for stability
@@ -3058,7 +3058,7 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,
     algorithm = algorithm.lower()
 
     if beta is None:
-        beta = np.ones((len(np.unique(g)),))
+        beta = np.ones((len(np.unique(g)),))/len(np.unique(g))
 
     #Symmetrize D,W, if not already symmetric
     if symmetrize:
@@ -3108,7 +3108,7 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,
     elif algorithm=="poissonvolume":
         u = PoissonVolume(W,I,g,true_labels=true_labels,use_cuda=use_cuda,training_balance=poisson_training_balance,beta = beta)
     elif algorithm=="poissonmbo":
-        u = poissonMBO_volume(W,I,g,dataset,beta,true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu)
+        u = poissonMBO_volume(W,I,g,dataset,beta,true_labels=true_labels,temp=T,use_cuda=use_cuda,Ns=Ns,mu=mu,solver=poisson_solver)
     elif algorithm=="dynamiclabelpropagation":
         u = DynamicLabelPropagation(W,I,g,true_labels=true_labels)
     elif algorithm=="sparselabelpropagation":
