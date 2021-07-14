@@ -2256,7 +2256,8 @@ def onehot_labels(I,g,n):
 
     J = np.zeros(n,)
     K = np.ones(n,)*g[0]
-    J[I] = 1
+    for i in I:
+        J[i] += 1
     K[I] = g
     Kg,_ = LabelsToVec(K)
     return Kg*J
@@ -2480,7 +2481,7 @@ def poisson(W,I,g,true_labels=None,use_cuda=False,training_balance=True,beta=Non
 
     #Poisson source term
     Kg = onehot_labels(I,g,n)
-    c = np.sum(Kg,axis=1)/len(I)
+    c = np.sum(Kg,axis=1)/len(np.unique(I))
     b = np.transpose(Kg)
     b[I,:] = b[I,:]-c
 
