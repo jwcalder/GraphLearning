@@ -22,6 +22,7 @@ from joblib import Parallel, delayed
 import urllib.request
 import importlib
 from matplotlib.ticker import MaxNLocator
+import ssl
 
 clustering_algorithms = ['incres','spectral','spectralshimalik','spectralngjordanweiss']
 
@@ -149,6 +150,7 @@ def load_label_permutation(dataset,label_perm='',t='-1'):
     #Try to Load kNNdata and/or download it
     if not os.path.exists(dataFile_path):
         urlpath = 'https://github.com/jwcalder/GraphLearning/raw/master/LabelPermutations/'+dataFile
+        ssl._create_default_https_context = ssl._create_unverified_context
         try:
             print('Downloading '+urlpath+' to '+dataFile_path+'...')
             urllib.request.urlretrieve(urlpath, dataFile_path)
@@ -231,6 +233,7 @@ def load_dataset(dataset,metric='raw'):
     #Try to Load data and/or download dataset
     if not os.path.exists(dataFile_path):
         urlpath = 'http://www-users.math.umn.edu/~jwcalder/Data/'+dataFile
+        ssl._create_default_https_context = ssl._create_unverified_context
         try:
             print('Downloading '+urlpath+' to '+dataFile_path+'...')
             urllib.request.urlretrieve(urlpath, dataFile_path)
@@ -259,6 +262,7 @@ def load_labels(dataset):
     #Try to Load labels and/or download labels
     if not os.path.exists(dataFile_path):
         urlpath = 'https://github.com/jwcalder/GraphLearning/raw/master/Data/'+dataFile
+        ssl._create_default_https_context = ssl._create_unverified_context
         try:
             print('Downloading '+urlpath+' to '+dataFile_path+'...')
             urllib.request.urlretrieve(urlpath, dataFile_path)
@@ -852,12 +856,13 @@ def weight_matrix(I,J,D,k,f=exp_weight,symmetrize=True):
 
     return W
 
-def boundary_statistic(X,r,ReturnNormals=False,SecondOrder=False,normalization='none'):
+def boundary_statistic(X,r,knn=False,ReturnNormals=False,SecondOrder=False,normalization='none'):
     """Computes boundary detection statistic
 
     Args:
         X: nxd point cloud of points in dimension d
         r: radius for test
+        knn: Use knn version of test (interprets r as number of neighbors)
         ReturnNormals: Whether to return normal vectors as well
         SecondOrder: Use second order test
 
@@ -866,7 +871,19 @@ def boundary_statistic(X,r,ReturnNormals=False,SecondOrder=False,normalization='
     """
 
     #Estimation of normal vectors
-    W = eps_weight_matrix(X,r,f=lambda x : np.ones_like(x))
+    n = X.shape[0]
+    d = X.shape[1]
+    if knn:
+        k = r
+        if d <= 5:
+            I,J,D = knnsearch(X,k)
+        else:
+            I,J,D = knnsearch_annoy(X,k)
+
+        W = weight_matrix(I,J,D,k,f=lambda x : np.ones_like(x),symmetrize=False)
+    else:
+        W = eps_weight_matrix(X,r,f=lambda x : np.ones_like(x))
+        
     deg = W*np.ones(W.shape[0])
     if np.min(deg)==1:
         print('\nWarning: Some points have no neighbors!!!\n')
@@ -875,19 +892,29 @@ def boundary_statistic(X,r,ReturnNormals=False,SecondOrder=False,normalization='
     nu = nu/norms[:,np.newaxis]
 
     #Boundary test
-    k = int(np.max(W*np.ones(W.shape[0]))) #Number of neighbors to use in knnsearch
-    I,J,D = knnsearch(X,k); J=J[:,1:]; D=D[:,1:] #knnsearch and remove self (I not needed)
+    if not knn:
+        k = int(np.max(W*np.ones(W.shape[0]))) #Number of neighbors to use in knnsearch
+        I,J,D = knnsearch(X,k); J=J[:,1:]; D=D[:,1:] #knnsearch and remove self (I not needed)
+
     V = X[:,np.newaxis,:] - X[J] #(x^0-x^i), nxkxd array
 
     if SecondOrder:
         nn_mask = np.sum(nu[:,np.newaxis,:]*nu[J],axis=2) > 0
         nu2 = nu[:,np.newaxis,:] + nn_mask[:,:,np.newaxis]*(nu[J] - nu[:,np.newaxis,:])/2
         xd = np.sum(V*nu2,axis=2) #xd coordinate (nxk)
-    else: #First order boundary test
-        xd = np.sum(V*nu[:,np.newaxis,:],axis=2) #xd coordinate (nxk)
+    else: #First order boundary test (below is not right, but need to fix later)
+        nu2 = (nu[:,np.newaxis,:] + nu[J])/2
+        #xd = np.sum(V*nu[:,np.newaxis,:],axis=2) #xd coordinate (nxk)
+        xd = np.sum(V*nu2,axis=2) #xd coordinate (nxk)
 
+    print(xd)
+    print(xd.shape)
     #Return test statistic, masking out to B(x,r), and normals if ReturnNormals=True
-    T = np.max(xd*(D<=r),axis=1)
+    if knn:
+        T = np.max(xd,axis=1)
+    else:
+        T = np.max(xd*(D<=r),axis=1)
+
     if ReturnNormals:
         return T,nu
     else:
@@ -922,8 +949,6 @@ def boundary_points(X,k,I=None,J=None,D=None,ReturnNormals=False):
     norms = np.sqrt(np.sum(nu*nu,axis=0))
     nu = nu/norms
     nu = np.transpose(nu)
-
-    print(nu.shape)
 
     #Boundary test
     NN = X[J]
@@ -2399,8 +2424,8 @@ def peikonal(W, bdy_set, p=2, alpha=0, f=1, g=0, max_num_it=100, converg_tol=1e-
     ----------
     W : nxn scipy sparse matrix
         Weight matrix for graph
-    bdy_set : Length m integer numpy array
-              Indices of boundary points
+    bdy_set : Length m integer numpy array or length n boolean array
+              Indices of boundary points or boolean mask of training points
     p : Float
         Value of exponent p (default p=2)
     alpha : Float
@@ -2423,6 +2448,8 @@ def peikonal(W, bdy_set, p=2, alpha=0, f=1, g=0, max_num_it=100, converg_tol=1e-
     n = a[0]
     u = np.zeros((n,))
     m = len(bdy_set)
+    if m == n:  #If bdy_set is boolean
+        m = np.sum(bdy_set)
 
     #Convert f and g to arrays if scalars are given
     if type(f) != np.ndarray:
@@ -2441,7 +2468,7 @@ def peikonal(W, bdy_set, p=2, alpha=0, f=1, g=0, max_num_it=100, converg_tol=1e-
         T = np.zeros((n,3))
         T[:,1] = 1 + max_u + f**(1/p)
         
-        T[bdy_set,:] = 0  #general g
+        T[bdy_set,:] = g[:,np.newaxis]  #general g
         
         # inner loop starts:
         for j in range(50):
