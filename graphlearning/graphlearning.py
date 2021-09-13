@@ -234,9 +234,9 @@ def load_dataset(dataset,metric='raw'):
     if not os.path.exists(dataFile_path):
         urlpath = 'http://www-users.math.umn.edu/~jwcalder/Data/'+dataFile
         ssl._create_default_https_context = ssl._create_unverified_context
-        try:
-            print('Downloading '+urlpath+' to '+dataFile_path+'...')
+        try: 
             urllib.request.urlretrieve(urlpath, dataFile_path)
+            print('Downloading '+urlpath+' to '+dataFile_path+'...')
         except:
             sys.exit('Error: Cannot find '+dataFile+', and could not downoad '+urlpath+'.')
     try:
@@ -263,9 +263,9 @@ def load_labels(dataset):
     if not os.path.exists(dataFile_path):
         urlpath = 'https://github.com/jwcalder/GraphLearning/raw/master/Data/'+dataFile
         ssl._create_default_https_context = ssl._create_unverified_context
-        try:
-            print('Downloading '+urlpath+' to '+dataFile_path+'...')
+        try:      
             urllib.request.urlretrieve(urlpath, dataFile_path)
+            print('Downloading '+urlpath+' to '+dataFile_path+'...')
         except:
             sys.exit('Error: Cannot find '+dataFile+', and could not downoad '+urlpath+'.')
     try:
@@ -292,8 +292,8 @@ def load_kNN_data(dataset,metric='raw'):
     if not os.path.exists(dataFile_path):
         urlpath = 'https://github.com/jwcalder/GraphLearning/raw/master/kNNData/'+dataFile
         try:
-            print('Downloading '+urlpath+' to '+dataFile_path+'...')
             urllib.request.urlretrieve(urlpath, dataFile_path)
+            print('Downloading '+urlpath+' to '+dataFile_path+'...')
         except:
             sys.exit('Error: Cannot find '+dataFile+', and could not downoad '+urlpath+'.')
     try:
