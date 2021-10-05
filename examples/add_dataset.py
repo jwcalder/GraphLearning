@@ -9,11 +9,11 @@ import numpy as np
 n = 500
 separation = 0.8
 X1 = np.random.randn(n,2)
-L1 = np.zeros((n,))
+L1 = np.zeros((n,),dtype=int)
 X2 = np.random.randn(n,2) + separation*np.array([4,2])
-L2 = np.ones((n,))
+L2 = np.ones((n,),dtype=int)
 X3 = np.random.randn(n,2) + separation*np.array([0,4])
-L3 = 2*np.ones((n,))
+L3 = 2*np.ones((n,),dtype=int)
 
 #Stack classes and labels together
 n = 3*n
