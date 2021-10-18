@@ -2807,7 +2807,7 @@ def cDijkstra(W,I,g,WI=None,WJ=None,K=None):
     u = np.ones((n,))*1e10          #HJ Solver
     l = -np.ones((n,),dtype=int)    #Index of closest label
 
-    if (WI == None) or (WJ == None) or (K==None):
+    if (WI is None) or (WJ is None) or (K is None):
         #Reformat weight matrix W into form more useful for Dijkstra
         WI,WJ,WV = sparse.find(W)
         K = np.array((WJ[1:] - WJ[:-1]).nonzero()) + 1
