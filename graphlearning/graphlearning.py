@@ -586,7 +586,7 @@ def graph_infinity_laplacian(W,u,I=None,J=None,V=None):
     return M.toarray().flatten()
 
 
-#Construct epsilon-graph sparse distance matrix
+#Construct epsilon-graph sparse weight matrix
 def eps_weight_matrix(X,eps,f=exp_weight):
 
     n = X.shape[0]  #Number of points
@@ -612,6 +612,12 @@ def eps_weight_matrix(X,eps,f=exp_weight):
     W = sparse.coo_matrix((D, (M1,M2)),shape=(n,n))
 
     return W.tocsr()
+
+#Construct epsilon-graph sparse distance matrix
+def eps_dist_matrix(X,eps):
+
+    W = eps_weight_matrix(X, eps, f = lambda x : np.sqrt(x))*eps/2
+    return W
 
 #Exact knnsearch
 def knnsearch(X,k,dataset=None,metric='raw'):
@@ -779,6 +785,17 @@ def dist_matrix(I,J,D,k):
 
     return W
 
+#Returns sparse knn distance matrix
+def knn_dist_matrix(X,k):
+
+    d = X.shape[1]
+    if d <= 5:
+        I,J,D = knnsearch(X,k)
+    else:
+        I,J,D = knnsearch_annoy(X,k)
+
+    return dist_matrix(I,J,D,k)
+
 #Adds weights to an adjacency matrix W using similarity in data X
 def add_weights(W,X,labels):
 
@@ -856,15 +873,18 @@ def weight_matrix(I,J,D,k,f=exp_weight,symmetrize=True):
 
     return W
 
-def boundary_statistic(X,r,knn=False,ReturnNormals=False,SecondOrder=False,normalization='none'):
+
+def boundary_statistic(X,r,knn=False,ReturnNormals=False,SecondOrder=True,CutOff=True,I=None,J=None,D=None):
     """Computes boundary detection statistic
 
     Args:
         X: nxd point cloud of points in dimension d
-        r: radius for test
+        r: radius for test (or number of neighbors if knn=True)
         knn: Use knn version of test (interprets r as number of neighbors)
         ReturnNormals: Whether to return normal vectors as well
         SecondOrder: Use second order test
+        CutOff: Whether to use CutOff for second order test.
+        I,J,D: Output of knnsearch (Optional, improves runtime if already available)
 
     Returns:
         Length n numpy array of test statistic. If ReturnNormals=True, then normal vectors are return as a second argument.
@@ -875,40 +895,54 @@ def boundary_statistic(X,r,knn=False,ReturnNormals=False,SecondOrder=False,norma
     d = X.shape[1]
     if knn:
         k = r
-        if d <= 5:
-            I,J,D = knnsearch(X,k)
-        else:
-            I,J,D = knnsearch_annoy(X,k)
-
+        #Run knnsearch only if I,J,D not provided
+        if (I is None) or (J is None) or (D is None):
+            if d <= 5:
+                I,J,D = knnsearch(X,k)
+            else:
+                I,J,D = knnsearch_annoy(X,k)
         W = weight_matrix(I,J,D,k,f=lambda x : np.ones_like(x),symmetrize=False)
     else:
         W = eps_weight_matrix(X,r,f=lambda x : np.ones_like(x))
         
-    deg = W*np.ones(W.shape[0])
+    deg = W*np.ones(n)
     if np.min(deg)==1:
         print('\nWarning: Some points have no neighbors!!!\n')
-    nu = -graph_laplacian(W,norm=normalization)*X
+
+    #Estimation of normals
+    if SecondOrder:
+        if knn:
+            theta = degree_matrix(W,p=-1)
+        else:
+            W2 = eps_weight_matrix(X,r/2,f=lambda x : np.ones_like(x))
+            theta = degree_matrix(W2,p=-1)
+        nu = -graph_laplacian(W*theta)*X
+    else:
+        nu = -graph_laplacian(W)*X
+
+    #Normalize to unit norm
     norms = np.sqrt(np.sum(nu*nu,axis=1))
     nu = nu/norms[:,np.newaxis]
 
-    #Boundary test
+    #Switch to knn if not selected
     if not knn:
         k = int(np.max(W*np.ones(W.shape[0]))) #Number of neighbors to use in knnsearch
         I,J,D = knnsearch(X,k); J=J[:,1:]; D=D[:,1:] #knnsearch and remove self (I not needed)
 
+    #Difference between center point and neighbors
     V = X[:,np.newaxis,:] - X[J] #(x^0-x^i), nxkxd array
 
+    #Compute boundary statistic to all neighbors
     if SecondOrder:
-        nn_mask = np.sum(nu[:,np.newaxis,:]*nu[J],axis=2) > 0
-        nu2 = nu[:,np.newaxis,:] + nn_mask[:,:,np.newaxis]*(nu[J] - nu[:,np.newaxis,:])/2
-        xd = np.sum(V*nu2,axis=2) #xd coordinate (nxk)
-    else: #First order boundary test (below is not right, but need to fix later)
         nu2 = (nu[:,np.newaxis,:] + nu[J])/2
-        #xd = np.sum(V*nu[:,np.newaxis,:],axis=2) #xd coordinate (nxk)
+        if CutOff:
+            nn_mask = np.sum(nu[:,np.newaxis,:]*nu[J],axis=2) > 0
+            nn_mask = nn_mask[:,:,np.newaxis]
+            nu2 = nn_mask*nu2 + (1-nn_mask)*nu[:,np.newaxis,:]
         xd = np.sum(V*nu2,axis=2) #xd coordinate (nxk)
+    else: #First order boundary test 
+        xd = np.sum(V*nu[:,np.newaxis,:],axis=2) #xd coordinate (nxk)
 
-    print(xd)
-    print(xd.shape)
     #Return test statistic, masking out to B(x,r), and normals if ReturnNormals=True
     if knn:
         T = np.max(xd,axis=1)
@@ -919,93 +953,6 @@ def boundary_statistic(X,r,knn=False,ReturnNormals=False,SecondOrder=False,norma
         return T,nu
     else:
         return T
-
-
-#Compute boundary points
-#k = number of neighbors to use
-def boundary_points(X,k,I=None,J=None,D=None,ReturnNormals=False):
-
-    if (I is None) or (J is None) or (D is None):
-        n = X.shape[0]
-        d = X.shape[1]
-        if d <= 5:
-            I,J,D = knnsearch(X,k)
-        else:
-            I,J,D = knnsearch_annoy(X,k)
-    
-    #Restrict I,J,D to k neighbors
-    k = np.minimum(I.shape[1],k)
-    n = X.shape[0]
-    I = I[:,:k]
-    J = J[:,:k]
-    D = D[:,:k]
-
-    W = weight_matrix(I,J,D,k,f=lambda x : np.ones_like(x),symmetrize=False)
-    L = graph_laplacian(W)
-    
-    #Estimates of normal vectors
-    nu = -L*X
-    nu = np.transpose(nu)
-    norms = np.sqrt(np.sum(nu*nu,axis=0))
-    nu = nu/norms
-    nu = np.transpose(nu)
-
-    #Boundary test
-    NN = X[J]
-    NN = np.swapaxes(NN[:,1:,:],0,1) #This is kxnxd
-    V = NN - X #This is x^i-x^0 kxnxd array
-    NN_nu = nu[J]
-    W = (np.swapaxes(NN_nu[:,1:,:],0,1) + nu)/2
-    xd = np.sum(V*W,axis=2) #dist to boundary
-    Y = np.max(-xd,axis=0)
-    
-    if ReturnNormals:
-        return Y,nu
-    else:
-        return Y
-
-
-#Compute boundary points
-#k = number of neighbors to use
-def boundary_points_old(X,k,I=None,J=None,D=None,ReturnNormals=False,R=np.inf):
-
-    if (I is None) or (J is None) or (D is None):
-        n = X.shape[0]
-        d = X.shape[1]
-        if d <= 5:
-            I,J,D = knnsearch(X,k)
-        else:
-            I,J,D = knnsearch_annoy(X,k)
-    
-    #Restrict I,J,D to k neighbors
-    k = np.minimum(I.shape[1],k)
-    n = X.shape[0]
-    I = I[:,:k]
-    J = J[:,:k]
-    D = D[:,:k]
-
-    W = weight_matrix(I,J,D,k,f=lambda x : np.ones_like(x),symmetrize=False)
-    L = graph_laplacian(W)
-    
-    #Estimates of normal vectors
-    nu = -L*X
-    nu = np.transpose(nu)
-    norms = np.sqrt(np.sum(nu*nu,axis=0))
-    nu = nu/norms
-    nu = np.transpose(nu)
-
-    #Boundary test
-    NN = X[J]
-    NN = np.swapaxes(NN[:,1:,:],0,1) #This is kxnxd
-    V = NN - X #This is x^i-x^0 kxnxd array
-    xd = np.sum(V*nu,axis=2) #xd coordinate (kxn)
-    sqdist = np.sum(V*V,axis=2)
-    Y = np.max((xd*xd - sqdist)/(2*R) - xd,axis=0)
-    
-    if ReturnNormals:
-        return Y,nu
-    else:
-        return Y
 
 
 #Compute weight matrix from dataset info
