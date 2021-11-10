@@ -19,11 +19,14 @@ pip install graphlearning
 Required packages include numpy, scipy, sklearn, matplotlib, and torch. The packages annoy and kymatio are required for running nearest neighbor searches and the scattering transform, respectively, but the rest of the code will run fine without those packages. These dependencies should install automatically.
 
 To install from the github source, which is updated more frequently, run
-
 ```
 git clone https://github.com/jwcalder/GraphLearning
 cd GraphLearning
 python setup.py install --user
+```
+If you prefer to use ssh swap the first line with
+```
+git clone git@github.com:jwcalder/GraphLearning.git
 ```
 
 ## Getting started with basic experiments

@@ -22,7 +22,7 @@ setuptools.setup(
                                 'src/mnist_benchmark.c',
                                 'src/mbo_speedy_volume_preserving.c'],
                     include_dirs=[numpy.get_include()],
-                    extra_compile_args = ['-Ofast'],
+                    extra_compile_args = ['-Ofast','-std=gnu99'],
                     extra_link_args = ['-lm'])],
     classifiers=[
                 "Programming Language :: Python :: 3",
