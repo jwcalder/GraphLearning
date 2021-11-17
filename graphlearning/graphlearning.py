@@ -2779,6 +2779,61 @@ def cDijkstra(W,I,g,WI=None,WJ=None,WV=None,K=None):
 
     return u
 
+def lip_extension_learning(W,I,g,tol=1e-5,prog=False,T=1000,weighted=True,WI=None,WJ=None,WV=None):
+
+    n = W.shape[0]
+    k = len(np.unique(g))  #Number of labels
+    u = np.zeros((k,n))
+    i = 0
+    for l in np.unique(g):
+        u[i,:] = lip_extension(W,I,g==l,tol=tol,prog=prog,T=T,weighted=weighted,WI=WI,WJ=WJ,WV=WV)
+        i+=1
+
+    return u
+
+#Solve a general HJ equation with fast marching
+def lip_extension(W,I,g,tol=1e-5,prog=False,T=1000,weighted=True,WI=None,WJ=None,WV=None):
+
+    n = W.shape[0]
+    k = len(I)
+    u = np.zeros((n,))        #Initial condition
+    T = float(T)
+
+    if (WI is None) or (WJ is None) or (WV is None):
+
+        WI,WJ,WV = sparse.find(W)
+
+    try:  #Try to use fast C version, if compiled
+
+        #Import c extensions
+        import graphlearning.cextensions as cext
+
+        #Type casting and memory blocking
+        u = np.ascontiguousarray(u,dtype=np.float64)
+        WI = np.ascontiguousarray(WI,dtype=np.int32)
+        WJ = np.ascontiguousarray(WJ,dtype=np.int32)
+        I = np.ascontiguousarray(I,dtype=np.int32)
+        g = np.ascontiguousarray(g,dtype=np.float64)
+
+        cext.lip_iterate(u,WI,WJ,WV,I,g,T,tol,float(prog),float(weighted))
+
+    except:
+        sys.exit('Cannot load c extensions.')
+
+    #Check residual
+    #if weighted:
+    #    M = sparse.coo_matrix((WV*(u[WJ]-u[WI]), (WI,WJ)),shape=(n,n)).tocsr()
+    #else:
+    #    M = sparse.coo_matrix((u[WJ]-u[WI], (WI,WJ)),shape=(n,n)).tocsr()
+    #M = M.min(axis=1) + M.max(axis=1)
+    #inflap = M.toarray().flatten()
+    #inflap[I]=0
+    #print(np.max(np.absolute(inflap)))
+
+
+    return u
+
+
 #Solve a general HJ equation with fast marching
 def HJsolver(W,I,g,WI=None,WJ=None,K=None,p=1):
 
@@ -3142,7 +3197,7 @@ def graph_clustering(W,k,true_labels=None,algorithm="incres",speed=5,T=100,extra
 #g = values of labels
 #algorithm = SSL method
 #   Options: laplace, poisson, poisson_nodeg, wnll, properlyweighted, plaplace, randomwalk
-def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,vals=None,vecs=None,vals_norm=None,vecs_norm=None,dataset=None,T=0,use_cuda=False,return_vector=False,poisson_training_balance=True,symmetrize=True,poisson_solver="conjgrad",params=None,gamma=0.5):
+def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,volume_mult=0.5,alpha=2,zeta=1e7,r=0.1,epsilon=0.05,X=None,plaplace_solver="GradientDescentCcode",norm="none",true_labels=None,vals=None,vecs=None,vals_norm=None,vecs_norm=None,dataset=None,T=0,use_cuda=False,return_vector=False,poisson_training_balance=True,symmetrize=True,poisson_solver="conjgrad",params=None,gamma=0.5,weighted=False):
 
     #Convert to scipy.sparse format
     W = sparse.csr_matrix(W)
@@ -3164,6 +3219,8 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,
     
     if algorithm=="mbo":
         u = multiclassMBO(W,I,g,vals_norm,vecs_norm,dataset,true_labels=true_labels)
+    elif algorithm=="lip_extension":
+        u = lip_extension_learning(W,I,g,tol=1e-3,prog=False,T=10000,weighted=weighted)
     elif algorithm=="modularitymbo":
         u = modularityMBO(W,I,g,vals,vecs,gamma=gamma,eps=epsilon,lamb=alpha,true_labels=true_labels)
     elif algorithm=="laplace":

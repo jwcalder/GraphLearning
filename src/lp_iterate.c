@@ -31,7 +31,6 @@
 #include "vector_operations.h"
 #include "memory_allocation.h"
 
-
 //Main subroutine for iteration
 void lp_iterate_main(double *uu, double *ul, int *I, int *J, double *W, int *ind, double *val, double p, int T, double tol, bool prog, int n, int M, int m){
 
@@ -120,6 +119,136 @@ void lp_iterate_main(double *uu, double *ul, int *I, int *J, double *W, int *ind
       temp = ul; 
       ul = vl;
       vl = temp;
+   }
+}
+
+
+//Main subroutine for iteration
+void lip_iterate_main(double *u, int *I, int *J, int *ind, double *val, int T, double tol, bool prog, int n, int M, int m){
+
+   int i, j, it;
+   
+   //printf("Unweighted\n");
+   //Compute number of neighbors of each vertex and vertex degrees
+   int *num = vector_int(n,0);    //number of neighbors
+   int *start = vector_int(n,0);    //start of neighbor
+   bool *label_mask = vector_bool(n,true);
+   j=0;
+   for(i=0;i<n;i++){
+      start[i] = j;
+      while((J[j]==i) & (j < M)){
+         num[i]++;
+         j++;
+      }
+   }
+  
+   //Set Dirichlet conditions and label mask
+   for(j=0;j<m;j++){
+      u[ind[j]] = val[j];
+      label_mask[ind[j]] = false;
+   }
+   
+   //Main loop
+   for(it=0;it<T;it++){
+      if(prog){
+         printf("Iter=%d, ",it); fflush(stdout); 
+      }
+      double err = 0;
+      for(i=0;i<n;i++){
+
+         //Update if not a label
+         if(label_mask[i]){
+            double minu=u[I[start[i]]], maxu=u[I[start[i]]];
+            for(j=start[i];j<start[i]+num[i];j++){ //loop over neighbors
+               minu = MIN(u[I[j]],minu);
+               maxu = MAX(u[I[j]],maxu);
+            }
+            double new = (minu + maxu)/2;
+            err = MAX(ABS(u[i] - new),err);
+            u[i] = new;
+         }
+      }
+
+      //Progress update
+      if(prog){
+         printf("err=%.15f\n",err); fflush(stdout);
+      }
+
+      //Check error condition
+      if(err < tol && it > 20)
+         break;
+   }
+}
+
+//Main subroutine for iteration
+void lip_iterate_weighted_main(double *u, int *I, int *J, double *W, int *ind, double *val, int T, double tol, bool prog, int n, int M, int m){
+
+   int i, j, k, it;
+   
+   //printf("Weighted\n");
+   //Compute number of neighbors of each vertex and vertex degrees
+   int *num = vector_int(n,0);    //number of neighbors
+   int *start = vector_int(n,0);    //start of neighbor
+   bool *label_mask = vector_bool(n,true);
+   j=0;
+   for(i=0;i<n;i++){
+      start[i] = j;
+      while((J[j]==i) & (j < M)){
+         num[i]++;
+         j++;
+      }
+   }
+  
+   //Set Dirichlet conditions and label mask
+   for(j=0;j<m;j++){
+      u[ind[j]] = val[j];
+      label_mask[ind[j]] = false;
+   }
+   
+   //Main loop
+   for(it=0;it<T;it++){
+      if(prog){
+         printf("Iter=%d, ",it); fflush(stdout); 
+      }
+      double err = 0;
+      for(i=0;i<n;i++){
+
+         //Update if not a label
+         if(label_mask[i]){
+            double minu=u[I[start[i]]], maxu=u[I[start[i]]];
+            for(j=start[i];j<start[i]+num[i];j++){ //loop over neighbors
+               minu = MIN(u[I[j]],minu);
+               maxu = MAX(u[I[j]],maxu);
+            }
+            //Bisection search
+            double a=minu, b=maxu;
+            for(k=0;k<30;k++){ 
+               double minw=0, maxw=0;
+               double t = (a + b)/2.0;
+               for(j=start[i];j<start[i]+num[i];j++){ //loop over neighbors
+                  minw = MIN(W[j]*(t - u[I[j]]),minw);
+                  maxw = MAX(W[j]*(t - u[I[j]]),maxw);
+               }
+               double inflap = minw + maxw;
+               if(inflap > 0)
+                  b = t;
+               else
+                  a = t;
+            }
+            double new = (a + b)/2.0;
+            err = MAX(ABS(u[i] - new),err);
+            u[i] = new;
+         }
+      }
+
+      //Progress update
+      if(prog){
+         printf("err=%.15f\n",err); fflush(stdout);
+      }
+
+      //Check error condition
+      if(err < tol && it > 20)
+         break;
    }
 }
 

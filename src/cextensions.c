@@ -58,6 +58,52 @@ static PyObject* lp_iterate(PyObject* self, PyObject* args)
    return Py_None;
 }
 
+static PyObject* lip_iterate(PyObject* self, PyObject* args)
+{
+
+   double Td;
+   double tol;
+   double progd;
+   double weightedd;
+   PyArrayObject *u_array;
+   PyArrayObject *I_array;
+   PyArrayObject *J_array;
+   PyArrayObject *W_array;
+   PyArrayObject *ind_array;
+   PyArrayObject *val_array;
+
+   /*  parse arguments */
+   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!dddd", &PyArray_Type, &u_array, &PyArray_Type, &I_array, &PyArray_Type, &J_array, &PyArray_Type, &W_array, &PyArray_Type, &ind_array, &PyArray_Type, &val_array, &Td, &tol, &progd, &weightedd))
+      return NULL;
+
+   npy_intp *dim =  PyArray_DIMS(u_array);
+   int n = dim[0]; //Number of vertices
+   dim =  PyArray_DIMS(I_array);
+   int M = dim[0]; //Number nonzero entries in weight matrix
+   dim =  PyArray_DIMS(ind_array);
+   int m = dim[0]; //Number labeled points
+
+   double *u = (double *) PyArray_DATA(u_array);
+   int *I = (int *) PyArray_DATA(I_array);
+   int *J = (int *) PyArray_DATA(J_array);
+   double *W = (double *) PyArray_DATA(W_array);
+   int *ind = (int *) PyArray_DATA(ind_array);
+   double *val = (double *) PyArray_DATA(val_array);
+   bool prog = (bool)progd;
+   bool weighted = (bool)weightedd;
+   int T = (int)Td;
+
+   //Call main function from C code
+   if(weighted)
+      lip_iterate_weighted_main(u,I,J,W,ind,val,T,tol,prog,n,M,m);
+   else
+      lip_iterate_main(u,I,J,ind,val,T,tol,prog,n,M,m);
+
+   Py_INCREF(Py_None);
+   return Py_None;
+}
+
+
 
 static PyObject* volume_mbo(PyObject* self, PyObject* args)
 {
@@ -188,6 +234,7 @@ static PyObject* HJsolver(PyObject* self, PyObject* args)
 static PyMethodDef CExtensionsMethods[] =
 {
    {"lp_iterate", lp_iterate, METH_VARARGS, "C Code acceleration for Lplearning"},
+   {"lip_iterate", lip_iterate, METH_VARARGS, "C Code acceleration for unweighted Lipschitz learning"},
    {"volume_mbo", volume_mbo, METH_VARARGS, "Volume Constrained MBO"},
    {"dijkstra", dijkstra, METH_VARARGS, "Dijkstra's algorithm"},
    {"HJsolver", HJsolver, METH_VARARGS, "Hamilton-Jacobi solver via Fast Marching"},
