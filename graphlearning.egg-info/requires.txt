@@ -1,0 +1,7 @@
+numpy
+scipy
+torch
+annoy
+sklearn
+kymatio
+matplotlib

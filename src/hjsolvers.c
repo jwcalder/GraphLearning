@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include "vector_operations.h"
 #include "memory_allocation.h"
-#include "dijkstra.h"
+#include "hjsolvers.h"
 
 //Heap functions
 //d = values in heap (indexed by graph vertex)
@@ -415,4 +415,85 @@ void HJsolver_jacobi(double *d, int *l, int *WI, int *K, double *WV, int *I, int
       //printf("err=%f\n",err);
    }
    //printf("T=%d\n",T);
+}
+
+double peikonal_solver(double ui, double *u, double *w, double f, int n, double p, int num_bisection_it){
+
+   int i,j;
+   double min_val = u[0];
+   double max_val = u[0];
+   double max_w = w[0];
+   double degree = 0;
+   for(i=0; i<n; i++){
+      min_val = MIN(u[i],min_val);
+      max_val = MAX(u[i],max_val);
+      max_w = MAX(w[i],max_w);
+      degree += w[i];
+   }
+
+   //Initial bounds for bisection
+   double a = min_val;
+   double b;
+   if(p==1)
+      b = max_val + f/degree;
+   else
+      b = max_val + pow(f/degree,1.0/p);
+
+   for(j=0; j<num_bisection_it; j++){
+      double op = 0.0;
+      double t = (a+b)/2.0;
+      for(i=0; i<n; i++){
+         double v = MAX(t-u[i],0);
+         if(p!=1)
+            v = pow(v,p);
+         op+=v;
+      }
+      if(op > f)
+         b = t;
+      else
+         a = t;
+   }
+   return (a+b)/2.0;
+}
+
+void peikonal_main(double *u, int *WI, int *K, double *WV, int *I, double *f,  double *g, double p_val, int max_num_it, double tol, int num_bisection_it, bool prog, int n, int M, int k){
+
+
+   //Initialization
+   int i,j,ii,kk;
+   bool *A = vector_bool(n,1);      //Indicates labeled nodes
+   double *u_vals = vector_double(n,0);
+   double *w_vals = vector_double(n,0);
+
+   //Set mask for labeled nodes
+   for(i=0; i<k; i++){
+      u[I[i]] = g[i];   //Initialize distance
+      A[I[i]] = 0;      //Set flag
+   }
+   
+   //Iteration for solving
+   int T = 0;
+   double err = tol+1;
+   while(T++ < max_num_it && err > tol){
+      err = 0;
+      for(j=0; j<n; j++){
+         if(A[j]){      
+            //Grab neighbors
+            int num_nn = 0;
+            for(ii=K[j]; ii < K[j+1]; ii++){
+               kk = WI[ii];
+               u_vals[num_nn] = u[kk];
+               w_vals[num_nn] = WV[kk];
+               num_nn++;
+            }
+            if(num_nn>0){
+               double newu = peikonal_solver(u[j],u_vals,w_vals,f[j],num_nn,p_val,num_bisection_it);
+               err = MAX(ABS(newu - u[j]),err);
+               u[j] = newu;
+            }
+         }
+      }
+      if(prog)
+         printf("T=%d, err=%f\n",T,err);
+   }
 }

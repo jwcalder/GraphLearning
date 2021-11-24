@@ -10,7 +10,7 @@
 #include <numpy/arrayobject.h>
 #include "lp_iterate.h"
 #include "mnist_benchmark.h"
-#include "dijkstra.h"
+#include "hjsolvers.h"
 #include <stdio.h>
 #include <stdlib.h>
 //#include <unistd.h>
@@ -185,6 +185,50 @@ static PyObject* dijkstra(PyObject* self, PyObject* args)
    return Py_None;
 }
 
+static PyObject* peikonal(PyObject* self, PyObject* args)
+{
+
+   double p, max_num_itd, converg_tol, num_bisection_itd,progd;
+   PyArrayObject *u_array;
+   PyArrayObject *WI_array;
+   PyArrayObject *K_array;
+   PyArrayObject *WV_array;
+   PyArrayObject *bdy_set_array;
+   PyArrayObject *f_array;
+   PyArrayObject *g_array;
+
+   //cext.peikonal(u,WI,K,WV,bdy_set,f,g,p,max_num_it,converg_tol,num_bisection_it,prog)
+   
+   /*  parse arguments */
+   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!ddddd", &PyArray_Type, &u_array, &PyArray_Type, &WI_array, &PyArray_Type, &K_array, &PyArray_Type, &WV_array, &PyArray_Type, &bdy_set_array, &PyArray_Type, &f_array,  &PyArray_Type, &g_array, &p, &max_num_itd, &converg_tol, &num_bisection_itd, &progd))
+      return NULL;
+
+   npy_intp *dim =  PyArray_DIMS(u_array);
+   int n = dim[0]; //Number of vertices
+   dim =  PyArray_DIMS(WI_array);
+   int M = dim[0]; //Number nonzero entries in weight matrix
+   dim =  PyArray_DIMS(bdy_set_array);
+   int k = dim[0]; //Number labeled points
+
+   double *u = (double *) PyArray_DATA(u_array);
+   int *WI = (int *) PyArray_DATA(WI_array);
+   int *K = (int *) PyArray_DATA(K_array);
+   double *WV = (double *) PyArray_DATA(WV_array);
+   int *bdy_set = (int *) PyArray_DATA(bdy_set_array);
+   double *f = (double *) PyArray_DATA(f_array);
+   double *g = (double *) PyArray_DATA(g_array);
+   int max_num_it = (int)max_num_itd;
+   int num_bisection_it = (int) num_bisection_itd;
+   bool prog = (bool)progd;
+
+   //Call main function from C code
+   peikonal_main(u,WI,K,WV,bdy_set,f,g,p,max_num_it,converg_tol,num_bisection_it,prog,n,M,k);
+
+   Py_INCREF(Py_None);
+   return Py_None;
+}
+
+
 static PyObject* HJsolver(PyObject* self, PyObject* args)
 {
 
@@ -238,6 +282,7 @@ static PyMethodDef CExtensionsMethods[] =
    {"volume_mbo", volume_mbo, METH_VARARGS, "Volume Constrained MBO"},
    {"dijkstra", dijkstra, METH_VARARGS, "Dijkstra's algorithm"},
    {"HJsolver", HJsolver, METH_VARARGS, "Hamilton-Jacobi solver via Fast Marching"},
+   {"peikonal", peikonal, METH_VARARGS, "C code version of p-eikonal solver"},
    {NULL, NULL, 0, NULL}
 };
 

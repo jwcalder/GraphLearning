@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="graphlearning", 
-    version="0.0.3",
+    version="0.0.4",
     author="Jeff Calder",
     author_email="jwcalder@umn.edu",
     description="Python package for graph-based clustering and semi-supervised learning",
@@ -17,7 +17,7 @@ setuptools.setup(
     ext_modules=[setuptools.Extension('graphlearning.cextensions', 
                     sources=[   'src/cextensions.c',
                                 'src/lp_iterate.c',
-                                'src/dijkstra.c',
+                                'src/hjsolvers.c',
                                 'src/memory_allocation.c',
                                 'src/mnist_benchmark.c',
                                 'src/mbo_speedy_volume_preserving.c'],
