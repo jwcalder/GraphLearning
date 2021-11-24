@@ -2409,15 +2409,19 @@ def peikonal(W, bdy_set, p=2, f=1, g=0, u0=None, max_num_it=1e5, converg_tol=1e-
     I,J,V = gl.sparse.find(W)  #Indices of nonzero entries
     max_outer_loop_err = 1
     
+    deg = degrees(W)
     i = 0
     #outer loop starts:
     while (max_outer_loop_err > converg_tol) and (i < max_num_it):
         i += 1
         max_u = np.max(u)
+        min_u = np.min(u)
         T = np.zeros((n,3))
-        T[:,1] = 1 + max_u + f**(1/p)
+        T[:,0] = min_u + (f/deg)**(1/p)
+        T[:,1] = max_u + (f/deg)**(1/p)
         T[bdy_set,:] = g[:,np.newaxis]  #general g
-    #inner loop starts:
+
+        #inner loop starts:
         for j in range(num_bisection_it):
             F = np.zeros((n,))
             T[:,2] = (T[:,0]+T[:,1])/2
