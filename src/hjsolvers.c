@@ -432,12 +432,11 @@ double peikonal_solver(double ui, double *u, double *w, double f, int n, double 
    }
 
    //Initial bounds for bisection
-   double a = min_val;
-   double b;
-   if(p==1)
-      b = max_val + f/degree;
-   else
-      b = max_val + pow(f/degree,1.0/p);
+   double inc = f/degree;
+   if(p>1)
+      inc = pow(inc,1.0/p);
+   double a = min_val + inc;
+   double b = max_val + inc;
 
    for(j=0; j<num_bisection_it; j++){
       double op = 0.0;

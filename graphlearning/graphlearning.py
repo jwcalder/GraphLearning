@@ -2363,7 +2363,8 @@ def poisson2(W,I,g,true_labels=None,min_iter=50,solver='conjgrad'):
 
     return u.T,T
 
-def cpeikonal(W, bdy_set, p=2, f=1, g=0, max_num_it=1e5, converg_tol=1e-6, num_bisection_it=50, prog=False):
+def peikonal(W, bdy_set, p=2, f=1, g=0, u0=None, max_num_it=1e5, converg_tol=1e-6, num_bisection_it=50):
+
     """Sovles the p-eikonal equation using the bisection method
 
     Parameters
@@ -2372,10 +2373,83 @@ def cpeikonal(W, bdy_set, p=2, f=1, g=0, max_num_it=1e5, converg_tol=1e-6, num_b
         Weight matrix for graph
     bdy_set : Length m integer numpy array or length n boolean array
               Indices of boundary points or boolean mask of training points
+              
+    u0 : initial solution
     p : Float
         Value of exponent p (default p=2)
-    alpha : Float
-            Value of exponent on degree (default alpha=0)
+    f : Length n float numpy array or scalar float 
+        Right hand side of equation (default f=1)
+    g : Length m float numpy array of scalar float
+        Specified value of solution at boundary points (default g=0)
+    max_num_it : Int 
+                 Maximum number of iterations
+    converg_tol : Float 
+                  Tolerance with which to solve the equation
+    num_bisection_it : Int 
+                       Number of bisection iterations
+
+    """
+    
+    a = np.shape(W)
+    n = a[0]
+    if (u0.any()==None):
+        u = np.zeros((n,))
+    else:
+        u = u0
+        
+    m = len(bdy_set)
+    if m == n:  #If bdy_set is boolean
+        m = np.sum(bdy_set)
+    #Convert f and g to arrays if scalars are given
+    if type(f) != np.ndarray:
+        f = np.ones((n,))*f
+    if type(g) != np.ndarray:
+        g = np.ones((m,))*g
+        
+    I,J,V = gl.sparse.find(W)  #Indices of nonzero entries
+    max_outer_loop_err = 1
+    
+    i = 0
+    #outer loop starts:
+    while (max_outer_loop_err > converg_tol) and (i < max_num_it):
+        i += 1
+        max_u = np.max(u)
+        T = np.zeros((n,3))
+        T[:,1] = 1 + max_u + f**(1/p)
+        T[bdy_set,:] = g[:,np.newaxis]  #general g
+    #inner loop starts:
+        for j in range(num_bisection_it):
+            F = np.zeros((n,))
+            T[:,2] = (T[:,0]+T[:,1])/2
+            G = gl.sparse.coo_matrix((V*np.maximum(T[I,2]-u[J],0)**p, (I,J)),shape=(n,n))
+            F = G@np.ones((n,)) - f
+            mask = F < 0
+            T[:,0] = T[:,2] * mask + T[:,0] * (1-mask)
+            T[:,1] = T[:,2] * (1-mask) + T[:,1] * mask
+            
+        u = T[:,2]
+        #residual 
+        G = gl.sparse.coo_matrix((V*np.maximum(u[I]-u[J],0)**p, (I,J)),shape=(n,n))
+        res = G@np.ones((n,))-f
+        res[bdy_set] = 0
+        #max error in outer loop iteration
+        max_outer_loop_err = np.max(np.absolute(res))
+        
+    return u
+
+def cpeikonal(W, bdy_set, p=2, f=1, g=0, u0=None, max_num_it=1e5, converg_tol=1e-6, num_bisection_it=50, prog=False):
+    """Sovles the p-eikonal equation using the bisection method
+
+    Parameters
+    ----------
+    W : nxn scipy sparse matrix
+        Weight matrix for graph
+    bdy_set : Length m integer numpy array or length n boolean array
+              Indices of boundary points or boolean mask of training points
+              
+    u0 : initial solution
+    p : Float
+        Value of exponent p (default p=2)
     f : Length n float numpy array or scalar float 
         Right hand side of equation (default f=1)
     g : Length m float numpy array of scalar float
@@ -2390,11 +2464,14 @@ def cpeikonal(W, bdy_set, p=2, f=1, g=0, max_num_it=1e5, converg_tol=1e-6, num_b
            Toggles whether to print progress information
 
     """
-
+    
     # n is number of points
     a = np.shape(W)
     n = a[0]
-    u = np.zeros((n,))
+    if u0 is None:
+        u = np.zeros((n,))
+    else:
+        u = u0.copy()
     m = len(bdy_set)   #Number of boundary points
     if m == n:  #If bdy_set is boolean
         bdy_set = np.where(bdy_set)
@@ -2411,104 +2488,26 @@ def cpeikonal(W, bdy_set, p=2, f=1, g=0, max_num_it=1e5, converg_tol=1e-6, num_b
     K = np.array((WJ[1:] - WJ[:-1]).nonzero()) + 1
     K = np.append(0,np.append(K,len(WJ)))
 
-#    try:  #Try to load c extensions
+    try:  #Try to load c extensions
 
-    #Import c extensions
-    import graphlearning.cextensions as cext
+        #Import c extensions
+        import graphlearning.cextensions as cext
 
-    #Type casting and memory blocking
-    u = np.ascontiguousarray(u,dtype=np.float64)
-    WI = np.ascontiguousarray(WI,dtype=np.int32)
-    K = np.ascontiguousarray(K,dtype=np.int32)
-    WV = np.ascontiguousarray(WV,dtype=np.float64)
-    bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
-    f = np.ascontiguousarray(f,dtype=np.float64)
-    g = np.ascontiguousarray(g,dtype=np.float64)
+        #Type casting and memory blocking
+        u = np.ascontiguousarray(u,dtype=np.float64)
+        WI = np.ascontiguousarray(WI,dtype=np.int32)
+        K = np.ascontiguousarray(K,dtype=np.int32)
+        WV = np.ascontiguousarray(WV,dtype=np.float64)
+        bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+        f = np.ascontiguousarray(f,dtype=np.float64)
+        g = np.ascontiguousarray(g,dtype=np.float64)
 
-    cext.peikonal(u,WI,K,WV,bdy_set,f,g,p,max_num_it,converg_tol,num_bisection_it,prog)
-#    except:
-#        sys.exit('C extensions not found.')
+        cext.peikonal(u,WI,K,WV,bdy_set,f,g,p,max_num_it,converg_tol,num_bisection_it,prog)
+    except:
+        sys.exit('C extensions not found.')
 
     return u
 
-
-def peikonal(W, bdy_set, p=2, alpha=0, f=1, g=0, max_num_it=100, converg_tol=1e-6, num_bisection_it=50):
-    """Sovles the p-eikonal equation using the bisection method
-
-    Parameters
-    ----------
-    W : nxn scipy sparse matrix
-        Weight matrix for graph
-    bdy_set : Length m integer numpy array or length n boolean array
-              Indices of boundary points or boolean mask of training points
-    p : Float
-        Value of exponent p (default p=2)
-    alpha : Float
-            Value of exponent on degree (default alpha=0)
-    f : Length n float numpy array or scalar float 
-        Right hand side of equation (default f=1)
-    g : Length m float numpy array of scalar float
-        Specified value of solution at boundary points (default g=0)
-    max_num_it : Int 
-                 Maximum number of iterations
-    converg_tol : Float 
-                  Tolerance with which to solve the equation
-    num_bisection_it : Int 
-                       Number of bisection iterations
-
-    """
-
-    # n is number of points
-    a = np.shape(W)
-    n = a[0]
-    u = np.zeros((n,))
-    m = len(bdy_set)
-    if m == n:  #If bdy_set is boolean
-        m = np.sum(bdy_set)
-
-    #Convert f and g to arrays if scalars are given
-    if type(f) != np.ndarray:
-        f = np.ones((n,))*f
-    if type(g) != np.ndarray:
-        g = np.ones((m,))*g
-
-    I,J,V = sparse.find(W)  #Indices of nonzero entries
-    
-    max_outer_loop_err = 1
-    i = 0
-    # outer loop starts:
-    while (max_outer_loop_err > converg_tol) and (i < max_num_it):
-        i += 1
-        max_u = np.max(u)
-        T = np.zeros((n,3))
-        T[:,1] = 1 + max_u + f**(1/p)
-        
-        T[bdy_set,:] = g[:,np.newaxis]  #general g
-        
-        # inner loop starts:
-        for j in range(50):
-            F = np.zeros((n,))
-            
-            T[:,2] = (T[:,0]+T[:,1])/2
-            G = sparse.coo_matrix((V*np.maximum(T[I,2]-u[J],0)**p, (I,J)),shape=(n,n))
-            F = G@np.ones((n,)) - f
-            
-            mask = F < 0
-            T[:,0] = T[:,2] * mask + T[:,0] * (1-mask)
-            T[:,1] = T[:,2] * (1-mask) + T[:,1] * mask
-        
-        u = T[:,2]
-
-        # residual 
-        G = sparse.coo_matrix((V*np.maximum(u[I]-u[J],0)**p, (I,J)),shape=(n,n))
-        res = G@np.ones((n,))-f
-        res[bdy_set] = 0
-
-        # max error in outer loop iteration
-        max_outer_loop_err = np.max(np.absolute(res))
-        #print('iter:%d, err:%f'%(i,max_outer_loop_err))    
-                
-    return u
 
 
 #Poisson learning
