@@ -1289,7 +1289,7 @@ def wnll_learning(W,I,g):
     return laplace_learning(wnll(W,I),I,g)
 
 
-def weighted_laplace_learning(W,I,g):
+def poisson_laplace_learning(W,I,g):
     
     n = W.shape[0]
     f = np.zeros(n)
@@ -1301,6 +1301,7 @@ def weighted_laplace_learning(W,I,g):
     w -= np.min(w)
     D = sparse.spdiags(w,0,n,n).tocsr()
 
+    #return laplace_learning(D*W*D,I,g)
     return laplace_learning(D*W*D,I,g)
 
 #Properly weighted Laplacian
@@ -3314,8 +3315,8 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,
         u = laplace_learning(W,I,g,norm=norm)
     elif algorithm=="randomwalk":
         u = randomwalk_learning(W,I,g,epsilon)
-    elif algorithm=="weightedlaplace":
-        u = weighted_laplace_learning(W,I,g)
+    elif algorithm=="poissonlaplace":
+        u = poisson_laplace_learning(W,I,g)
     elif algorithm=="wnll":
         u = wnll_learning(W,I,g)
     elif algorithm=="properlyweighted":
