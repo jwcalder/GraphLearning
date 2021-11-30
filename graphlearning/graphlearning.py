@@ -1282,10 +1282,26 @@ def wnll(W,I):
 
     return W
 
+
 #Weighted nonlocal Laplacian
 #Shi, Zuoqiang, Stanley Osher, and Wei Zhu. "Weighted nonlocal laplacian on interpolation from sparse data." Journal of Scientific Computing 73.2-3 (2017): 1164-1177.
 def wnll_learning(W,I,g):
     return laplace_learning(wnll(W,I),I,g)
+
+
+def weighted_laplace_learning(W,I,g):
+    
+    n = W.shape[0]
+    f = np.zeros(n)
+    f[I] = 1
+    f -= np.mean(f)
+
+    L = graph_laplacian(W)
+    w,_ = conjgrad(L, f, tol=1e-5)
+    w -= np.min(w)
+    D = sparse.spdiags(w,0,n,n).tocsr()
+
+    return laplace_learning(D*W*D,I,g)
 
 #Properly weighted Laplacian
 #Calder, Jeff, and Dejan Slepcev. "Properly-weighted graph Laplacian for semi-supervised learning." arXiv preprint arXiv:1810.04351 (2018).
@@ -3298,6 +3314,8 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,
         u = laplace_learning(W,I,g,norm=norm)
     elif algorithm=="randomwalk":
         u = randomwalk_learning(W,I,g,epsilon)
+    elif algorithm=="weightedlaplace":
+        u = weighted_laplace_learning(W,I,g)
     elif algorithm=="wnll":
         u = wnll_learning(W,I,g)
     elif algorithm=="properlyweighted":
