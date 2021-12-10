@@ -149,7 +149,7 @@ static PyObject* volume_mbo(PyObject* self, PyObject* args)
 static PyObject* dijkstra(PyObject* self, PyObject* args)
 {
 
-   double progd;
+   double progd, max_radius;
    PyArrayObject *d_array;
    PyArrayObject *l_array;
    PyArrayObject *WI_array;
@@ -159,7 +159,7 @@ static PyObject* dijkstra(PyObject* self, PyObject* args)
    PyArrayObject *g_array;
 
    /*  parse arguments */
-   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!d", &PyArray_Type, &d_array, &PyArray_Type, &l_array, &PyArray_Type, &WI_array, &PyArray_Type, &K_array, &PyArray_Type, &WV_array, &PyArray_Type, &I_array, &PyArray_Type, &g_array, &progd))
+   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!dd", &PyArray_Type, &d_array, &PyArray_Type, &l_array, &PyArray_Type, &WI_array, &PyArray_Type, &K_array, &PyArray_Type, &WV_array, &PyArray_Type, &I_array, &PyArray_Type, &g_array, &progd, &max_radius))
       return NULL;
 
    npy_intp *dim =  PyArray_DIMS(d_array);
@@ -179,7 +179,7 @@ static PyObject* dijkstra(PyObject* self, PyObject* args)
    bool prog = (bool)progd;
 
    //Call main function from C code
-   dijkstra_main(d,l,WI,K,WV,I,g,prog,n,M,k);
+   dijkstra_main(d,l,WI,K,WV,I,g,prog,n,M,k,max_radius);
 
    Py_INCREF(Py_None);
    return Py_None;

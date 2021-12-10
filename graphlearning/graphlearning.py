@@ -2835,11 +2835,11 @@ def stencil_solver(ui,u,w=None):
     #return np.min(u) + 1
 
 #C code version of dijkstra
-def cDijkstra(W,I,g,WI=None,WJ=None,WV=None,K=None):
+def cDijkstra(W,I,g,max_dist=np.inf,WI=None,WJ=None,WV=None,K=None):
 
     n = W.shape[0]
     k = len(I)
-    u = np.ones((n,))*1e10          #HJ Solver
+    u = np.ones((n,))*np.inf          #HJ Solver
     l = -np.ones((n,),dtype=int)    #Index of closest label
 
     if (WI is None) or (WJ is None) or (WV is None) or (K is None):
@@ -2861,7 +2861,7 @@ def cDijkstra(W,I,g,WI=None,WJ=None,WV=None,K=None):
         I = np.ascontiguousarray(I,dtype=np.int32)
         g = np.ascontiguousarray(g,dtype=np.float64)
 
-        cext.dijkstra(u,l,WI,K,WV,I,g,1.0)
+        cext.dijkstra(u,l,WI,K,WV,I,g,1.0,max_dist)
     except:
         sys.exit("C extensions not found.")
 

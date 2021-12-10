@@ -101,7 +101,7 @@ void PushHeap(double *d, int *h, int s, int *p, int i){
 
 }
 
-void dijkstra_main(double *d, int *l, int *WI, int *K, double *WV, int *I, double *g, bool prog, int n, int M, int k){
+void dijkstra_main(double *d, int *l, int *WI, int *K, double *WV, int *I, double *g, bool prog, int n, int M, int k, double max_dist){
 
 
    //Initialization
@@ -129,6 +129,8 @@ void dijkstra_main(double *d, int *l, int *WI, int *K, double *WV, int *I, doubl
       //Finalize this point
       V[i] = 1;  //Mark as finalized
       A[i] = 0;  //Set active flag to false
+      if(d[i] > max_dist)
+         break;
 
       //Update neighbors
       for(jj=K[i]; jj < K[i+1]; jj++){
