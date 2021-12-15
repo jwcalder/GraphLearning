@@ -197,8 +197,6 @@ static PyObject* peikonal(PyObject* self, PyObject* args)
    PyArrayObject *f_array;
    PyArrayObject *g_array;
 
-   //cext.peikonal(u,WI,K,WV,bdy_set,f,g,p,max_num_it,converg_tol,num_bisection_it,prog)
-   
    /*  parse arguments */
    if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!ddddd", &PyArray_Type, &u_array, &PyArray_Type, &WI_array, &PyArray_Type, &K_array, &PyArray_Type, &WV_array, &PyArray_Type, &bdy_set_array, &PyArray_Type, &f_array,  &PyArray_Type, &g_array, &p, &max_num_itd, &converg_tol, &num_bisection_itd, &progd))
       return NULL;

@@ -419,17 +419,15 @@ void HJsolver_jacobi(double *d, int *l, int *WI, int *K, double *WV, int *I, int
    //printf("T=%d\n",T);
 }
 
-double peikonal_solver(double ui, double *u, double *w, double f, int n, double p, int num_bisection_it){
+double peikonal_solver(double *u, double *w, double f, int n, double p, int num_bisection_it){
 
    int i,j;
    double min_val = u[0];
    double max_val = u[0];
-   double max_w = w[0];
    double degree = 0;
    for(i=0; i<n; i++){
       min_val = MIN(u[i],min_val);
       max_val = MAX(u[i],max_val);
-      max_w = MAX(w[i],max_w);
       degree += w[i];
    }
 
@@ -447,7 +445,7 @@ double peikonal_solver(double ui, double *u, double *w, double f, int n, double 
          double v = MAX(t-u[i],0);
          if(p!=1)
             v = pow(v,p);
-         op+=v;
+         op+=w[i]*v;
       }
       if(op > f)
          b = t;
@@ -456,6 +454,9 @@ double peikonal_solver(double ui, double *u, double *w, double f, int n, double 
    }
    return (a+b)/2.0;
 }
+
+
+
 
 void peikonal_main(double *u, int *WI, int *K, double *WV, int *I, double *f,  double *g, double p_val, int max_num_it, double tol, int num_bisection_it, bool prog, int n, int M, int k){
 
@@ -484,13 +485,15 @@ void peikonal_main(double *u, int *WI, int *K, double *WV, int *I, double *f,  d
             for(ii=K[j]; ii < K[j+1]; ii++){
                kk = WI[ii];
                u_vals[num_nn] = u[kk];
-               w_vals[num_nn] = WV[kk];
+               w_vals[num_nn] = WV[ii];
                num_nn++;
             }
             if(num_nn>0){
-               double newu = peikonal_solver(u[j],u_vals,w_vals,f[j],num_nn,p_val,num_bisection_it);
+               double newu = peikonal_solver(u_vals,w_vals,f[j],num_nn,p_val,num_bisection_it);
                err = MAX(ABS(newu - u[j]),err);
                u[j] = newu;
+            }else{
+               printf("Warning: Some points have no neighbors!\n");
             }
          }
       }

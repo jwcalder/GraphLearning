@@ -1320,6 +1320,37 @@ def properlyweighted_laplace_learning(W,I,g,X,alpha,zeta,r):
 
     return laplace_learning(D*W + W*D,I,g)
 
+def poisson_weighted(W,I,g):
+
+    n = W.shape[0]
+    f = np.zeros(n)
+    f[I] = 1
+    f -= np.mean(f)
+
+    L = graph_laplacian(W)
+    w,_ = conjgrad(L, f, tol=1e-5)
+    w -= np.min(w)
+    w += 1
+    D = sparse.spdiags(w,0,n,n).tocsr()
+    
+    L = graph_laplacian(D*W*D)
+    P = 0.0001*sparse.identity(n) + L
+    u = constrained_solve(P,I,g)
+
+    return u
+
+def poisson_weighted_learning(W,I,g):
+
+    n = W.shape[0]
+    k = len(np.unique(g))  #Number of labels
+    u = np.zeros((k,n))
+    i = 0
+    for l in np.unique(g):
+        u[i,:] = poisson_weighted(W,I[g==l],np.ones(np.sum(g==l)))
+        i+=1
+
+    return u
+
 #Game theoretic p-Laplace learning
 #Rios, Mauricio Flores, Jeff Calder, and Gilad Lerman. "Algorithms for $\ell_p$-based semi-supervised learning on graphs." arXiv preprint arXiv:1901.05031 (2019).
 def plaplace_learning(W,I,g,p,sol_method="GradientDescentCcode",norm="none"):
@@ -2423,7 +2454,7 @@ def peikonal(W, bdy_set, p=2, f=1, g=0, u0=None, max_num_it=1e5, converg_tol=1e-
     if type(g) != np.ndarray:
         g = np.ones((m,))*g
         
-    I,J,V = gl.sparse.find(W)  #Indices of nonzero entries
+    I,J,V = sparse.find(W)  #Indices of nonzero entries
     max_outer_loop_err = 1
     
     deg = degrees(W)
@@ -2442,7 +2473,7 @@ def peikonal(W, bdy_set, p=2, f=1, g=0, u0=None, max_num_it=1e5, converg_tol=1e-
         for j in range(num_bisection_it):
             F = np.zeros((n,))
             T[:,2] = (T[:,0]+T[:,1])/2
-            G = gl.sparse.coo_matrix((V*np.maximum(T[I,2]-u[J],0)**p, (I,J)),shape=(n,n))
+            G = sparse.coo_matrix((V*np.maximum(T[I,2]-u[J],0)**p, (I,J)),shape=(n,n))
             F = G@np.ones((n,)) - f
             mask = F < 0
             T[:,0] = T[:,2] * mask + T[:,0] * (1-mask)
@@ -2450,7 +2481,7 @@ def peikonal(W, bdy_set, p=2, f=1, g=0, u0=None, max_num_it=1e5, converg_tol=1e-
             
         u = T[:,2]
         #residual 
-        G = gl.sparse.coo_matrix((V*np.maximum(u[I]-u[J],0)**p, (I,J)),shape=(n,n))
+        G = sparse.coo_matrix((V*np.maximum(u[I]-u[J],0)**p, (I,J)),shape=(n,n))
         res = G@np.ones((n,))-f
         res[bdy_set] = 0
         #max error in outer loop iteration
@@ -3317,6 +3348,8 @@ def graph_ssl(W,I,g,D=None,Ns=40,mu=1,numT=50,beta=None,algorithm="laplace",p=3,
         u = randomwalk_learning(W,I,g,epsilon)
     elif algorithm=="poissonlaplace":
         u = poisson_laplace_learning(W,I,g)
+    elif algorithm=="poissonweighted":
+        u = poisson_weighted_learning(W,I,g)
     elif algorithm=="wnll":
         u = wnll_learning(W,I,g)
     elif algorithm=="properlyweighted":
