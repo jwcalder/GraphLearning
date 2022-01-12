@@ -15,19 +15,19 @@ Install with
 pip install graphlearning
 ```
 Required packages will be installed automatically, and include numpy, scipy, sklearn, and matplotlib. Some features in the package rely on other packages, including [annoy](https://github.com/spotify/annoy) for approximate nearest neighbor searches, and [torch](https://github.com/pytorch/pytorch) for GPU acceleration. You will have to install these manually, if needed, with
-```
+```sh
 pip install annoy torch
 ```
 It can be difficult to install annoy, depending on your operating system. 
 
 To install the most recent version of GraphLearning from the github source, which is updated more frequently, run
-```
+```sh
 git clone https://github.com/jwcalder/GraphLearning
 cd GraphLearning
 python setup.py install --user
 ```
 If you prefer to use ssh swap the first line with
-```
+```sh
 git clone git@github.com:jwcalder/GraphLearning.git
 ```
 
@@ -38,7 +38,7 @@ Full documentation for the package is available [here](https://jwcalder.github.i
 ## Older versions of GraphLearning
 
 This repository hosts the current version of the package, which is numbered >=1.0.0. This version is not backwards compatible with earlier versions of the package. The old version is archived [here](https://github.com/jwcalder/GraphLearningOld) and can be installed with
-```
+```sh
 pip install graphlearning==0.0.3
 ```
 To make sure you will load the old version when running `import graphlearning`, it may be necessary to uninstall all existing versions `pip uninstall graphlearning` before running the installation command above.
