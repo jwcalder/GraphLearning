@@ -14,7 +14,7 @@ Install with
 ```
 pip install graphlearning
 ```
-Required packages will be installed automatically, and include numpy, scipy, sklearn, and matplotlib. Some features in the package rely on other package, [annoy](https://github.com/spotify/annoy) for approximate nearest neighbor searches, and [torch](https://github.com/pytorch/pytorch) for GPU acceleration. You will have to install these manually, if needed, with
+Required packages will be installed automatically, and include numpy, scipy, sklearn, and matplotlib. Some features in the package rely on other packages, including [annoy](https://github.com/spotify/annoy) for approximate nearest neighbor searches, and [torch](https://github.com/pytorch/pytorch) for GPU acceleration. You will have to install these manually, if needed, with
 ```
 pip install annoy torch
 ```
