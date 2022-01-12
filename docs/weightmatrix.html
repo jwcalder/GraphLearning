@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>graphlearning.weightmatrix API documentation</title>
+<meta name="description" content="Weight Matrices
+…" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>graphlearning.weightmatrix</code></h1>
+</header>
+<section id="section-intro">
+<h1 id="weight-matrices">Weight Matrices</h1>
+<p>This module implements functions that are useful for constructing sparse weight matrices, including
+efficient high dimensional nearest neighbor searches.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Weight Matrices
+==========
+
+This module implements functions that are useful for constructing sparse weight matrices, including 
+efficient high dimensional nearest neighbor searches.
+&#34;&#34;&#34;
+
+import numpy as np
+from scipy import spatial
+from scipy import sparse
+import os
+from . import utils
+
+#Directory to store knn data
+knn_dir = os.path.abspath(os.path.join(os.getcwd(),&#39;knn_data&#39;))
+
+def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#39;raw&#39;, knn_data=None):
+    &#34;&#34;&#34;knn weight matrix
+    ======
+
+    General function for constructing knn weight matrices.
+   
+    Parameters
+    ----------
+    data : (n,m) numpy array, or string 
+        If numpy array, n data points, each of dimension m, if string, then &#39;mnist&#39;, &#39;fashionmnist&#39;, or &#39;cifar&#39;
+    k : int
+        Number of nearest neighbors to use.
+    kernel : string (optional), {&#39;uniform&#39;,&#39;gaussian&#39;,&#39;singular&#39;,&#39;distance&#39;}, default=&#39;gaussian&#39;
+        The choice of kernel in computing the weights between \\(x_i\\) and each of its k 
+        nearest neighbors. We let \\(d_k(x_i)\\) denote the distance from \\(x_i\\) to its kth 
+        nearest neighbor. The choice &#39;uniform&#39; corresponds to \\(w_{i,j}=1\\) and constitutes
+        an unweighted k nearest neighbor graph, &#39;gaussian&#39; corresponds to
+        \\[ w_{i,j} = \\exp\\left(\\frac{-4\\|x_i - x_j\\|^2}{d_k(x_i)^2} \\right), \\]
+        &#39;distance&#39; corresponds to
+        \\[ w_{i,j} = \\|x_i - x_j\\|, \\]
+        and &#39;singular&#39; corresponds to 
+        \\[ w_{i,j} = \\frac{1}{\\|x_i - x_j\\|}, \\]
+        when \\(i\\neq j\\) and \\(w_{i,i}=1\\).
+    eta : python function handle (optional)
+        If provided, this overrides the kernel option and instead uses the weights
+        \\[ w_{i,j} = \\eta\\left(\\frac{\\|x_i - x_j\\|^2}{d_k(x_i)^2} \\right), \\]
+        where \\(d_k(x_i)\\) is the distance from \\(x_i\\) to its kth nearest neighbor.
+    symmetrize : bool (optional), default=True, except when kernel=&#39;singular&#39;
+        Whether or not to symmetrize the weight matrix before returning. Symmetrization is 
+        performed by returning \\( (W + W^T)/2 \\), except for when kernel=&#39;distance, in 
+        which case the symmetrized edge weights are the true distances. Default for symmetrization
+        is True, unless the kernel is &#39;singular&#39;, in which case it is False.
+    metric : string (optional), default=&#39;raw&#39;
+        Metric identifier if data is a string (i.e., a dataset).
+    knn_data : tuple (optional), default=None
+        If desired, the user can provide knn_data = (knn_ind, knn_dist), the output of a knnsearch,
+        in order to bypass the knnsearch step, which can be slow for large datasets.
+
+    Returns
+    -------
+    W : (n,n) scipy sparse matrix, float 
+        Sparse weight matrix.
+    &#34;&#34;&#34;
+
+    #If knn_data provided
+    if knn_data is not None:
+        knn_ind, knn_dist = knn_data
+
+    #If data is a string, then load knn from a stored dataset
+    elif type(data) is str:
+        knn_ind, knn_dist = load_knn_data(data, metric=metric)
+
+    #Else we have to run a knnsearch
+    else:
+        knn_ind, knn_dist = knnsearch(data, k)
+
+    #Restrict to k nearest neighbors
+    n = knn_ind.shape[0]
+    k = np.minimum(knn_ind.shape[1],k)
+    knn_ind = knn_ind[:,:k]
+    knn_dist = knn_dist[:,:k]
+
+    #If eta is None, use kernel keyword
+    if eta is None:
+
+        if kernel == &#39;uniform&#39;:
+            weights = np.ones_like(knn_dist)
+        elif kernel == &#39;gaussian&#39;:
+            D = knn_dist*knn_dist
+            eps = D[:,k-1]
+            weights = np.exp(-4*D/eps[:,None])
+        elif kernel == &#39;distance&#39;:
+            weights = knn_dist
+        elif kernel == &#39;singular&#39;:
+            weights = knn_dist
+            weights[knn_dist==0] = 1
+            weights = 1/weights
+            symmetrize = False
+        else:
+            sys.exit(&#39;Invalid choice of kernel: &#39; + kernel)
+
+    #Else use user-defined eta
+    else:
+        D = knn_dist*knn_dist
+        eps = D[:,k-1]
+        weights = eta(D/eps)
+
+    #Flatten knn data and weights
+    knn_ind = knn_ind.flatten()
+    weights = weights.flatten()
+
+    #Self indices
+    self_ind = np.ones((n,k))*np.arange(n)[:,None]
+    self_ind = self_ind.flatten()
+
+    #Construct sparse matrix and convert to Compressed Sparse Row (CSR) format
+    W = sparse.coo_matrix((weights, (self_ind, knn_ind)),shape=(n,n)).tocsr()
+
+    if symmetrize:
+        if kernel == &#39;distance&#39;:
+            W = utils.sparse_max(W, W.transpose())
+        else:
+            W = (W + W.transpose())/2;
+
+    return W
+
+def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, eta=None):
+    &#34;&#34;&#34;Epsilon ball weight matrix
+    ======
+
+    General function for constructing a sparse epsilon-ball weight matrix, whose weights have the form
+    \\[ w_{i,j} = \\eta\\left(\\frac{\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right), \\]
+    when \\(\\|x_i - x_j\\|\\leq \\varepsilon\\), and \\(w_{i,j}=0\\) otherwise.
+    This type of weight matrix is only feasible in relatively low dimensions.
+   
+    Parameters
+    ----------
+    data : (n,m) numpy array
+        n data points, each of dimension m
+    epsilon : float
+        Connectivity radius
+    kernel : string (optional), {&#39;uniform&#39;,&#39;gaussian&#39;,&#39;singular&#39;,&#39;distance&#39;}, default=&#39;gaussian&#39;
+        The choice of kernel in computing the weights between \\(x_i\\) and \\(x_j\\) when
+        \\(\\|x_i-x_j\\|\\leq \\varepsilon\\). The choice &#39;uniform&#39; corresponds to \\(w_{i,j}=1\\) 
+        and constitutes an unweighted graph, &#39;gaussian&#39; corresponds to
+        \\[ w_{i,j} = \\exp\\left(\\frac{-4\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right), \\]
+        &#39;distance&#39; corresponds to
+        \\[ w_{i,j} = \\|x_i - x_j\\|, \\]
+        and &#39;singular&#39; corresponds to 
+        \\[ w_{i,j} = \\frac{1}{\\|x_i - x_j\\|}, \\]
+        when \\(i\\neq j\\) and \\(w_{i,i}=1\\).
+    eta : python function handle (optional)
+        If provided, this overrides the kernel option and instead uses the weights
+        \\[ w_{i,j} = \\eta\\left(\\frac{\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right). \\]
+
+    Returns
+    -------
+    W : (n,n) scipy sparse matrix, float 
+        Sparse weight matrix.
+    &#34;&#34;&#34;
+    n = data.shape[0]  #Number of points
+
+    #Rangesearch to find nearest neighbors
+    Xtree = spatial.cKDTree(data)
+    M = Xtree.query_pairs(epsilon)
+    M = np.array(list(M))
+
+    #Differences between points and neighbors
+    V = data[M[:,0],:] - data[M[:,1],:]
+    dists = np.sum(V*V,axis=1)
+
+    #If eta is None, use kernel keyword
+    if eta is None:
+
+        if kernel == &#39;uniform&#39;:
+            weights = np.ones_like(dists)
+            fzero = 1
+        elif kernel == &#39;gaussian&#39;:
+            weights = np.exp(-4*dists/(epsilon*epsilon))
+            fzero = 1
+        elif kernel == &#39;distance&#39;:
+            weights = np.sqrt(dists)
+            fzero = 0
+        elif kernel == &#39;singular&#39;:
+            weights = np.sqrt(dists)
+            weights[dists==0] = 1
+            weights = 1/weights
+            fzero = 1
+        else:
+            sys.exit(&#39;Invalid choice of kernel: &#39; + kernel)
+
+    #Else use user-defined eta
+    else:
+        weights = eta(dists/(epsilon*epsilon))
+        fzero = eta(0)
+
+    #Weights
+
+    #Symmetrize weights and add diagonal entries
+    weights = np.concatenate((weights,weights,fzero*np.ones(n,)))
+    M1 = np.concatenate((M[:,0],M[:,1],np.arange(0,n)))
+    M2 = np.concatenate((M[:,1],M[:,0],np.arange(0,n)))
+
+    #Construct sparse matrix and convert to Compressed Sparse Row (CSR) format
+    W = sparse.coo_matrix((weights, (M1,M2)),shape=(n,n))
+
+    return W.tocsr()
+
+
+def knnsearch(X, k, method=None, similarity=&#39;euclidean&#39;, dataset=None, metric=&#39;raw&#39;):
+    &#34;&#34;&#34;knn search
+    ======
+
+    General function for k-nearest neighbor searching, including efficient 
+    implementations for high dimensional data, and support for saving
+    k-nn data to files automatically, for reuse later.
+
+   
+    Parameters
+    ----------
+    X : (n,m) numpy array
+        n data points, each of dimension m.
+    k : int
+        Number of nearest neighbors to find.
+    method : {&#39;kdtree&#39;,&#39;annoy&#39;,&#39;brute&#39;} (optional), default: &#39;kdtree&#39; for m &lt;=5 and &#39;annoy&#39; for m&gt;5
+        Algorithm for search. Annoy is an approximate nearest neighbor search and requires
+        the [Annoy](https://github.com/spotify/annoy) package. 
+    similarity : {&#39;euclidean&#39;,&#39;angular&#39;,&#39;manhattan&#39;,&#39;hamming&#39;,&#39;dot&#39;} (optional), default=&#39;euclidean&#39;
+        Smilarity for nearest neighbor search. Only &#39;euclidean&#39; and &#39;angular&#39; are available with
+        &#39;kdtree&#39; and &#39;brute&#39;.
+    dataset : string (optional), default=None
+        If provided, results of the search are saved to a file that can be loaded later.
+    metric : string (optional), default=&#39;raw&#39;
+        A modifier to add to the dataset name when saving, to distinguish different types of knn data.
+
+    Returns
+    -------
+    knn_ind : (n,k) numpy array, int
+        Indices of nearest neighbors, including the self point.
+    knn_dist : (n,k) numpy array, float
+        Distances to all neighbors.
+    &#34;&#34;&#34;
+
+    n = X.shape[0]
+    m = X.shape[1]
+    if method is None:
+        if m &lt;= 5:
+            method = &#39;kdtree&#39;
+        else:
+            method = &#39;annoy&#39;
+
+    if method in [&#39;kdtree&#39;,&#39;brute&#39;]:
+
+        if not similarity in [&#39;angular&#39;,&#39;euclidean&#39;]:
+            sys.exit(&#39;Invalid choice of similarity &#39; + similarity)
+
+        if similarity == &#39;angular&#39;:
+            X /= np.linalg.norm(X,axis=1)[:,None]
+
+        if method == &#39;kdtree&#39;:
+
+            Xtree = spatial.cKDTree(X)
+            knn_dist, knn_ind = Xtree.query(X,k=k)
+
+        else: #Brute force knn search
+
+            knn_ind = np.array((n,k),dtype=int)
+            knn_dist = np.array((n,k))
+            for i in range(n):
+                dist  = np.linalg.norm(X - X[i,:],axis=1) 
+                knn_ind[i,:] = np.argsort(dist)[:k]
+                knn_dist[i,:] = dist[knn_ind]
+
+    elif method == &#39;annoy&#39;:
+
+        if not similarity in [&#39;euclidean&#39;,&#39;angular&#39;,&#39;manhattan&#39;,&#39;hamming&#39;,&#39;dot&#39;]:
+            sys.exit(&#39;Invalid choice of similarity &#39; + similarity)
+
+        from annoy import AnnoyIndex
+
+        u = AnnoyIndex(m, similarity)  # Length of item vector that will be indexed
+        for i in range(n):
+            u.add_item(i, X[i,:])
+
+        u.build(10)  #10 trees
+        
+        knn_dist = []
+        knn_ind = []
+        for i in range(n):
+            A = u.get_nns_by_item(i, k, include_distances=True, search_k=-1)
+            knn_ind.append(A[0])
+            knn_dist.append(A[1])
+
+        knn_ind = np.array(knn_ind)
+        knn_dist = np.array(knn_dist)
+
+    else:
+        sys.exit(&#39;Invalid choice of knnsearch method &#39; + method)
+
+ 
+    #If dataset name is provided, save permutations to file
+    if not dataset is None:
+        #data file name
+        dataFile = dataset.lower() + &#39;_&#39; + metric.lower() + &#39;.npz&#39;
+
+        #Full path to file
+        dataFile_path = os.path.join(knn_dir, dataFile)
+
+        #Check if knn_dir exists
+        if not os.path.exists(knn_dir):
+            os.makedirs(knn_dir)
+
+        np.savez_compressed(dataFile_path, J=knn_ind, D=knn_dist)
+
+    return knn_ind, knn_dist
+
+def load_knn_data(dataset, metric=&#39;raw&#39;):
+    &#34;&#34;&#34;Load saved knn data
+    ======
+
+    Loads the results of a saved knn search.   
+
+    Parameters
+    ----------
+    dataset : string
+        Name of dataset to load knn data for (not case-sensitive).
+    metric : string (optional), default=&#39;raw&#39;
+        A modifier to add to the dataset name when saving, to distinguish different types of knn data (not case-sensitive).
+
+    Returns
+    -------
+    knn_ind : (n,k) numpy array, int
+        Indices of nearest neighbors, including the self point.
+    knn_dist : (n,k) numpy array, float
+        Distances to all neighbors.
+    &#34;&#34;&#34;
+
+    #dataFile = dataset.lower() + &#34;_&#34; + metric.lower() + &#34;.npz&#34; #Fix this later
+    dataFile = dataset.lower() + &#34;_&#34; + metric.lower() + &#34;.npz&#34; 
+    dataFile_path = os.path.join(knn_dir, dataFile)
+
+    #Check if knn_dir exists
+    if not os.path.exists(knn_dir):
+        os.makedirs(knn_dir)
+
+    #Download kNN data if necessary
+    if not os.path.exists(dataFile_path):
+        urlpath = &#39;https://github.com/jwcalder/GraphLearning/raw/master/kNNData/&#39;+dataFile
+        utils.download_file(urlpath, dataFile_path)
+
+    knn_ind = utils.numpy_load(dataFile_path, &#39;J&#39;)
+    knn_dist = utils.numpy_load(dataFile_path, &#39;D&#39;)
+
+    return knn_ind, knn_dist</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="graphlearning.weightmatrix.epsilon_ball"><code class="name flex">
+<span>def <span class="ident">epsilon_ball</span></span>(<span>data, epsilon, kernel='gaussian', eta=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="epsilon-ball-weight-matrix">Epsilon ball weight matrix</h1>
+<p>General function for constructing a sparse epsilon-ball weight matrix, whose weights have the form
+<span><span class="MathJax_Preview"> w_{i,j} = \eta\left(\frac{\|x_i - x_j\|^2}{\varepsilon^2} \right), </span><script type="math/tex; mode=display"> w_{i,j} = \eta\left(\frac{\|x_i - x_j\|^2}{\varepsilon^2} \right), </script></span>
+when <span><span class="MathJax_Preview">\|x_i - x_j\|\leq \varepsilon</span><script type="math/tex">\|x_i - x_j\|\leq \varepsilon</script></span>, and <span><span class="MathJax_Preview">w_{i,j}=0</span><script type="math/tex">w_{i,j}=0</script></span> otherwise.
+This type of weight matrix is only feasible in relatively low dimensions.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>(n,m) numpy array</code></dt>
+<dd>n data points, each of dimension m</dd>
+<dt><strong><code>epsilon</code></strong> :&ensp;<code>float</code></dt>
+<dd>Connectivity radius</dd>
+<dt><strong><code>kernel</code></strong> :&ensp;<code>string (optional), {'uniform','gaussian','singular','distance'}</code>, default=<code>'gaussian'</code></dt>
+<dd>The choice of kernel in computing the weights between <span><span class="MathJax_Preview">x_i</span><script type="math/tex">x_i</script></span> and <span><span class="MathJax_Preview">x_j</span><script type="math/tex">x_j</script></span> when
+<span><span class="MathJax_Preview">\|x_i-x_j\|\leq \varepsilon</span><script type="math/tex">\|x_i-x_j\|\leq \varepsilon</script></span>. The choice 'uniform' corresponds to <span><span class="MathJax_Preview">w_{i,j}=1</span><script type="math/tex">w_{i,j}=1</script></span>
+and constitutes an unweighted graph, 'gaussian' corresponds to
+<span><span class="MathJax_Preview"> w_{i,j} = \exp\left(\frac{-4\|x_i - x_j\|^2}{\varepsilon^2} \right), </span><script type="math/tex; mode=display"> w_{i,j} = \exp\left(\frac{-4\|x_i - x_j\|^2}{\varepsilon^2} \right), </script></span>
+'distance' corresponds to
+<span><span class="MathJax_Preview"> w_{i,j} = \|x_i - x_j\|, </span><script type="math/tex; mode=display"> w_{i,j} = \|x_i - x_j\|, </script></span>
+and 'singular' corresponds to
+<span><span class="MathJax_Preview"> w_{i,j} = \frac{1}{\|x_i - x_j\|}, </span><script type="math/tex; mode=display"> w_{i,j} = \frac{1}{\|x_i - x_j\|}, </script></span>
+when <span><span class="MathJax_Preview">i\neq j</span><script type="math/tex">i\neq j</script></span> and <span><span class="MathJax_Preview">w_{i,i}=1</span><script type="math/tex">w_{i,i}=1</script></span>.</dd>
+<dt><strong><code>eta</code></strong> :&ensp;<code>python function handle (optional)</code></dt>
+<dd>If provided, this overrides the kernel option and instead uses the weights
+<span><span class="MathJax_Preview"> w_{i,j} = \eta\left(\frac{\|x_i - x_j\|^2}{\varepsilon^2} \right). </span><script type="math/tex; mode=display"> w_{i,j} = \eta\left(\frac{\|x_i - x_j\|^2}{\varepsilon^2} \right). </script></span></dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>W</code></strong> :&ensp;<code>(n,n) scipy sparse matrix, float </code></dt>
+<dd>Sparse weight matrix.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, eta=None):
+    &#34;&#34;&#34;Epsilon ball weight matrix
+    ======
+
+    General function for constructing a sparse epsilon-ball weight matrix, whose weights have the form
+    \\[ w_{i,j} = \\eta\\left(\\frac{\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right), \\]
+    when \\(\\|x_i - x_j\\|\\leq \\varepsilon\\), and \\(w_{i,j}=0\\) otherwise.
+    This type of weight matrix is only feasible in relatively low dimensions.
+   
+    Parameters
+    ----------
+    data : (n,m) numpy array
+        n data points, each of dimension m
+    epsilon : float
+        Connectivity radius
+    kernel : string (optional), {&#39;uniform&#39;,&#39;gaussian&#39;,&#39;singular&#39;,&#39;distance&#39;}, default=&#39;gaussian&#39;
+        The choice of kernel in computing the weights between \\(x_i\\) and \\(x_j\\) when
+        \\(\\|x_i-x_j\\|\\leq \\varepsilon\\). The choice &#39;uniform&#39; corresponds to \\(w_{i,j}=1\\) 
+        and constitutes an unweighted graph, &#39;gaussian&#39; corresponds to
+        \\[ w_{i,j} = \\exp\\left(\\frac{-4\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right), \\]
+        &#39;distance&#39; corresponds to
+        \\[ w_{i,j} = \\|x_i - x_j\\|, \\]
+        and &#39;singular&#39; corresponds to 
+        \\[ w_{i,j} = \\frac{1}{\\|x_i - x_j\\|}, \\]
+        when \\(i\\neq j\\) and \\(w_{i,i}=1\\).
+    eta : python function handle (optional)
+        If provided, this overrides the kernel option and instead uses the weights
+        \\[ w_{i,j} = \\eta\\left(\\frac{\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right). \\]
+
+    Returns
+    -------
+    W : (n,n) scipy sparse matrix, float 
+        Sparse weight matrix.
+    &#34;&#34;&#34;
+    n = data.shape[0]  #Number of points
+
+    #Rangesearch to find nearest neighbors
+    Xtree = spatial.cKDTree(data)
+    M = Xtree.query_pairs(epsilon)
+    M = np.array(list(M))
+
+    #Differences between points and neighbors
+    V = data[M[:,0],:] - data[M[:,1],:]
+    dists = np.sum(V*V,axis=1)
+
+    #If eta is None, use kernel keyword
+    if eta is None:
+
+        if kernel == &#39;uniform&#39;:
+            weights = np.ones_like(dists)
+            fzero = 1
+        elif kernel == &#39;gaussian&#39;:
+            weights = np.exp(-4*dists/(epsilon*epsilon))
+            fzero = 1
+        elif kernel == &#39;distance&#39;:
+            weights = np.sqrt(dists)
+            fzero = 0
+        elif kernel == &#39;singular&#39;:
+            weights = np.sqrt(dists)
+            weights[dists==0] = 1
+            weights = 1/weights
+            fzero = 1
+        else:
+            sys.exit(&#39;Invalid choice of kernel: &#39; + kernel)
+
+    #Else use user-defined eta
+    else:
+        weights = eta(dists/(epsilon*epsilon))
+        fzero = eta(0)
+
+    #Weights
+
+    #Symmetrize weights and add diagonal entries
+    weights = np.concatenate((weights,weights,fzero*np.ones(n,)))
+    M1 = np.concatenate((M[:,0],M[:,1],np.arange(0,n)))
+    M2 = np.concatenate((M[:,1],M[:,0],np.arange(0,n)))
+
+    #Construct sparse matrix and convert to Compressed Sparse Row (CSR) format
+    W = sparse.coo_matrix((weights, (M1,M2)),shape=(n,n))
+
+    return W.tocsr()</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.weightmatrix.knn"><code class="name flex">
+<span>def <span class="ident">knn</span></span>(<span>data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', knn_data=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="knn-weight-matrix">knn weight matrix</h1>
+<p>General function for constructing knn weight matrices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>(n,m) numpy array,</code> or <code>string </code></dt>
+<dd>If numpy array, n data points, each of dimension m, if string, then 'mnist', 'fashionmnist', or 'cifar'</dd>
+<dt><strong><code>k</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of nearest neighbors to use.</dd>
+<dt><strong><code>kernel</code></strong> :&ensp;<code>string (optional), {'uniform','gaussian','singular','distance'}</code>, default=<code>'gaussian'</code></dt>
+<dd>The choice of kernel in computing the weights between <span><span class="MathJax_Preview">x_i</span><script type="math/tex">x_i</script></span> and each of its k
+nearest neighbors. We let <span><span class="MathJax_Preview">d_k(x_i)</span><script type="math/tex">d_k(x_i)</script></span> denote the distance from <span><span class="MathJax_Preview">x_i</span><script type="math/tex">x_i</script></span> to its kth
+nearest neighbor. The choice 'uniform' corresponds to <span><span class="MathJax_Preview">w_{i,j}=1</span><script type="math/tex">w_{i,j}=1</script></span> and constitutes
+an unweighted k nearest neighbor graph, 'gaussian' corresponds to
+<span><span class="MathJax_Preview"> w_{i,j} = \exp\left(\frac{-4\|x_i - x_j\|^2}{d_k(x_i)^2} \right), </span><script type="math/tex; mode=display"> w_{i,j} = \exp\left(\frac{-4\|x_i - x_j\|^2}{d_k(x_i)^2} \right), </script></span>
+'distance' corresponds to
+<span><span class="MathJax_Preview"> w_{i,j} = \|x_i - x_j\|, </span><script type="math/tex; mode=display"> w_{i,j} = \|x_i - x_j\|, </script></span>
+and 'singular' corresponds to
+<span><span class="MathJax_Preview"> w_{i,j} = \frac{1}{\|x_i - x_j\|}, </span><script type="math/tex; mode=display"> w_{i,j} = \frac{1}{\|x_i - x_j\|}, </script></span>
+when <span><span class="MathJax_Preview">i\neq j</span><script type="math/tex">i\neq j</script></span> and <span><span class="MathJax_Preview">w_{i,i}=1</span><script type="math/tex">w_{i,i}=1</script></span>.</dd>
+<dt><strong><code>eta</code></strong> :&ensp;<code>python function handle (optional)</code></dt>
+<dd>If provided, this overrides the kernel option and instead uses the weights
+<span><span class="MathJax_Preview"> w_{i,j} = \eta\left(\frac{\|x_i - x_j\|^2}{d_k(x_i)^2} \right), </span><script type="math/tex; mode=display"> w_{i,j} = \eta\left(\frac{\|x_i - x_j\|^2}{d_k(x_i)^2} \right), </script></span>
+where <span><span class="MathJax_Preview">d_k(x_i)</span><script type="math/tex">d_k(x_i)</script></span> is the distance from <span><span class="MathJax_Preview">x_i</span><script type="math/tex">x_i</script></span> to its kth nearest neighbor.</dd>
+<dt><strong><code>symmetrize</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>True, except when kernel='singular'</code></dt>
+<dd>Whether or not to symmetrize the weight matrix before returning. Symmetrization is
+performed by returning <span><span class="MathJax_Preview"> (W + W^T)/2 </span><script type="math/tex"> (W + W^T)/2 </script></span>, except for when kernel='distance, in
+which case the symmetrized edge weights are the true distances. Default for symmetrization
+is True, unless the kernel is 'singular', in which case it is False.</dd>
+<dt><strong><code>metric</code></strong> :&ensp;<code>string (optional)</code>, default=<code>'raw'</code></dt>
+<dd>Metric identifier if data is a string (i.e., a dataset).</dd>
+<dt><strong><code>knn_data</code></strong> :&ensp;<code>tuple (optional)</code>, default=<code>None</code></dt>
+<dd>If desired, the user can provide knn_data = (knn_ind, knn_dist), the output of a knnsearch,
+in order to bypass the knnsearch step, which can be slow for large datasets.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>W</code></strong> :&ensp;<code>(n,n) scipy sparse matrix, float </code></dt>
+<dd>Sparse weight matrix.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#39;raw&#39;, knn_data=None):
+    &#34;&#34;&#34;knn weight matrix
+    ======
+
+    General function for constructing knn weight matrices.
+   
+    Parameters
+    ----------
+    data : (n,m) numpy array, or string 
+        If numpy array, n data points, each of dimension m, if string, then &#39;mnist&#39;, &#39;fashionmnist&#39;, or &#39;cifar&#39;
+    k : int
+        Number of nearest neighbors to use.
+    kernel : string (optional), {&#39;uniform&#39;,&#39;gaussian&#39;,&#39;singular&#39;,&#39;distance&#39;}, default=&#39;gaussian&#39;
+        The choice of kernel in computing the weights between \\(x_i\\) and each of its k 
+        nearest neighbors. We let \\(d_k(x_i)\\) denote the distance from \\(x_i\\) to its kth 
+        nearest neighbor. The choice &#39;uniform&#39; corresponds to \\(w_{i,j}=1\\) and constitutes
+        an unweighted k nearest neighbor graph, &#39;gaussian&#39; corresponds to
+        \\[ w_{i,j} = \\exp\\left(\\frac{-4\\|x_i - x_j\\|^2}{d_k(x_i)^2} \\right), \\]
+        &#39;distance&#39; corresponds to
+        \\[ w_{i,j} = \\|x_i - x_j\\|, \\]
+        and &#39;singular&#39; corresponds to 
+        \\[ w_{i,j} = \\frac{1}{\\|x_i - x_j\\|}, \\]
+        when \\(i\\neq j\\) and \\(w_{i,i}=1\\).
+    eta : python function handle (optional)
+        If provided, this overrides the kernel option and instead uses the weights
+        \\[ w_{i,j} = \\eta\\left(\\frac{\\|x_i - x_j\\|^2}{d_k(x_i)^2} \\right), \\]
+        where \\(d_k(x_i)\\) is the distance from \\(x_i\\) to its kth nearest neighbor.
+    symmetrize : bool (optional), default=True, except when kernel=&#39;singular&#39;
+        Whether or not to symmetrize the weight matrix before returning. Symmetrization is 
+        performed by returning \\( (W + W^T)/2 \\), except for when kernel=&#39;distance, in 
+        which case the symmetrized edge weights are the true distances. Default for symmetrization
+        is True, unless the kernel is &#39;singular&#39;, in which case it is False.
+    metric : string (optional), default=&#39;raw&#39;
+        Metric identifier if data is a string (i.e., a dataset).
+    knn_data : tuple (optional), default=None
+        If desired, the user can provide knn_data = (knn_ind, knn_dist), the output of a knnsearch,
+        in order to bypass the knnsearch step, which can be slow for large datasets.
+
+    Returns
+    -------
+    W : (n,n) scipy sparse matrix, float 
+        Sparse weight matrix.
+    &#34;&#34;&#34;
+
+    #If knn_data provided
+    if knn_data is not None:
+        knn_ind, knn_dist = knn_data
+
+    #If data is a string, then load knn from a stored dataset
+    elif type(data) is str:
+        knn_ind, knn_dist = load_knn_data(data, metric=metric)
+
+    #Else we have to run a knnsearch
+    else:
+        knn_ind, knn_dist = knnsearch(data, k)
+
+    #Restrict to k nearest neighbors
+    n = knn_ind.shape[0]
+    k = np.minimum(knn_ind.shape[1],k)
+    knn_ind = knn_ind[:,:k]
+    knn_dist = knn_dist[:,:k]
+
+    #If eta is None, use kernel keyword
+    if eta is None:
+
+        if kernel == &#39;uniform&#39;:
+            weights = np.ones_like(knn_dist)
+        elif kernel == &#39;gaussian&#39;:
+            D = knn_dist*knn_dist
+            eps = D[:,k-1]
+            weights = np.exp(-4*D/eps[:,None])
+        elif kernel == &#39;distance&#39;:
+            weights = knn_dist
+        elif kernel == &#39;singular&#39;:
+            weights = knn_dist
+            weights[knn_dist==0] = 1
+            weights = 1/weights
+            symmetrize = False
+        else:
+            sys.exit(&#39;Invalid choice of kernel: &#39; + kernel)
+
+    #Else use user-defined eta
+    else:
+        D = knn_dist*knn_dist
+        eps = D[:,k-1]
+        weights = eta(D/eps)
+
+    #Flatten knn data and weights
+    knn_ind = knn_ind.flatten()
+    weights = weights.flatten()
+
+    #Self indices
+    self_ind = np.ones((n,k))*np.arange(n)[:,None]
+    self_ind = self_ind.flatten()
+
+    #Construct sparse matrix and convert to Compressed Sparse Row (CSR) format
+    W = sparse.coo_matrix((weights, (self_ind, knn_ind)),shape=(n,n)).tocsr()
+
+    if symmetrize:
+        if kernel == &#39;distance&#39;:
+            W = utils.sparse_max(W, W.transpose())
+        else:
+            W = (W + W.transpose())/2;
+
+    return W</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.weightmatrix.knnsearch"><code class="name flex">
+<span>def <span class="ident">knnsearch</span></span>(<span>X, k, method=None, similarity='euclidean', dataset=None, metric='raw')</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="knn-search">knn search</h1>
+<p>General function for k-nearest neighbor searching, including efficient
+implementations for high dimensional data, and support for saving
+k-nn data to files automatically, for reuse later.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>(n,m) numpy array</code></dt>
+<dd>n data points, each of dimension m.</dd>
+<dt><strong><code>k</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of nearest neighbors to find.</dd>
+<dt><strong><code>method</code></strong> :&ensp;<code>{'kdtree','annoy','brute'} (optional)</code>, default<code>: 'kdtree' for m &lt;=5 and 'annoy' for m&gt;5</code></dt>
+<dd>Algorithm for search. Annoy is an approximate nearest neighbor search and requires
+the <a href="https://github.com/spotify/annoy">Annoy</a> package.</dd>
+<dt><strong><code>similarity</code></strong> :&ensp;<code>{'euclidean','angular','manhattan','hamming','dot'} (optional)</code>, default=<code>'euclidean'</code></dt>
+<dd>Smilarity for nearest neighbor search. Only 'euclidean' and 'angular' are available with
+'kdtree' and 'brute'.</dd>
+<dt><strong><code>dataset</code></strong> :&ensp;<code>string (optional)</code>, default=<code>None</code></dt>
+<dd>If provided, results of the search are saved to a file that can be loaded later.</dd>
+<dt><strong><code>metric</code></strong> :&ensp;<code>string (optional)</code>, default=<code>'raw'</code></dt>
+<dd>A modifier to add to the dataset name when saving, to distinguish different types of knn data.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>knn_ind</code></strong> :&ensp;<code>(n,k) numpy array, int</code></dt>
+<dd>Indices of nearest neighbors, including the self point.</dd>
+<dt><strong><code>knn_dist</code></strong> :&ensp;<code>(n,k) numpy array, float</code></dt>
+<dd>Distances to all neighbors.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def knnsearch(X, k, method=None, similarity=&#39;euclidean&#39;, dataset=None, metric=&#39;raw&#39;):
+    &#34;&#34;&#34;knn search
+    ======
+
+    General function for k-nearest neighbor searching, including efficient 
+    implementations for high dimensional data, and support for saving
+    k-nn data to files automatically, for reuse later.
+
+   
+    Parameters
+    ----------
+    X : (n,m) numpy array
+        n data points, each of dimension m.
+    k : int
+        Number of nearest neighbors to find.
+    method : {&#39;kdtree&#39;,&#39;annoy&#39;,&#39;brute&#39;} (optional), default: &#39;kdtree&#39; for m &lt;=5 and &#39;annoy&#39; for m&gt;5
+        Algorithm for search. Annoy is an approximate nearest neighbor search and requires
+        the [Annoy](https://github.com/spotify/annoy) package. 
+    similarity : {&#39;euclidean&#39;,&#39;angular&#39;,&#39;manhattan&#39;,&#39;hamming&#39;,&#39;dot&#39;} (optional), default=&#39;euclidean&#39;
+        Smilarity for nearest neighbor search. Only &#39;euclidean&#39; and &#39;angular&#39; are available with
+        &#39;kdtree&#39; and &#39;brute&#39;.
+    dataset : string (optional), default=None
+        If provided, results of the search are saved to a file that can be loaded later.
+    metric : string (optional), default=&#39;raw&#39;
+        A modifier to add to the dataset name when saving, to distinguish different types of knn data.
+
+    Returns
+    -------
+    knn_ind : (n,k) numpy array, int
+        Indices of nearest neighbors, including the self point.
+    knn_dist : (n,k) numpy array, float
+        Distances to all neighbors.
+    &#34;&#34;&#34;
+
+    n = X.shape[0]
+    m = X.shape[1]
+    if method is None:
+        if m &lt;= 5:
+            method = &#39;kdtree&#39;
+        else:
+            method = &#39;annoy&#39;
+
+    if method in [&#39;kdtree&#39;,&#39;brute&#39;]:
+
+        if not similarity in [&#39;angular&#39;,&#39;euclidean&#39;]:
+            sys.exit(&#39;Invalid choice of similarity &#39; + similarity)
+
+        if similarity == &#39;angular&#39;:
+            X /= np.linalg.norm(X,axis=1)[:,None]
+
+        if method == &#39;kdtree&#39;:
+
+            Xtree = spatial.cKDTree(X)
+            knn_dist, knn_ind = Xtree.query(X,k=k)
+
+        else: #Brute force knn search
+
+            knn_ind = np.array((n,k),dtype=int)
+            knn_dist = np.array((n,k))
+            for i in range(n):
+                dist  = np.linalg.norm(X - X[i,:],axis=1) 
+                knn_ind[i,:] = np.argsort(dist)[:k]
+                knn_dist[i,:] = dist[knn_ind]
+
+    elif method == &#39;annoy&#39;:
+
+        if not similarity in [&#39;euclidean&#39;,&#39;angular&#39;,&#39;manhattan&#39;,&#39;hamming&#39;,&#39;dot&#39;]:
+            sys.exit(&#39;Invalid choice of similarity &#39; + similarity)
+
+        from annoy import AnnoyIndex
+
+        u = AnnoyIndex(m, similarity)  # Length of item vector that will be indexed
+        for i in range(n):
+            u.add_item(i, X[i,:])
+
+        u.build(10)  #10 trees
+        
+        knn_dist = []
+        knn_ind = []
+        for i in range(n):
+            A = u.get_nns_by_item(i, k, include_distances=True, search_k=-1)
+            knn_ind.append(A[0])
+            knn_dist.append(A[1])
+
+        knn_ind = np.array(knn_ind)
+        knn_dist = np.array(knn_dist)
+
+    else:
+        sys.exit(&#39;Invalid choice of knnsearch method &#39; + method)
+
+ 
+    #If dataset name is provided, save permutations to file
+    if not dataset is None:
+        #data file name
+        dataFile = dataset.lower() + &#39;_&#39; + metric.lower() + &#39;.npz&#39;
+
+        #Full path to file
+        dataFile_path = os.path.join(knn_dir, dataFile)
+
+        #Check if knn_dir exists
+        if not os.path.exists(knn_dir):
+            os.makedirs(knn_dir)
+
+        np.savez_compressed(dataFile_path, J=knn_ind, D=knn_dist)
+
+    return knn_ind, knn_dist</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.weightmatrix.load_knn_data"><code class="name flex">
+<span>def <span class="ident">load_knn_data</span></span>(<span>dataset, metric='raw')</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="load-saved-knn-data">Load saved knn data</h1>
+<p>Loads the results of a saved knn search.
+</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dataset</code></strong> :&ensp;<code>string</code></dt>
+<dd>Name of dataset to load knn data for (not case-sensitive).</dd>
+<dt><strong><code>metric</code></strong> :&ensp;<code>string (optional)</code>, default=<code>'raw'</code></dt>
+<dd>A modifier to add to the dataset name when saving, to distinguish different types of knn data (not case-sensitive).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>knn_ind</code></strong> :&ensp;<code>(n,k) numpy array, int</code></dt>
+<dd>Indices of nearest neighbors, including the self point.</dd>
+<dt><strong><code>knn_dist</code></strong> :&ensp;<code>(n,k) numpy array, float</code></dt>
+<dd>Distances to all neighbors.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_knn_data(dataset, metric=&#39;raw&#39;):
+    &#34;&#34;&#34;Load saved knn data
+    ======
+
+    Loads the results of a saved knn search.   
+
+    Parameters
+    ----------
+    dataset : string
+        Name of dataset to load knn data for (not case-sensitive).
+    metric : string (optional), default=&#39;raw&#39;
+        A modifier to add to the dataset name when saving, to distinguish different types of knn data (not case-sensitive).
+
+    Returns
+    -------
+    knn_ind : (n,k) numpy array, int
+        Indices of nearest neighbors, including the self point.
+    knn_dist : (n,k) numpy array, float
+        Distances to all neighbors.
+    &#34;&#34;&#34;
+
+    #dataFile = dataset.lower() + &#34;_&#34; + metric.lower() + &#34;.npz&#34; #Fix this later
+    dataFile = dataset.lower() + &#34;_&#34; + metric.lower() + &#34;.npz&#34; 
+    dataFile_path = os.path.join(knn_dir, dataFile)
+
+    #Check if knn_dir exists
+    if not os.path.exists(knn_dir):
+        os.makedirs(knn_dir)
+
+    #Download kNN data if necessary
+    if not os.path.exists(dataFile_path):
+        urlpath = &#39;https://github.com/jwcalder/GraphLearning/raw/master/kNNData/&#39;+dataFile
+        utils.download_file(urlpath, dataFile_path)
+
+    knn_ind = utils.numpy_load(dataFile_path, &#39;J&#39;)
+    knn_dist = utils.numpy_load(dataFile_path, &#39;D&#39;)
+
+    return knn_ind, knn_dist</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#weight-matrices">Weight Matrices</a></li>
+</ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="graphlearning" href="index.html">graphlearning</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="graphlearning.weightmatrix.epsilon_ball" href="#graphlearning.weightmatrix.epsilon_ball">epsilon_ball</a></code></li>
+<li><code><a title="graphlearning.weightmatrix.knn" href="#graphlearning.weightmatrix.knn">knn</a></code></li>
+<li><code><a title="graphlearning.weightmatrix.knnsearch" href="#graphlearning.weightmatrix.knnsearch">knnsearch</a></code></li>
+<li><code><a title="graphlearning.weightmatrix.load_knn_data" href="#graphlearning.weightmatrix.load_knn_data">load_knn_data</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

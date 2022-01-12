@@ -1,0 +1,3651 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>graphlearning.graph API documentation</title>
+<meta name="description" content="Graph Class
+…" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>graphlearning.graph</code></h1>
+</header>
+<section id="section-intro">
+<h1 id="graph-class">Graph Class</h1>
+<p>This module contains the <code><a title="graphlearning.graph.graph" href="#graphlearning.graph.graph">graph</a></code> class, which implements many graph-based algorithms, including
+spectral decompositions, distance functions (via Dijkstra and peikonal), PageRank, AMLE (Absolutely
+Minimal Lipschitz Extensions), p-Laplace equations, and basic calculus on graphs.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Graph Class
+========================
+
+This module contains the `graph` class, which implements many graph-based algorithms, including
+spectral decompositions, distance functions (via Dijkstra and peikonal), PageRank, AMLE (Absolutely 
+Minimal Lipschitz Extensions), p-Laplace equations, and basic calculus on graphs.
+&#34;&#34;&#34;
+
+import numpy as np
+from scipy import sparse
+from scipy import spatial
+import scipy.sparse.linalg as splinalg
+import scipy.sparse.csgraph as csgraph
+import time
+import sys
+import pickle
+
+from . import utils
+
+class graph:
+
+    def __init__(self, W):
+        &#34;&#34;&#34;Graph class
+        ========
+
+        A class for graphs, including routines to compute Laplacians and their
+        eigendecompositions, which are useful in graph learning.
+
+        Parameters
+        ----------
+        W : (n,n) numpy array, matrix, or scipy sparse matrix
+            Weight matrix representing the graph.
+        &#34;&#34;&#34;
+
+        self.weight_matrix = sparse.csr_matrix(W)
+        self.num_nodes = W.shape[0]
+
+        #Coordinates of sparse matrix for passing to C code
+        I,J,V = sparse.find(W)
+        self.I = I
+        self.J = J
+        self.V = V
+        K = np.array((J[1:] - J[:-1]).nonzero()) + 1
+        self.K = np.append(0,np.append(K,len(J)))
+
+        #For passing to C code
+        self.I = np.ascontiguousarray(self.I, dtype=np.int32)
+        self.J = np.ascontiguousarray(self.J, dtype=np.int32)
+        self.V = np.ascontiguousarray(self.V, dtype=np.float64)
+        self.K = np.ascontiguousarray(self.K, dtype=np.int32)
+
+        self.eigendata = {}
+        normalizations = [&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;]
+
+        for norm in normalizations:
+            self.eigendata[norm] = {}
+            self.eigendata[norm][&#39;eigenvectors&#39;] = None
+            self.eigendata[norm][&#39;eigenvalues&#39;] = None
+            self.eigendata[norm][&#39;method&#39;] = None
+            self.eigendata[norm][&#39;k&#39;] = None
+            self.eigendata[norm][&#39;c&#39;] = None
+            self.eigendata[norm][&#39;gamma&#39;] = None
+            self.eigendata[norm][&#39;tol&#39;] = None
+            self.eigendata[norm][&#39;q&#39;] = None
+
+    def degree_vector(self):
+        &#34;&#34;&#34;Degree Vector
+        ======
+
+        Given a weight matrix \\(W\\), returns the diagonal degree vector
+        \\[d_{i} = \\sum_{j=1}^n w_{ij}.\\]
+
+        Returns
+        -------
+        d : numpy array, float
+            Degree vector for weight matrix.
+        &#34;&#34;&#34;
+
+        d = self.weight_matrix*np.ones(self.num_nodes)
+        return d
+
+
+    def degree_matrix(self, p=1):
+        &#34;&#34;&#34;Degree Matrix
+        ======
+
+        Given a weight matrix \\(W\\), returns the diagonal degree matrix 
+        in the form
+        \\[D_{ii} = \\left(\\sum_{j=1}^n w_{ij}\\right)^p.\\]
+
+        Parameters
+        ----------
+        p : float (optional), default=1
+            Optional exponent to apply to the degree.
+
+        Returns
+        -------
+        D : (n,n) scipy sparse matrix, float
+            Sparse diagonal degree matrix.
+        &#34;&#34;&#34;
+
+        #Construct sparse degree matrix
+        d = self.degree_vector()
+        D = sparse.spdiags(d**p, 0, self.num_nodes, self.num_nodes)
+
+        return D.tocsr()
+
+
+    def adjacency(self):
+        &#34;&#34;&#34;Adjacency matrix
+        ======
+
+        Given a weight matrix \\(W\\), returns the adjacency matrix \\(A\\),
+        which satisfies \\(A_{ij}=1\\) whenever \\(w_{ij}&gt;0\\), and  \\(A_{ij}=0\\)
+        otherwise
+
+        Returns
+        -------
+        A : (n,n) scipy sparse matrix, float
+            Sparse adjacency matrix.
+        &#34;&#34;&#34;
+
+        n = self.num_nodes
+        A = sparse.coo_matrix((np.ones(len(self.V),),(self.I,self.J)),shape=(n,n)).tocsr() 
+        return A
+
+    def gradient(self, u, weighted=False):
+        &#34;&#34;&#34;Graph Gradient
+        ======
+
+        Computes the graph gradient \\(\\nabla u\\) of \\(u\\in \\mathbb{R}^n\\), which is
+        the sparse matrix with the form
+        \\[\\nabla u_{ij} = u_j - u_i,\\]
+        whenever \\(w_{ij}&gt;0\\), and \\(\\nabla u_{ij}=0\\) otherwise.
+        If `weighted=True` is chosen, then the gradient is weighted by the graph weight 
+        matrix as follows
+        \\[\\nabla u_{ij} = w_{ij}(u_j - u_i).\\]
+
+        Parameters
+        ----------
+        u : numpy array, float
+            Vector (graph function) to take gradient of
+        weighted : bool (optional), default=False
+            Whether to weight the gradient by the graph weight matrix.
+
+        Returns
+        -------
+        G : (n,n) scipy sparse matrix, float
+            Sparse graph gradient matrix
+        &#34;&#34;&#34;
+
+        n = self.num_nodes
+
+        if weighted:
+            G = sparse.coo_matrix((self.V*(u[self.J]-u[self.I]), (self.I,self.J)),shape=(n,n)).tocsr()
+        else:
+            G = sparse.coo_matrix((u[self.J]-u[self.I], (self.I,self.J)),shape=(n,n)).tocsr()
+
+        return G
+
+    def divergence(self, V, weighted=True):
+        &#34;&#34;&#34;Graph Divergence
+        ======
+
+        Computes the graph divergence \\(\\text{div} V\\) of a vector field \\(V\\in \\mathbb{R}^{n\\times n}\\), 
+        which is the vector 
+        \\[\\nabla u_{ij} = u_j - u_i,\\]
+        If `weighted=True` is chosen, then the divergence is weighted by the graph weight 
+        matrix as follows
+        \\[\\nabla u_{ij} = w_{ij}(u_j - u_i).\\]
+
+        Parameters
+        ----------
+        V : scipy sparse matrix, float
+            Sparse matrix representing a vector field over the graph.
+        weighted : bool (optional), default=True
+            Whether to weight the divergence by the graph weight matrix.
+
+        Returns
+        -------
+        divV : numpy array
+            Divergence of V.
+        &#34;&#34;&#34;
+    
+        V = V - V.transpose()
+
+        if weighted:
+            V = V.multiply(self.weight_matrix)
+
+        divV = V*np.ones(self.num_nodes)/2
+
+        return divV
+
+     
+    def reweight(self, idx, method=&#39;poisson&#39;, X=None, alpha=2, zeta=1e7, r=0.1):
+        &#34;&#34;&#34;Reweight a weight matrix
+        ======
+
+        Reweights the graph weight matrix more heavily near labeled nodes. Used in semi-supervised
+        learning at very low label rates. [Need to describe all methods...]
+
+        Parameters
+        ----------
+        idx : numpy array (int)
+            Indices of points to reweight near (typically labeled points).
+        method : {&#39;poisson&#39;,&#39;wnll&#39;,&#39;properly&#39;}, default=&#39;poisson&#39;
+            Reweighting method. &#39;poisson&#39; is described in [1], &#39;wnll&#39; is described in [2], and &#39;properly&#39;
+            is described in [3]. If &#39;properly&#39; is selected, the user must supply the data features `X`.
+        X : numpy array (optional)
+            Data features, used to construct the graph. This is required for the `properly` weighted 
+            graph Laplacian method.
+        alpha : float (optional), default=2
+            Parameter for `properly` reweighting.
+        zeta : float (optional), default=1e7
+            Parameter for `properly` reweighting.
+        r : float (optional), default=0.1
+            Radius for `properly` reweighting.
+
+        Returns
+        -------
+        W : (n,n) scipy sparse matrix, float
+            Reweighted weight matrix as sparse scipy matrix.
+
+        References
+        ----------
+        [1] J. Calder, B. Cook, M. Thorpe, D. Slepcev. [Poisson Learning: Graph Based Semi-Supervised Learning at Very Low Label Rates.](http://proceedings.mlr.press/v119/calder20a.html), 
+        Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1306-1316, 2020.
+
+        [2] Z. Shi, S. Osher, and W. Zhu. [Weighted nonlocal laplacian on interpolation from sparse data.](https://idp.springer.com/authorize/casa?redirect_uri=https://link.springer.com/article/10.1007/s10915-017-0421-z&amp;casa_token=33Z7gqJy3mMAAAAA:iMO0pGmpn_qf5PioVIGocSRq_p4CDm-KNOQhgIC1uvqG9pWlZ6t7I-IZtSJfocFDEHCdMpK8j7Fx1XbzDQ)
+        Journal of Scientific Computing 73.2 (2017): 1164-1177.
+
+        [3] J. Calder, D. Slepčev. [Properly-weighted graph Laplacian for semi-supervised learning.](https://link.springer.com/article/10.1007/s00245-019-09637-3) Applied mathematics &amp; optimization (2019): 1-49.
+        &#34;&#34;&#34;
+
+        if method == &#39;poisson&#39;:
+            
+            n = self.num_nodes
+            f = np.zeros(n)
+            f[idx] = 1
+            f -= np.mean(f)
+
+            L = self.laplacian()
+            w = utils.conjgrad(L, f, tol=1e-5)
+            w -= np.min(w)
+            D = sparse.spdiags(w,0,n,n).tocsr()
+
+            return D*self.weight_matrix*D
+
+        elif method == &#39;wnll&#39;:
+
+            n = self.num_nodes
+            m = len(idx)
+
+            a = np.ones((n,))
+            a[idx] = n/m
+            
+            D = sparse.spdiags(a,0,n,n).tocsr()
+
+            return D*self.weight_matrix + self.weight_matrix*D
+
+        elif method == &#39;properly&#39;:
+
+            if X is None:
+                sys.exit(&#39;Must provide data features X for properly weighted graph Laplacian.&#39;)
+
+            n = self.num_nodes
+            m = len(idx)
+            rzeta = r/(zeta-1)**(1/alpha)
+            Xtree = spatial.cKDTree(X[idx,:])
+            D, J = Xtree.query(X)
+            D[D &lt; rzeta] = rzeta
+            gamma = 1 + (r/D)**alpha
+
+            D = sparse.spdiags(gamma,0,n,n).tocsr()
+
+            return D*self.weight_matrix + self.weight_matrix*D
+
+        else:
+            sys.exit(&#39;Invalid reweighting method &#39; + method + &#39;.&#39;)
+
+
+    def laplacian(self, normalization=&#34;combinatorial&#34;):
+        &#34;&#34;&#34;Graph Laplacian
+        ======
+
+        Computes various normalizations of the graph Laplacian for a 
+        given weight matrix \\(W\\). The choices are
+        \\[L_{\\rm combinatorial} = D - W,\\]
+        \\[L_{\\rm randomwalk} = I - D^{-1}W,\\]
+        and
+        \\[L_{\\rm normalized} = I - D^{-1/2}WD^{-1/2},\\]
+        where \\(D\\) is the diagonal degree matrix, which is defined as
+        \\[D_{ii} = \\sum_{j=1}^n w_{ij}.\\]
+
+        Parameters
+        ----------
+        normalization : {&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;}, default=&#39;combinatorial&#39;
+            Type of normalization to apply.
+
+        Returns
+        -------
+        L : (n,n) scipy sparse matrix, float
+            Graph Laplacian as sparse scipy matrix.
+        &#34;&#34;&#34;
+
+        I = sparse.identity(self.num_nodes)
+        D = self.degree_matrix()
+
+        if normalization == &#34;combinatorial&#34;:
+            L = D - self.weight_matrix
+        elif normalization == &#34;randomwalk&#34;:
+            Dinv = self.degree_matrix(p=-1)
+            L = I - Dinv*self.weight_matrix
+        elif normalization == &#34;normalized&#34;:
+            Dinv2 = self.degree_matrix(p=-0.5)
+            L = I - Dinv2*self.weight_matrix*Dinv2
+        else:
+            sys.exit(&#34;Invalid option for graph Laplacian normalization.&#34;)
+
+        return L.tocsr()
+
+    def infinity_laplacian(self,u):
+        &#34;&#34;&#34;Graph Infinity Laplacian
+        ======
+
+        Computes the graph infinity Laplacian of a vector \\(u\\), given by
+        \\[L_\\infty u_i= \\min_j w_{ij}(u_j-u_i) + \\max_j w_{ij} (u_j-u_i).\\]
+               
+        Returns
+        -------
+        Lu : numpy array
+            Graph infinity Laplacian.
+        &#34;&#34;&#34;
+
+        n = self.num_nodes
+        M = sparse.coo_matrix((self.V*(u[self.J]-u[self.I]), (self.I,self.J)),shape=(n,n)).tocsr()
+        M = M.min(axis=1) + M.max(axis=1)
+        Lu = M.toarray().flatten()
+
+        return Lu
+
+    def isconnected(W):
+        &#34;&#34;&#34;Is Connected
+        ======
+
+        Checks if the graph is connected.
+               
+        Returns
+        -------
+        connected : bool
+            True or False, depending on connectivity.
+        &#34;&#34;&#34;
+
+        num_comp,comp = csgraph.connected_components(W)
+        connected = False
+        if num_comp == 1:
+            connected = True
+        return connected
+
+    def largest_connected_component(W):
+        &#34;&#34;&#34;Largest connected component
+        ======
+
+        Finds the largest connected component of the graph. Returns the restricted 
+        graph, as well as a boolean mask indicating the nodes belonging to 
+        the component.
+               
+        Returns
+        -------
+        G : graph object
+            Largest connected component graph.
+        ind : numpy array (bool)
+            Mask indicating which nodes from the original graph belong to the 
+            largest component.
+        &#34;&#34;&#34;
+
+        ncomp,labels = csgraph.connected_components(W,directed=False) 
+        num_verts = np.zeros((ncomp,))
+        for i in range(ncomp):
+            num_verts[i] = np.sum(labels==i)
+        
+        i_max = np.argmax(num_verts)
+        ind = labels==i_max
+
+        A = self.weight_matrix[ind,:]
+        A = A[:,ind]
+        G = graph(A)
+
+        return G, ind
+
+
+    def eigen_decomp(self, normalization=&#39;combinatorial&#39;, method=&#39;exact&#39;, k=10, c=None, gamma=0, tol=0, q=1):
+        &#34;&#34;&#34;Eigen Decomposition of Graph Laplacian
+        ======
+
+        Computes the the low-lying eigenvectors and eigenvalues of 
+        various normalizations of the graph Laplacian. Computations can 
+        be either exact, or use a fast low-rank approximation via 
+        randomized SVD. 
+
+        Parameters
+        ----------
+        normalization : {&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;}, default=&#39;combinatorial&#39;
+            Type of normalization of graph Laplacian to apply.
+        method : {&#39;exact&#39;,&#39;lowrank&#39;}, default=&#39;exact&#39;
+            Method for computing eigenvectors. &#39;exact&#39; uses scipy.sparse.linalg.eigs, while
+            &#39;lowrank&#39; uses a low rank approximation via randomized SVD. Lowrank is not 
+            implemented for gamma &gt; 0.
+        k : int (optional), default=10
+            Number of eigenvectors to compute.
+        c : int (optional), default=2*number
+            Cutoff for randomized SVD.
+        gamma : float (optional), default=0
+            Parameter for modularity (add more details)
+        tol : float (optional), default=0
+            tolerance for eigensolvers.
+        q : int (optional), default=1
+            Exponent to use in randomized svd.
+
+        Returns
+        -------
+        vals : numpy array, float 
+            eigenvalues in increasing order.
+        vecs : (n,k) numpy array, float
+            eigenvectors as columns.
+
+        Example
+        -------
+        This example compares the exact and lowrank (ranomized svd) methods for computing the spectrum: [randomized_svd.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/randomized_svd.py).
+        ```py
+        import numpy as np
+        import matplotlib.pyplot as plt
+        import sklearn.datasets as datasets
+        import graphlearning as gl
+
+        X,L = datasets.make_moons(n_samples=500,noise=0.1)
+        W = gl.weightmatrix.knn(X,10)
+        G = gl.graph(W)
+
+        num_eig = 7
+        vals_exact, vecs_exact = G.eigen_decomp(normalization=&#39;normalized&#39;, k=num_eig, method=&#39;exact&#39;)
+        vals_rsvd, vecs_rsvd = G.eigen_decomp(normalization=&#39;normalized&#39;, k=num_eig, method=&#39;lowrank&#39;, q=50, c=50)
+
+        for i in range(1,num_eig):
+            rsvd = vecs_rsvd[:,i]
+            exact = vecs_exact[:,i]
+
+            sign = np.sum(rsvd*exact)
+            if sign &lt; 0:
+                rsvd *= -1
+
+            err = np.max(np.absolute(rsvd - exact))/max(np.max(np.absolute(rsvd)),np.max(np.absolute(exact)))
+
+            fig, (ax1,ax2) = plt.subplots(1,2, figsize=(10,5))
+            fig.suptitle(&#39;Eigenvector %d, err=%f&#39;%(i,err))
+
+            ax1.scatter(X[:,0],X[:,1], c=rsvd)
+            ax1.set_title(&#39;Random SVD&#39;)
+
+            ax2.scatter(X[:,0],X[:,1], c=exact)
+            ax2.set_title(&#39;Exact&#39;)
+
+        plt.show()
+        ```
+        &#34;&#34;&#34;
+
+        #Default choice for c
+        if c is None:
+            c = 2*k
+
+        same_method = self.eigendata[normalization][&#39;method&#39;] == method
+        same_k = self.eigendata[normalization][&#39;k&#39;] == k
+        same_c = self.eigendata[normalization][&#39;c&#39;] == c
+        same_gamma = self.eigendata[normalization][&#39;gamma&#39;] == gamma
+        same_tol = self.eigendata[normalization][&#39;tol&#39;] == tol
+        same_q = self.eigendata[normalization][&#39;q&#39;] == q
+
+        #If already computed, then return eigenvectors
+        if same_method and same_k and same_c and same_gamma and same_tol and same_q:
+        
+            return self.eigendata[normalization][&#39;eigenvalues&#39;], self.eigendata[normalization][&#39;eigenvectors&#39;]
+        
+        #Else, we need to compute the eigenvectors
+        else:
+            self.eigendata[normalization][&#39;method&#39;] = method 
+            self.eigendata[normalization][&#39;k&#39;] = k
+            self.eigendata[normalization][&#39;c&#39;] = c
+            self.eigendata[normalization][&#39;gamma&#39;] = gamma
+            self.eigendata[normalization][&#39;tol&#39;] = tol
+            self.eigendata[normalization][&#39;q&#39;] = q
+
+            n = self.num_nodes
+
+            #If not using modularity
+            if gamma == 0:
+                
+                if normalization == &#39;randomwalk&#39; or normalization == &#39;normalized&#39;:
+
+                    D = self.degree_matrix(p=-0.5)
+                    A = D*self.weight_matrix*D
+
+                    if method == &#39;exact&#39;:
+                        u,s,vt = splinalg.svds(A, k=k, tol=tol)
+                    elif method == &#39;lowrank&#39;:
+                        u,s,vt = utils.randomized_svd(A, k=k, c=c, q=q)
+                    else:
+                        sys.exit(&#39;Invalid eigensolver method &#39;+method)
+
+                    vals = 1 - s
+                    ind = np.argsort(vals)
+                    vals = vals[ind]
+                    vecs = u[:,ind]
+
+                    if normalization == &#39;randomwalk&#39;:
+                        vecs = D@vecs
+
+                elif normalization == &#39;combinatorial&#39;:
+
+                    L = self.laplacian()
+                    deg = self.degree_vector()
+                    M = 2*np.max(deg)
+                    A = M*sparse.identity(n) - L
+
+                    if method == &#39;exact&#39;:
+                        u,s,vt = splinalg.svds(A, k=k, tol=tol)
+                    elif method == &#39;lowrank&#39;:
+                        u,s,vt = utils.randomized_svd(A, k=k, c=c, q=q)
+                    else:
+                        sys.exit(&#39;Invalid eigensolver method &#39;+method)
+                    
+                    vals = M - s
+                    ind = np.argsort(vals)
+                    vals = vals[ind]
+                    vecs = u[:,ind]
+
+                else:
+                    sys.exit(&#39;Invalid choice of normalization&#39;)
+
+
+            #Modularity
+            else:
+
+                if method == &#39;lowrank&#39;:
+                    sys.exit(&#39;Low rank not implemented for modularity&#39;)
+
+                if normalization == &#39;randomwalk&#39;:
+                    lap = self.laplacian(normalization=&#39;normalized&#39;)
+                    P = self.degree_matrix(p=-0.5)
+                    p1,p2 = 1.5,0.5
+                else:
+                    lap = self.laplacian(normalization=normalization)
+                    P = sparse.identity(n)
+                    p1,p2 = 1,1
+
+                #If using modularity
+                deg = self.degree_vector()
+                deg1 = deg**p1
+                deg2 = deg**p2
+                m = np.sum(deg)/2 
+                def M(v):
+                    v = v.flatten()
+                    return (lap*v).flatten() + (gamma/m)*(deg2.T@v)*deg1
+
+                L = sparse.linalg.LinearOperator((n,n), matvec=M)
+                vals, vecs = sparse.linalg.eigsh(L, k=k, which=&#39;SM&#39;, tol=tol)
+
+                #Correct for random walk Laplacian if chosen
+                vecs = P@vecs
+
+
+            #Store eigenvectors for resuse later
+            self.eigendata[normalization][&#39;eigenvalues&#39;] = vals
+            self.eigendata[normalization][&#39;eigenvectors&#39;] = vecs
+
+            return vals, vecs
+
+    def fiedler_vector(self, method=&#39;exact&#39;, tol=0):
+        &#34;&#34;&#34;Fiedler vector
+        ======
+
+        Computes the Fiedler vector, which is the second eigenvector for the 
+        combinatorial graph Laplacian \\(L = D-W\\).
+
+        Parameters
+        ----------
+        method : {&#39;exact&#39;,&#39;lowrank&#39;}, default=&#39;exact&#39;
+            Method for computing eigenvectors. &#39;exact&#39; uses scipy.sparse.linalg.eigs, while
+            &#39;lowrank&#39; uses a low rank approximation via randomized SVD.
+        tol : float (optional), default=0
+            tolerance for eigensolvers.
+
+
+        Returns
+        -------
+        fiedler_vector : numpy array, float 
+            Contents of fiedler vector.
+        &#34;&#34;&#34;
+
+        vals, vecs = self.eigen_decomp(normalization=&#39;combinatorial&#39;, method=method, k=2, tol=tol)
+        fiedler_vector = vecs[:,1]
+
+        return fiedler_vector
+
+    def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, u0=None, max_num_it=1e5, 
+                                tol=1e-3, num_bisection_it=30, prog=False):
+        &#34;&#34;&#34;p-eikonal equation 
+        =====================
+
+        Sovles the graph p-eikonal equation 
+        \\[ \\sum_{j=1}^n w_{ij} (u_i - u_j)_+^p = f_i\\]
+        for \\(i\\not\\in \\Gamma\\), subject to \\(u_i=g_i\\) for \\(i\\in \\Gamma\\).
+
+        Parameters
+        ----------
+        bdy_set : numpy array (int or bool) 
+            Indices or boolean mask indicating the boundary nodes \\(\\Gamma\\).
+        bdy_val : numpy array or single float (optional), default=0
+            Boundary values \\(g\\) on \\(\\Gamma\\). A single float is
+            interpreted as a constant over \\(\\Gamma\\).
+        f : numpy array or single float (optional), default=1
+            Right hand side of the p-eikonal equation, a single float
+            is interpreted as a constant vector of the graph.
+        p : float (optional), default=1
+            Value of exponent p in the p-eikonal equation.
+        u0 : numpy array (float, optional), default=None
+            Initialization of solver. If not provided, then u0=0.
+        max_num_it : int (optional), default=1e5
+            Maximum number of iterations.
+        tol : float (optional), default=1e-3
+            Tolerance with which to solve the equation.
+        num_bisection_it : int (optional), default=30
+            Number of bisection iterations for solver.
+        prog : bool (optional), default=False
+            Toggles whether to print progress information.
+
+        Returns
+        -------
+        u : numpy array (float)
+            Solution of p-eikonal equation.
+
+        Example
+        -------
+        This example uses the peikonal equation to compute a data depth: [peikonal.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/peikonal.py).
+        ```py
+        import graphlearning as gl
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        X = np.random.rand(int(1e4),2)
+        x,y = X[:,0],X[:,1]
+
+        eps = 0.02
+        W = gl.weightmatrix.epsilon_ball(X, eps)
+        G = gl.graph(W)
+
+        bdy_set = (x &lt; eps) | (x &gt; 1-eps) | (y &lt; eps) | (y &gt; 1-eps)
+        u = G.peikonal(bdy_set)
+
+        plt.scatter(x,y,c=u,s=0.25)
+        plt.scatter(x[bdy_set],y[bdy_set],c=&#39;r&#39;,s=0.5)
+        plt.show() 
+        ```
+        &#34;&#34;&#34;
+
+        #Import c extensions
+        from . import cextensions
+        
+        n = self.num_nodes
+
+        #Set initial data
+        if u0 is None:
+            u = np.zeros((n,))
+        else:
+            u = u0.copy()
+
+        #Convert f to an array if scalar is given
+        if type(f) != np.ndarray:
+            f = np.ones((n,))*f
+
+        #Convert boundary data to standard format
+        bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+
+        #Type casting and memory blocking
+        u = np.ascontiguousarray(u,dtype=np.float64)
+        bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+        f = np.ascontiguousarray(f,dtype=np.float64)
+        bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+
+        cextensions.peikonal(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,max_num_it,tol,num_bisection_it,prog)
+
+        return u
+
+
+    def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False):
+        &#34;&#34;&#34;Dijkstra&#39;s algorithm
+        ======
+
+        Computes a graph distance function with Dijkstra&#39;s algorithm. The graph distance is
+        \\[ d(x,y) = \\min_p \\sum_{i=1}^M w_{p_i,p_{i+1}}f_{p_{i+1}},\\]
+        where the minimum is over paths \\(p\\) connecting \\(x\\) and \\(y\\), \\(w_{ij}\\) is 
+        the weight from \\(i\\) to \\(j\\), and \\(f_i\\) is an additional per-vertex weights. 
+        A path must satisfy \\(w_{p_i,p_{i+1}}&gt;0\\) for all \\(i\\). Dijkstra&#39;s algorithm returns the
+        distance function to a terminal set \\(\\Gamma\\), given by
+        \\[u(x) = \\min_{i\\in \\Gamma} \\{g(x_i) + d(x,x_i)\\},\\]
+        where \\(g\\) are boundary values.
+        An optional feature also returns the closest point information
+        \\[cp(x) = \\text{argmin}_{i\\in \\Gamma} \\{g(x_i) + d(x,x_i)\\}.\\]
+        We note that the distance function \\(u\\) can also be interpreted as the solution of the
+        graph eikonal equation
+        \\[ \\max_j w_{ji}^{-1} (u(x_i) - u(x_j)) = f_i\\]
+        subject to \\(u=g\\) on \\(\\Gamma\\).
+
+        Parameters
+        ----------
+        bdy_set : numpy array (int) 
+            Indices or boolean mask identifying the boundary nodes \\(\\Gamma\\).
+        bdy_val : numpy array (float), optional
+            Boundary values \\(g\\) on \\(\\Gamma\\). A single float is
+            interpreted as a constant over \\(\\Gamma\\).
+        f : numpy array or scalar float, default=1
+            Right hand side of eikonal equation. If a scalar, it is extended to a vector 
+            over the graph.
+        max_dist : float or np.inf (optional), default = np.inf
+            Distance at which to terminate Dijkstra&#39;s algorithm. Nodes with distance
+            greater than `max_dist` will contain the value `np.inf`.
+        return_cp : bool (optional), default=False
+            Whether to return closest point. Nodes with distance greater than max_dist 
+            contain `-1` for closest point index.
+
+        Returns
+        -------
+        dist_func : numpy array, float 
+            Distance function computed via Dijkstra&#39;s algorithm.
+        cp : numpy array, int 
+            Closest point indices. Only returned if `return_cp=True`
+
+        Example
+        -------
+        This example uses Dijkstra&#39;s algorithm to compute the distance function to a single point,
+        and compares the result to a cone: [dijkstra.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/dijkstra.py).
+        ```py
+        import graphlearning as gl
+        import numpy as np
+
+        for n in [int(10**i) for i in range(3,6)]:
+
+            X = np.random.rand(n,2)
+            X[0,:]=[0.5,0.5]
+            W = gl.weightmatrix.knn(X,50,kernel=&#39;distance&#39;)
+            G = gl.graph(W)
+            u = G.dijkstra([0])
+
+            u_true = np.linalg.norm(X - [0.5,0.5],axis=1)
+            error = np.linalg.norm(u-u_true, ord=np.inf)
+            print(&#39;n = %d, Error = %f&#39;%(n,error))
+        ```
+        &#34;&#34;&#34;
+
+        #Import c extensions
+        from . import cextensions
+
+        #Convert boundary data to standard format
+        bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+
+        #Variables
+        n = self.num_nodes
+        dist_func = np.ones((n,))*np.inf        
+        cp = -np.ones((n,),dtype=int)
+
+        #Right hand side
+        if type(f) != np.ndarray:
+            f = np.ones((n,))*f
+
+        #Type casting and memory blocking
+        dist_func = np.ascontiguousarray(dist_func,dtype=np.float64)
+        cp = np.ascontiguousarray(cp,dtype=np.int32)
+        bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+        bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+        f = np.ascontiguousarray(f,dtype=np.float64)
+
+        cextensions.dijkstra(dist_func,cp,self.I,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
+
+        if return_cp:
+            return dist_func, cp
+        else:
+            return dist_func
+
+    def plaplace(self, bdy_set, bdy_val, p, tol=1e-1, max_num_it=1e6, prog=False):
+        &#34;&#34;&#34;Game-theoretic p-Laplacian
+        ======
+
+        Computes the solution of the game-theoretic p-Laplace equation \\(L_p u_i=0\\) 
+        for \\(i\\not\\in \\Gamma\\), subject to \\(u_i=g_i\\) for \\(i\\in \\Gamma\\).
+        The game-theoretic p-Laplacian is given by
+        \\[ L_p u = \\frac{1}{p}L_{\\rm randomwalk} + \\left(1-\\frac{2}{p}\\right)L_\\infty u,\\]
+        where \\(L_{\\rm randomwalk}\\) is the random walk graph Laplacian and \\(L_\\infty\\) is the
+        graph infinity-Laplace operator, given by
+        \\[ L_\\infty u_i = \\min_j w_{ij}(u_i-u_j) + \\max_j w_{ij} (u_i-u_j).\\]
+
+        Parameters
+        ----------
+        bdy_set : numpy array (int or bool) 
+            Indices or boolean mask indicating the boundary nodes \\(\\Gamma\\).
+        bdy_val : numpy array or single float (optional), default=0
+            Boundary values \\(g\\) on \\(\\Gamma\\). A single float is
+            interpreted as a constant over \\(\\Gamma\\).
+        p : float
+            Value of \\(p\\).
+        tol : float (optional), default=1e-1
+            Tolerance with which to solve the equation.
+        max_num_it : int (optional), default=1e6
+            Maximum number of iterations.
+        prog : bool (optional), default=False
+            Toggles whether to print progress information.
+
+        Returns
+        -------
+        u : numpy array, float 
+            Solution of graph p-Laplace equation.
+
+        Example
+        -------
+        This example uses the p-Laplace equation to interpolate boundary values: [plaplace.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/plaplace.py).
+        ```py
+        import graphlearning as gl
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        X = np.random.rand(int(1e4),2)
+        x,y = X[:,0],X[:,1]
+
+        eps = 0.02
+        W = gl.weightmatrix.epsilon_ball(X, eps)
+        G = gl.graph(W)
+
+        bdy_set = (x &lt; eps) | (x &gt; 1-eps) | (y &lt; eps) | (y &gt; 1-eps)
+        bdy_val = x**2 - y**2
+
+        u = G.plaplace(bdy_set, bdy_val[bdy_set], p=10)
+
+        plt.scatter(x,y,c=u,s=0.25)
+        plt.scatter(x[bdy_set],y[bdy_set],c=&#39;r&#39;,s=0.5)
+        plt.show()
+        ```
+        &#34;&#34;&#34;
+            
+        #Import c extensions
+        from . import cextensions
+        
+        n = self.num_nodes
+
+        #Convert boundary data to standard format
+        bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+
+        uu = np.max(bdy_val)*np.ones((n,))
+        ul = np.min(bdy_val)*np.ones((n,))
+
+        #Set labels
+        uu[bdy_set] = bdy_val
+        ul[bdy_set] = bdy_val
+
+        #Type casting and memory blocking
+        uu = np.ascontiguousarray(uu,dtype=np.float64)
+        ul = np.ascontiguousarray(ul,dtype=np.float64)
+        bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+        bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+
+        cextensions.lp_iterate(uu,ul,self.I,self.J,self.V,bdy_set,bdy_val,p,float(max_num_it),float(tol),float(prog))
+        u = (uu+ul)/2
+
+        return u
+
+    def amle(self, bdy_set, bdy_val, tol=1e-5, max_num_it=1000, weighted=True, prog=False):
+        &#34;&#34;&#34;Absolutely Minimal Lipschitz Extension (AMLE)
+        ======
+
+        Computes the absolutely minimal Lipschitz extension (AMLE) of boundary values on a graph.
+        The AMLE is the solution of the graph infinity Laplace equation
+        \\[ \\min_j w_{ij}(u_i-u_j) + \\max_j w_{ij} (u_i-u_j) = 0\\]
+        for \\(i\\not\\in \\Gamma\\), subject to \\(u_i=g_i\\) for \\(i\\in \\Gamma\\).
+
+        Parameters
+        ----------
+        bdy_set : numpy array (int) 
+            Indices of boundary nodes \\(\\Gamma\\).
+        bdy_val : numpy array (float)
+            Boundary values \\(g\\) on \\(\\Gamma\\).
+        tol : float (optional), default=1e-5
+            Tolerance with which to solve the equation.
+        max_num_it : int (optional), default=1000
+            Maximum number of iterations.
+        weighted : bool (optional), default=True
+            When set to False, the weights are converted to a 0/1 adjacency matrix,
+            which allows for a much faster solver.
+        prog : bool (optional), default=False
+            Toggles whether to print progress information.
+
+        Returns
+        -------
+        u : numpy array, float 
+            Absolutely minimal Lipschitz extension.
+        &#34;&#34;&#34;
+
+        #Import c extensions
+        from . import cextensions
+
+        #Variables
+        n = self.num_nodes
+        k = len(bdy_set)
+        u = np.zeros((n,))        #Initial condition
+        max_num_it = float(max_num_it)
+
+        #Type casting and memory blocking
+        u = np.ascontiguousarray(u,dtype=np.float64)
+        bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+        bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+
+        cextensions.lip_iterate(u,self.I,self.J,self.V,bdy_set,bdy_val,max_num_it,tol,float(prog),float(weighted))
+
+        return u
+
+
+    def save(self, filename):
+        &#34;&#34;&#34;Save
+        ======
+
+        Saves the graph and all its attributes to a file.
+
+        Parameters
+        ----------
+        filename : string
+            File to save graph to, without any extension.
+        &#34;&#34;&#34;
+
+        filename += &#39;.pkl&#39;
+        with open(filename, &#39;wb&#39;) as outp:
+            pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+
+
+    def load(filename):
+        &#34;&#34;&#34;Load
+        ======
+
+        Load a graph from a file.
+
+        Parameters
+        ----------
+        filename : string
+            File to load graph from, without any extension.
+        &#34;&#34;&#34;
+
+        filename += &#39;.pkl&#39;
+        with open(filename, &#39;rb&#39;) as inp:
+            G = pickle.load(inp)
+
+        return G
+
+
+    def page_rank(self,alpha=0.85,v=None,tol=1e-10):
+        &#34;&#34;&#34;PageRank
+        ======
+
+        Solves for the PageRank vector, which is the solution of the PageRank equation
+        \\[ (I - \\alpha P)u = (1-\\alpha) v, \\]
+        where \\(P = W^T D^{-1}\\) is the probability transition matrix, with \\(D\\) the diagonal
+        degree matrix, \\(v\\) is the teleportation distribution, and \\(\\alpha\\) is the 
+        teleportation paramter. Solution is computed with the power iteration
+        \\[ u_{k+1} = \\alpha P u_k + (1-\\alpha) v.\\]
+
+        Parameters
+        ----------
+        alpha : float (optional), default=0.85
+            Teleportation parameter.
+        v : numpy array (optional), default=None
+            Teleportation distribution. Default is the uniform distribution.
+        tol : float (optional), default=1e-10
+            Tolerance with which to solve the PageRank equation.
+
+        Returns
+        -------
+        u : numpy array, float 
+            PageRank vector.
+        &#34;&#34;&#34;
+
+        n = self.num_nodes
+
+        u = np.ones((n,))/n
+        if v is None:
+            v = np.ones((n,))/n
+
+        D = self.degree_matrix(p=-1)
+        P = self.weight_matrix.T@D
+
+        err = tol+1
+        while err &gt; tol:
+            w = alpha*P@u + (1-alpha)*v
+            err = np.max(np.absolute(w-u))
+            u = w.copy()
+
+        return u</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="graphlearning.graph.graph"><code class="flex name class">
+<span>class <span class="ident">graph</span></span>
+<span>(</span><span>W)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="graph-class">Graph class</h1>
+<p>A class for graphs, including routines to compute Laplacians and their
+eigendecompositions, which are useful in graph learning.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>W</code></strong> :&ensp;<code>(n,n) numpy array, matrix,</code> or <code>scipy sparse matrix</code></dt>
+<dd>Weight matrix representing the graph.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class graph:
+
+    def __init__(self, W):
+        &#34;&#34;&#34;Graph class
+        ========
+
+        A class for graphs, including routines to compute Laplacians and their
+        eigendecompositions, which are useful in graph learning.
+
+        Parameters
+        ----------
+        W : (n,n) numpy array, matrix, or scipy sparse matrix
+            Weight matrix representing the graph.
+        &#34;&#34;&#34;
+
+        self.weight_matrix = sparse.csr_matrix(W)
+        self.num_nodes = W.shape[0]
+
+        #Coordinates of sparse matrix for passing to C code
+        I,J,V = sparse.find(W)
+        self.I = I
+        self.J = J
+        self.V = V
+        K = np.array((J[1:] - J[:-1]).nonzero()) + 1
+        self.K = np.append(0,np.append(K,len(J)))
+
+        #For passing to C code
+        self.I = np.ascontiguousarray(self.I, dtype=np.int32)
+        self.J = np.ascontiguousarray(self.J, dtype=np.int32)
+        self.V = np.ascontiguousarray(self.V, dtype=np.float64)
+        self.K = np.ascontiguousarray(self.K, dtype=np.int32)
+
+        self.eigendata = {}
+        normalizations = [&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;]
+
+        for norm in normalizations:
+            self.eigendata[norm] = {}
+            self.eigendata[norm][&#39;eigenvectors&#39;] = None
+            self.eigendata[norm][&#39;eigenvalues&#39;] = None
+            self.eigendata[norm][&#39;method&#39;] = None
+            self.eigendata[norm][&#39;k&#39;] = None
+            self.eigendata[norm][&#39;c&#39;] = None
+            self.eigendata[norm][&#39;gamma&#39;] = None
+            self.eigendata[norm][&#39;tol&#39;] = None
+            self.eigendata[norm][&#39;q&#39;] = None
+
+    def degree_vector(self):
+        &#34;&#34;&#34;Degree Vector
+        ======
+
+        Given a weight matrix \\(W\\), returns the diagonal degree vector
+        \\[d_{i} = \\sum_{j=1}^n w_{ij}.\\]
+
+        Returns
+        -------
+        d : numpy array, float
+            Degree vector for weight matrix.
+        &#34;&#34;&#34;
+
+        d = self.weight_matrix*np.ones(self.num_nodes)
+        return d
+
+
+    def degree_matrix(self, p=1):
+        &#34;&#34;&#34;Degree Matrix
+        ======
+
+        Given a weight matrix \\(W\\), returns the diagonal degree matrix 
+        in the form
+        \\[D_{ii} = \\left(\\sum_{j=1}^n w_{ij}\\right)^p.\\]
+
+        Parameters
+        ----------
+        p : float (optional), default=1
+            Optional exponent to apply to the degree.
+
+        Returns
+        -------
+        D : (n,n) scipy sparse matrix, float
+            Sparse diagonal degree matrix.
+        &#34;&#34;&#34;
+
+        #Construct sparse degree matrix
+        d = self.degree_vector()
+        D = sparse.spdiags(d**p, 0, self.num_nodes, self.num_nodes)
+
+        return D.tocsr()
+
+
+    def adjacency(self):
+        &#34;&#34;&#34;Adjacency matrix
+        ======
+
+        Given a weight matrix \\(W\\), returns the adjacency matrix \\(A\\),
+        which satisfies \\(A_{ij}=1\\) whenever \\(w_{ij}&gt;0\\), and  \\(A_{ij}=0\\)
+        otherwise
+
+        Returns
+        -------
+        A : (n,n) scipy sparse matrix, float
+            Sparse adjacency matrix.
+        &#34;&#34;&#34;
+
+        n = self.num_nodes
+        A = sparse.coo_matrix((np.ones(len(self.V),),(self.I,self.J)),shape=(n,n)).tocsr() 
+        return A
+
+    def gradient(self, u, weighted=False):
+        &#34;&#34;&#34;Graph Gradient
+        ======
+
+        Computes the graph gradient \\(\\nabla u\\) of \\(u\\in \\mathbb{R}^n\\), which is
+        the sparse matrix with the form
+        \\[\\nabla u_{ij} = u_j - u_i,\\]
+        whenever \\(w_{ij}&gt;0\\), and \\(\\nabla u_{ij}=0\\) otherwise.
+        If `weighted=True` is chosen, then the gradient is weighted by the graph weight 
+        matrix as follows
+        \\[\\nabla u_{ij} = w_{ij}(u_j - u_i).\\]
+
+        Parameters
+        ----------
+        u : numpy array, float
+            Vector (graph function) to take gradient of
+        weighted : bool (optional), default=False
+            Whether to weight the gradient by the graph weight matrix.
+
+        Returns
+        -------
+        G : (n,n) scipy sparse matrix, float
+            Sparse graph gradient matrix
+        &#34;&#34;&#34;
+
+        n = self.num_nodes
+
+        if weighted:
+            G = sparse.coo_matrix((self.V*(u[self.J]-u[self.I]), (self.I,self.J)),shape=(n,n)).tocsr()
+        else:
+            G = sparse.coo_matrix((u[self.J]-u[self.I], (self.I,self.J)),shape=(n,n)).tocsr()
+
+        return G
+
+    def divergence(self, V, weighted=True):
+        &#34;&#34;&#34;Graph Divergence
+        ======
+
+        Computes the graph divergence \\(\\text{div} V\\) of a vector field \\(V\\in \\mathbb{R}^{n\\times n}\\), 
+        which is the vector 
+        \\[\\nabla u_{ij} = u_j - u_i,\\]
+        If `weighted=True` is chosen, then the divergence is weighted by the graph weight 
+        matrix as follows
+        \\[\\nabla u_{ij} = w_{ij}(u_j - u_i).\\]
+
+        Parameters
+        ----------
+        V : scipy sparse matrix, float
+            Sparse matrix representing a vector field over the graph.
+        weighted : bool (optional), default=True
+            Whether to weight the divergence by the graph weight matrix.
+
+        Returns
+        -------
+        divV : numpy array
+            Divergence of V.
+        &#34;&#34;&#34;
+    
+        V = V - V.transpose()
+
+        if weighted:
+            V = V.multiply(self.weight_matrix)
+
+        divV = V*np.ones(self.num_nodes)/2
+
+        return divV
+
+     
+    def reweight(self, idx, method=&#39;poisson&#39;, X=None, alpha=2, zeta=1e7, r=0.1):
+        &#34;&#34;&#34;Reweight a weight matrix
+        ======
+
+        Reweights the graph weight matrix more heavily near labeled nodes. Used in semi-supervised
+        learning at very low label rates. [Need to describe all methods...]
+
+        Parameters
+        ----------
+        idx : numpy array (int)
+            Indices of points to reweight near (typically labeled points).
+        method : {&#39;poisson&#39;,&#39;wnll&#39;,&#39;properly&#39;}, default=&#39;poisson&#39;
+            Reweighting method. &#39;poisson&#39; is described in [1], &#39;wnll&#39; is described in [2], and &#39;properly&#39;
+            is described in [3]. If &#39;properly&#39; is selected, the user must supply the data features `X`.
+        X : numpy array (optional)
+            Data features, used to construct the graph. This is required for the `properly` weighted 
+            graph Laplacian method.
+        alpha : float (optional), default=2
+            Parameter for `properly` reweighting.
+        zeta : float (optional), default=1e7
+            Parameter for `properly` reweighting.
+        r : float (optional), default=0.1
+            Radius for `properly` reweighting.
+
+        Returns
+        -------
+        W : (n,n) scipy sparse matrix, float
+            Reweighted weight matrix as sparse scipy matrix.
+
+        References
+        ----------
+        [1] J. Calder, B. Cook, M. Thorpe, D. Slepcev. [Poisson Learning: Graph Based Semi-Supervised Learning at Very Low Label Rates.](http://proceedings.mlr.press/v119/calder20a.html), 
+        Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1306-1316, 2020.
+
+        [2] Z. Shi, S. Osher, and W. Zhu. [Weighted nonlocal laplacian on interpolation from sparse data.](https://idp.springer.com/authorize/casa?redirect_uri=https://link.springer.com/article/10.1007/s10915-017-0421-z&amp;casa_token=33Z7gqJy3mMAAAAA:iMO0pGmpn_qf5PioVIGocSRq_p4CDm-KNOQhgIC1uvqG9pWlZ6t7I-IZtSJfocFDEHCdMpK8j7Fx1XbzDQ)
+        Journal of Scientific Computing 73.2 (2017): 1164-1177.
+
+        [3] J. Calder, D. Slepčev. [Properly-weighted graph Laplacian for semi-supervised learning.](https://link.springer.com/article/10.1007/s00245-019-09637-3) Applied mathematics &amp; optimization (2019): 1-49.
+        &#34;&#34;&#34;
+
+        if method == &#39;poisson&#39;:
+            
+            n = self.num_nodes
+            f = np.zeros(n)
+            f[idx] = 1
+            f -= np.mean(f)
+
+            L = self.laplacian()
+            w = utils.conjgrad(L, f, tol=1e-5)
+            w -= np.min(w)
+            D = sparse.spdiags(w,0,n,n).tocsr()
+
+            return D*self.weight_matrix*D
+
+        elif method == &#39;wnll&#39;:
+
+            n = self.num_nodes
+            m = len(idx)
+
+            a = np.ones((n,))
+            a[idx] = n/m
+            
+            D = sparse.spdiags(a,0,n,n).tocsr()
+
+            return D*self.weight_matrix + self.weight_matrix*D
+
+        elif method == &#39;properly&#39;:
+
+            if X is None:
+                sys.exit(&#39;Must provide data features X for properly weighted graph Laplacian.&#39;)
+
+            n = self.num_nodes
+            m = len(idx)
+            rzeta = r/(zeta-1)**(1/alpha)
+            Xtree = spatial.cKDTree(X[idx,:])
+            D, J = Xtree.query(X)
+            D[D &lt; rzeta] = rzeta
+            gamma = 1 + (r/D)**alpha
+
+            D = sparse.spdiags(gamma,0,n,n).tocsr()
+
+            return D*self.weight_matrix + self.weight_matrix*D
+
+        else:
+            sys.exit(&#39;Invalid reweighting method &#39; + method + &#39;.&#39;)
+
+
+    def laplacian(self, normalization=&#34;combinatorial&#34;):
+        &#34;&#34;&#34;Graph Laplacian
+        ======
+
+        Computes various normalizations of the graph Laplacian for a 
+        given weight matrix \\(W\\). The choices are
+        \\[L_{\\rm combinatorial} = D - W,\\]
+        \\[L_{\\rm randomwalk} = I - D^{-1}W,\\]
+        and
+        \\[L_{\\rm normalized} = I - D^{-1/2}WD^{-1/2},\\]
+        where \\(D\\) is the diagonal degree matrix, which is defined as
+        \\[D_{ii} = \\sum_{j=1}^n w_{ij}.\\]
+
+        Parameters
+        ----------
+        normalization : {&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;}, default=&#39;combinatorial&#39;
+            Type of normalization to apply.
+
+        Returns
+        -------
+        L : (n,n) scipy sparse matrix, float
+            Graph Laplacian as sparse scipy matrix.
+        &#34;&#34;&#34;
+
+        I = sparse.identity(self.num_nodes)
+        D = self.degree_matrix()
+
+        if normalization == &#34;combinatorial&#34;:
+            L = D - self.weight_matrix
+        elif normalization == &#34;randomwalk&#34;:
+            Dinv = self.degree_matrix(p=-1)
+            L = I - Dinv*self.weight_matrix
+        elif normalization == &#34;normalized&#34;:
+            Dinv2 = self.degree_matrix(p=-0.5)
+            L = I - Dinv2*self.weight_matrix*Dinv2
+        else:
+            sys.exit(&#34;Invalid option for graph Laplacian normalization.&#34;)
+
+        return L.tocsr()
+
+    def infinity_laplacian(self,u):
+        &#34;&#34;&#34;Graph Infinity Laplacian
+        ======
+
+        Computes the graph infinity Laplacian of a vector \\(u\\), given by
+        \\[L_\\infty u_i= \\min_j w_{ij}(u_j-u_i) + \\max_j w_{ij} (u_j-u_i).\\]
+               
+        Returns
+        -------
+        Lu : numpy array
+            Graph infinity Laplacian.
+        &#34;&#34;&#34;
+
+        n = self.num_nodes
+        M = sparse.coo_matrix((self.V*(u[self.J]-u[self.I]), (self.I,self.J)),shape=(n,n)).tocsr()
+        M = M.min(axis=1) + M.max(axis=1)
+        Lu = M.toarray().flatten()
+
+        return Lu
+
+    def isconnected(W):
+        &#34;&#34;&#34;Is Connected
+        ======
+
+        Checks if the graph is connected.
+               
+        Returns
+        -------
+        connected : bool
+            True or False, depending on connectivity.
+        &#34;&#34;&#34;
+
+        num_comp,comp = csgraph.connected_components(W)
+        connected = False
+        if num_comp == 1:
+            connected = True
+        return connected
+
+    def largest_connected_component(W):
+        &#34;&#34;&#34;Largest connected component
+        ======
+
+        Finds the largest connected component of the graph. Returns the restricted 
+        graph, as well as a boolean mask indicating the nodes belonging to 
+        the component.
+               
+        Returns
+        -------
+        G : graph object
+            Largest connected component graph.
+        ind : numpy array (bool)
+            Mask indicating which nodes from the original graph belong to the 
+            largest component.
+        &#34;&#34;&#34;
+
+        ncomp,labels = csgraph.connected_components(W,directed=False) 
+        num_verts = np.zeros((ncomp,))
+        for i in range(ncomp):
+            num_verts[i] = np.sum(labels==i)
+        
+        i_max = np.argmax(num_verts)
+        ind = labels==i_max
+
+        A = self.weight_matrix[ind,:]
+        A = A[:,ind]
+        G = graph(A)
+
+        return G, ind
+
+
+    def eigen_decomp(self, normalization=&#39;combinatorial&#39;, method=&#39;exact&#39;, k=10, c=None, gamma=0, tol=0, q=1):
+        &#34;&#34;&#34;Eigen Decomposition of Graph Laplacian
+        ======
+
+        Computes the the low-lying eigenvectors and eigenvalues of 
+        various normalizations of the graph Laplacian. Computations can 
+        be either exact, or use a fast low-rank approximation via 
+        randomized SVD. 
+
+        Parameters
+        ----------
+        normalization : {&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;}, default=&#39;combinatorial&#39;
+            Type of normalization of graph Laplacian to apply.
+        method : {&#39;exact&#39;,&#39;lowrank&#39;}, default=&#39;exact&#39;
+            Method for computing eigenvectors. &#39;exact&#39; uses scipy.sparse.linalg.eigs, while
+            &#39;lowrank&#39; uses a low rank approximation via randomized SVD. Lowrank is not 
+            implemented for gamma &gt; 0.
+        k : int (optional), default=10
+            Number of eigenvectors to compute.
+        c : int (optional), default=2*number
+            Cutoff for randomized SVD.
+        gamma : float (optional), default=0
+            Parameter for modularity (add more details)
+        tol : float (optional), default=0
+            tolerance for eigensolvers.
+        q : int (optional), default=1
+            Exponent to use in randomized svd.
+
+        Returns
+        -------
+        vals : numpy array, float 
+            eigenvalues in increasing order.
+        vecs : (n,k) numpy array, float
+            eigenvectors as columns.
+
+        Example
+        -------
+        This example compares the exact and lowrank (ranomized svd) methods for computing the spectrum: [randomized_svd.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/randomized_svd.py).
+        ```py
+        import numpy as np
+        import matplotlib.pyplot as plt
+        import sklearn.datasets as datasets
+        import graphlearning as gl
+
+        X,L = datasets.make_moons(n_samples=500,noise=0.1)
+        W = gl.weightmatrix.knn(X,10)
+        G = gl.graph(W)
+
+        num_eig = 7
+        vals_exact, vecs_exact = G.eigen_decomp(normalization=&#39;normalized&#39;, k=num_eig, method=&#39;exact&#39;)
+        vals_rsvd, vecs_rsvd = G.eigen_decomp(normalization=&#39;normalized&#39;, k=num_eig, method=&#39;lowrank&#39;, q=50, c=50)
+
+        for i in range(1,num_eig):
+            rsvd = vecs_rsvd[:,i]
+            exact = vecs_exact[:,i]
+
+            sign = np.sum(rsvd*exact)
+            if sign &lt; 0:
+                rsvd *= -1
+
+            err = np.max(np.absolute(rsvd - exact))/max(np.max(np.absolute(rsvd)),np.max(np.absolute(exact)))
+
+            fig, (ax1,ax2) = plt.subplots(1,2, figsize=(10,5))
+            fig.suptitle(&#39;Eigenvector %d, err=%f&#39;%(i,err))
+
+            ax1.scatter(X[:,0],X[:,1], c=rsvd)
+            ax1.set_title(&#39;Random SVD&#39;)
+
+            ax2.scatter(X[:,0],X[:,1], c=exact)
+            ax2.set_title(&#39;Exact&#39;)
+
+        plt.show()
+        ```
+        &#34;&#34;&#34;
+
+        #Default choice for c
+        if c is None:
+            c = 2*k
+
+        same_method = self.eigendata[normalization][&#39;method&#39;] == method
+        same_k = self.eigendata[normalization][&#39;k&#39;] == k
+        same_c = self.eigendata[normalization][&#39;c&#39;] == c
+        same_gamma = self.eigendata[normalization][&#39;gamma&#39;] == gamma
+        same_tol = self.eigendata[normalization][&#39;tol&#39;] == tol
+        same_q = self.eigendata[normalization][&#39;q&#39;] == q
+
+        #If already computed, then return eigenvectors
+        if same_method and same_k and same_c and same_gamma and same_tol and same_q:
+        
+            return self.eigendata[normalization][&#39;eigenvalues&#39;], self.eigendata[normalization][&#39;eigenvectors&#39;]
+        
+        #Else, we need to compute the eigenvectors
+        else:
+            self.eigendata[normalization][&#39;method&#39;] = method 
+            self.eigendata[normalization][&#39;k&#39;] = k
+            self.eigendata[normalization][&#39;c&#39;] = c
+            self.eigendata[normalization][&#39;gamma&#39;] = gamma
+            self.eigendata[normalization][&#39;tol&#39;] = tol
+            self.eigendata[normalization][&#39;q&#39;] = q
+
+            n = self.num_nodes
+
+            #If not using modularity
+            if gamma == 0:
+                
+                if normalization == &#39;randomwalk&#39; or normalization == &#39;normalized&#39;:
+
+                    D = self.degree_matrix(p=-0.5)
+                    A = D*self.weight_matrix*D
+
+                    if method == &#39;exact&#39;:
+                        u,s,vt = splinalg.svds(A, k=k, tol=tol)
+                    elif method == &#39;lowrank&#39;:
+                        u,s,vt = utils.randomized_svd(A, k=k, c=c, q=q)
+                    else:
+                        sys.exit(&#39;Invalid eigensolver method &#39;+method)
+
+                    vals = 1 - s
+                    ind = np.argsort(vals)
+                    vals = vals[ind]
+                    vecs = u[:,ind]
+
+                    if normalization == &#39;randomwalk&#39;:
+                        vecs = D@vecs
+
+                elif normalization == &#39;combinatorial&#39;:
+
+                    L = self.laplacian()
+                    deg = self.degree_vector()
+                    M = 2*np.max(deg)
+                    A = M*sparse.identity(n) - L
+
+                    if method == &#39;exact&#39;:
+                        u,s,vt = splinalg.svds(A, k=k, tol=tol)
+                    elif method == &#39;lowrank&#39;:
+                        u,s,vt = utils.randomized_svd(A, k=k, c=c, q=q)
+                    else:
+                        sys.exit(&#39;Invalid eigensolver method &#39;+method)
+                    
+                    vals = M - s
+                    ind = np.argsort(vals)
+                    vals = vals[ind]
+                    vecs = u[:,ind]
+
+                else:
+                    sys.exit(&#39;Invalid choice of normalization&#39;)
+
+
+            #Modularity
+            else:
+
+                if method == &#39;lowrank&#39;:
+                    sys.exit(&#39;Low rank not implemented for modularity&#39;)
+
+                if normalization == &#39;randomwalk&#39;:
+                    lap = self.laplacian(normalization=&#39;normalized&#39;)
+                    P = self.degree_matrix(p=-0.5)
+                    p1,p2 = 1.5,0.5
+                else:
+                    lap = self.laplacian(normalization=normalization)
+                    P = sparse.identity(n)
+                    p1,p2 = 1,1
+
+                #If using modularity
+                deg = self.degree_vector()
+                deg1 = deg**p1
+                deg2 = deg**p2
+                m = np.sum(deg)/2 
+                def M(v):
+                    v = v.flatten()
+                    return (lap*v).flatten() + (gamma/m)*(deg2.T@v)*deg1
+
+                L = sparse.linalg.LinearOperator((n,n), matvec=M)
+                vals, vecs = sparse.linalg.eigsh(L, k=k, which=&#39;SM&#39;, tol=tol)
+
+                #Correct for random walk Laplacian if chosen
+                vecs = P@vecs
+
+
+            #Store eigenvectors for resuse later
+            self.eigendata[normalization][&#39;eigenvalues&#39;] = vals
+            self.eigendata[normalization][&#39;eigenvectors&#39;] = vecs
+
+            return vals, vecs
+
+    def fiedler_vector(self, method=&#39;exact&#39;, tol=0):
+        &#34;&#34;&#34;Fiedler vector
+        ======
+
+        Computes the Fiedler vector, which is the second eigenvector for the 
+        combinatorial graph Laplacian \\(L = D-W\\).
+
+        Parameters
+        ----------
+        method : {&#39;exact&#39;,&#39;lowrank&#39;}, default=&#39;exact&#39;
+            Method for computing eigenvectors. &#39;exact&#39; uses scipy.sparse.linalg.eigs, while
+            &#39;lowrank&#39; uses a low rank approximation via randomized SVD.
+        tol : float (optional), default=0
+            tolerance for eigensolvers.
+
+
+        Returns
+        -------
+        fiedler_vector : numpy array, float 
+            Contents of fiedler vector.
+        &#34;&#34;&#34;
+
+        vals, vecs = self.eigen_decomp(normalization=&#39;combinatorial&#39;, method=method, k=2, tol=tol)
+        fiedler_vector = vecs[:,1]
+
+        return fiedler_vector
+
+    def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, u0=None, max_num_it=1e5, 
+                                tol=1e-3, num_bisection_it=30, prog=False):
+        &#34;&#34;&#34;p-eikonal equation 
+        =====================
+
+        Sovles the graph p-eikonal equation 
+        \\[ \\sum_{j=1}^n w_{ij} (u_i - u_j)_+^p = f_i\\]
+        for \\(i\\not\\in \\Gamma\\), subject to \\(u_i=g_i\\) for \\(i\\in \\Gamma\\).
+
+        Parameters
+        ----------
+        bdy_set : numpy array (int or bool) 
+            Indices or boolean mask indicating the boundary nodes \\(\\Gamma\\).
+        bdy_val : numpy array or single float (optional), default=0
+            Boundary values \\(g\\) on \\(\\Gamma\\). A single float is
+            interpreted as a constant over \\(\\Gamma\\).
+        f : numpy array or single float (optional), default=1
+            Right hand side of the p-eikonal equation, a single float
+            is interpreted as a constant vector of the graph.
+        p : float (optional), default=1
+            Value of exponent p in the p-eikonal equation.
+        u0 : numpy array (float, optional), default=None
+            Initialization of solver. If not provided, then u0=0.
+        max_num_it : int (optional), default=1e5
+            Maximum number of iterations.
+        tol : float (optional), default=1e-3
+            Tolerance with which to solve the equation.
+        num_bisection_it : int (optional), default=30
+            Number of bisection iterations for solver.
+        prog : bool (optional), default=False
+            Toggles whether to print progress information.
+
+        Returns
+        -------
+        u : numpy array (float)
+            Solution of p-eikonal equation.
+
+        Example
+        -------
+        This example uses the peikonal equation to compute a data depth: [peikonal.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/peikonal.py).
+        ```py
+        import graphlearning as gl
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        X = np.random.rand(int(1e4),2)
+        x,y = X[:,0],X[:,1]
+
+        eps = 0.02
+        W = gl.weightmatrix.epsilon_ball(X, eps)
+        G = gl.graph(W)
+
+        bdy_set = (x &lt; eps) | (x &gt; 1-eps) | (y &lt; eps) | (y &gt; 1-eps)
+        u = G.peikonal(bdy_set)
+
+        plt.scatter(x,y,c=u,s=0.25)
+        plt.scatter(x[bdy_set],y[bdy_set],c=&#39;r&#39;,s=0.5)
+        plt.show() 
+        ```
+        &#34;&#34;&#34;
+
+        #Import c extensions
+        from . import cextensions
+        
+        n = self.num_nodes
+
+        #Set initial data
+        if u0 is None:
+            u = np.zeros((n,))
+        else:
+            u = u0.copy()
+
+        #Convert f to an array if scalar is given
+        if type(f) != np.ndarray:
+            f = np.ones((n,))*f
+
+        #Convert boundary data to standard format
+        bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+
+        #Type casting and memory blocking
+        u = np.ascontiguousarray(u,dtype=np.float64)
+        bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+        f = np.ascontiguousarray(f,dtype=np.float64)
+        bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+
+        cextensions.peikonal(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,max_num_it,tol,num_bisection_it,prog)
+
+        return u
+
+
+    def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False):
+        &#34;&#34;&#34;Dijkstra&#39;s algorithm
+        ======
+
+        Computes a graph distance function with Dijkstra&#39;s algorithm. The graph distance is
+        \\[ d(x,y) = \\min_p \\sum_{i=1}^M w_{p_i,p_{i+1}}f_{p_{i+1}},\\]
+        where the minimum is over paths \\(p\\) connecting \\(x\\) and \\(y\\), \\(w_{ij}\\) is 
+        the weight from \\(i\\) to \\(j\\), and \\(f_i\\) is an additional per-vertex weights. 
+        A path must satisfy \\(w_{p_i,p_{i+1}}&gt;0\\) for all \\(i\\). Dijkstra&#39;s algorithm returns the
+        distance function to a terminal set \\(\\Gamma\\), given by
+        \\[u(x) = \\min_{i\\in \\Gamma} \\{g(x_i) + d(x,x_i)\\},\\]
+        where \\(g\\) are boundary values.
+        An optional feature also returns the closest point information
+        \\[cp(x) = \\text{argmin}_{i\\in \\Gamma} \\{g(x_i) + d(x,x_i)\\}.\\]
+        We note that the distance function \\(u\\) can also be interpreted as the solution of the
+        graph eikonal equation
+        \\[ \\max_j w_{ji}^{-1} (u(x_i) - u(x_j)) = f_i\\]
+        subject to \\(u=g\\) on \\(\\Gamma\\).
+
+        Parameters
+        ----------
+        bdy_set : numpy array (int) 
+            Indices or boolean mask identifying the boundary nodes \\(\\Gamma\\).
+        bdy_val : numpy array (float), optional
+            Boundary values \\(g\\) on \\(\\Gamma\\). A single float is
+            interpreted as a constant over \\(\\Gamma\\).
+        f : numpy array or scalar float, default=1
+            Right hand side of eikonal equation. If a scalar, it is extended to a vector 
+            over the graph.
+        max_dist : float or np.inf (optional), default = np.inf
+            Distance at which to terminate Dijkstra&#39;s algorithm. Nodes with distance
+            greater than `max_dist` will contain the value `np.inf`.
+        return_cp : bool (optional), default=False
+            Whether to return closest point. Nodes with distance greater than max_dist 
+            contain `-1` for closest point index.
+
+        Returns
+        -------
+        dist_func : numpy array, float 
+            Distance function computed via Dijkstra&#39;s algorithm.
+        cp : numpy array, int 
+            Closest point indices. Only returned if `return_cp=True`
+
+        Example
+        -------
+        This example uses Dijkstra&#39;s algorithm to compute the distance function to a single point,
+        and compares the result to a cone: [dijkstra.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/dijkstra.py).
+        ```py
+        import graphlearning as gl
+        import numpy as np
+
+        for n in [int(10**i) for i in range(3,6)]:
+
+            X = np.random.rand(n,2)
+            X[0,:]=[0.5,0.5]
+            W = gl.weightmatrix.knn(X,50,kernel=&#39;distance&#39;)
+            G = gl.graph(W)
+            u = G.dijkstra([0])
+
+            u_true = np.linalg.norm(X - [0.5,0.5],axis=1)
+            error = np.linalg.norm(u-u_true, ord=np.inf)
+            print(&#39;n = %d, Error = %f&#39;%(n,error))
+        ```
+        &#34;&#34;&#34;
+
+        #Import c extensions
+        from . import cextensions
+
+        #Convert boundary data to standard format
+        bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+
+        #Variables
+        n = self.num_nodes
+        dist_func = np.ones((n,))*np.inf        
+        cp = -np.ones((n,),dtype=int)
+
+        #Right hand side
+        if type(f) != np.ndarray:
+            f = np.ones((n,))*f
+
+        #Type casting and memory blocking
+        dist_func = np.ascontiguousarray(dist_func,dtype=np.float64)
+        cp = np.ascontiguousarray(cp,dtype=np.int32)
+        bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+        bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+        f = np.ascontiguousarray(f,dtype=np.float64)
+
+        cextensions.dijkstra(dist_func,cp,self.I,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
+
+        if return_cp:
+            return dist_func, cp
+        else:
+            return dist_func
+
+    def plaplace(self, bdy_set, bdy_val, p, tol=1e-1, max_num_it=1e6, prog=False):
+        &#34;&#34;&#34;Game-theoretic p-Laplacian
+        ======
+
+        Computes the solution of the game-theoretic p-Laplace equation \\(L_p u_i=0\\) 
+        for \\(i\\not\\in \\Gamma\\), subject to \\(u_i=g_i\\) for \\(i\\in \\Gamma\\).
+        The game-theoretic p-Laplacian is given by
+        \\[ L_p u = \\frac{1}{p}L_{\\rm randomwalk} + \\left(1-\\frac{2}{p}\\right)L_\\infty u,\\]
+        where \\(L_{\\rm randomwalk}\\) is the random walk graph Laplacian and \\(L_\\infty\\) is the
+        graph infinity-Laplace operator, given by
+        \\[ L_\\infty u_i = \\min_j w_{ij}(u_i-u_j) + \\max_j w_{ij} (u_i-u_j).\\]
+
+        Parameters
+        ----------
+        bdy_set : numpy array (int or bool) 
+            Indices or boolean mask indicating the boundary nodes \\(\\Gamma\\).
+        bdy_val : numpy array or single float (optional), default=0
+            Boundary values \\(g\\) on \\(\\Gamma\\). A single float is
+            interpreted as a constant over \\(\\Gamma\\).
+        p : float
+            Value of \\(p\\).
+        tol : float (optional), default=1e-1
+            Tolerance with which to solve the equation.
+        max_num_it : int (optional), default=1e6
+            Maximum number of iterations.
+        prog : bool (optional), default=False
+            Toggles whether to print progress information.
+
+        Returns
+        -------
+        u : numpy array, float 
+            Solution of graph p-Laplace equation.
+
+        Example
+        -------
+        This example uses the p-Laplace equation to interpolate boundary values: [plaplace.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/plaplace.py).
+        ```py
+        import graphlearning as gl
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        X = np.random.rand(int(1e4),2)
+        x,y = X[:,0],X[:,1]
+
+        eps = 0.02
+        W = gl.weightmatrix.epsilon_ball(X, eps)
+        G = gl.graph(W)
+
+        bdy_set = (x &lt; eps) | (x &gt; 1-eps) | (y &lt; eps) | (y &gt; 1-eps)
+        bdy_val = x**2 - y**2
+
+        u = G.plaplace(bdy_set, bdy_val[bdy_set], p=10)
+
+        plt.scatter(x,y,c=u,s=0.25)
+        plt.scatter(x[bdy_set],y[bdy_set],c=&#39;r&#39;,s=0.5)
+        plt.show()
+        ```
+        &#34;&#34;&#34;
+            
+        #Import c extensions
+        from . import cextensions
+        
+        n = self.num_nodes
+
+        #Convert boundary data to standard format
+        bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+
+        uu = np.max(bdy_val)*np.ones((n,))
+        ul = np.min(bdy_val)*np.ones((n,))
+
+        #Set labels
+        uu[bdy_set] = bdy_val
+        ul[bdy_set] = bdy_val
+
+        #Type casting and memory blocking
+        uu = np.ascontiguousarray(uu,dtype=np.float64)
+        ul = np.ascontiguousarray(ul,dtype=np.float64)
+        bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+        bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+
+        cextensions.lp_iterate(uu,ul,self.I,self.J,self.V,bdy_set,bdy_val,p,float(max_num_it),float(tol),float(prog))
+        u = (uu+ul)/2
+
+        return u
+
+    def amle(self, bdy_set, bdy_val, tol=1e-5, max_num_it=1000, weighted=True, prog=False):
+        &#34;&#34;&#34;Absolutely Minimal Lipschitz Extension (AMLE)
+        ======
+
+        Computes the absolutely minimal Lipschitz extension (AMLE) of boundary values on a graph.
+        The AMLE is the solution of the graph infinity Laplace equation
+        \\[ \\min_j w_{ij}(u_i-u_j) + \\max_j w_{ij} (u_i-u_j) = 0\\]
+        for \\(i\\not\\in \\Gamma\\), subject to \\(u_i=g_i\\) for \\(i\\in \\Gamma\\).
+
+        Parameters
+        ----------
+        bdy_set : numpy array (int) 
+            Indices of boundary nodes \\(\\Gamma\\).
+        bdy_val : numpy array (float)
+            Boundary values \\(g\\) on \\(\\Gamma\\).
+        tol : float (optional), default=1e-5
+            Tolerance with which to solve the equation.
+        max_num_it : int (optional), default=1000
+            Maximum number of iterations.
+        weighted : bool (optional), default=True
+            When set to False, the weights are converted to a 0/1 adjacency matrix,
+            which allows for a much faster solver.
+        prog : bool (optional), default=False
+            Toggles whether to print progress information.
+
+        Returns
+        -------
+        u : numpy array, float 
+            Absolutely minimal Lipschitz extension.
+        &#34;&#34;&#34;
+
+        #Import c extensions
+        from . import cextensions
+
+        #Variables
+        n = self.num_nodes
+        k = len(bdy_set)
+        u = np.zeros((n,))        #Initial condition
+        max_num_it = float(max_num_it)
+
+        #Type casting and memory blocking
+        u = np.ascontiguousarray(u,dtype=np.float64)
+        bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+        bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+
+        cextensions.lip_iterate(u,self.I,self.J,self.V,bdy_set,bdy_val,max_num_it,tol,float(prog),float(weighted))
+
+        return u
+
+
+    def save(self, filename):
+        &#34;&#34;&#34;Save
+        ======
+
+        Saves the graph and all its attributes to a file.
+
+        Parameters
+        ----------
+        filename : string
+            File to save graph to, without any extension.
+        &#34;&#34;&#34;
+
+        filename += &#39;.pkl&#39;
+        with open(filename, &#39;wb&#39;) as outp:
+            pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+
+
+    def load(filename):
+        &#34;&#34;&#34;Load
+        ======
+
+        Load a graph from a file.
+
+        Parameters
+        ----------
+        filename : string
+            File to load graph from, without any extension.
+        &#34;&#34;&#34;
+
+        filename += &#39;.pkl&#39;
+        with open(filename, &#39;rb&#39;) as inp:
+            G = pickle.load(inp)
+
+        return G
+
+
+    def page_rank(self,alpha=0.85,v=None,tol=1e-10):
+        &#34;&#34;&#34;PageRank
+        ======
+
+        Solves for the PageRank vector, which is the solution of the PageRank equation
+        \\[ (I - \\alpha P)u = (1-\\alpha) v, \\]
+        where \\(P = W^T D^{-1}\\) is the probability transition matrix, with \\(D\\) the diagonal
+        degree matrix, \\(v\\) is the teleportation distribution, and \\(\\alpha\\) is the 
+        teleportation paramter. Solution is computed with the power iteration
+        \\[ u_{k+1} = \\alpha P u_k + (1-\\alpha) v.\\]
+
+        Parameters
+        ----------
+        alpha : float (optional), default=0.85
+            Teleportation parameter.
+        v : numpy array (optional), default=None
+            Teleportation distribution. Default is the uniform distribution.
+        tol : float (optional), default=1e-10
+            Tolerance with which to solve the PageRank equation.
+
+        Returns
+        -------
+        u : numpy array, float 
+            PageRank vector.
+        &#34;&#34;&#34;
+
+        n = self.num_nodes
+
+        u = np.ones((n,))/n
+        if v is None:
+            v = np.ones((n,))/n
+
+        D = self.degree_matrix(p=-1)
+        P = self.weight_matrix.T@D
+
+        err = tol+1
+        while err &gt; tol:
+            w = alpha*P@u + (1-alpha)*v
+            err = np.max(np.absolute(w-u))
+            u = w.copy()
+
+        return u</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="graphlearning.graph.graph.adjacency"><code class="name flex">
+<span>def <span class="ident">adjacency</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="adjacency-matrix">Adjacency matrix</h1>
+<p>Given a weight matrix <span><span class="MathJax_Preview">W</span><script type="math/tex">W</script></span>, returns the adjacency matrix <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span>,
+which satisfies <span><span class="MathJax_Preview">A_{ij}=1</span><script type="math/tex">A_{ij}=1</script></span> whenever <span><span class="MathJax_Preview">w_{ij}&gt;0</span><script type="math/tex">w_{ij}>0</script></span>, and
+<span><span class="MathJax_Preview">A_{ij}=0</span><script type="math/tex">A_{ij}=0</script></span>
+otherwise</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>A</code></strong> :&ensp;<code>(n,n) scipy sparse matrix, float</code></dt>
+<dd>Sparse adjacency matrix.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def adjacency(self):
+    &#34;&#34;&#34;Adjacency matrix
+    ======
+
+    Given a weight matrix \\(W\\), returns the adjacency matrix \\(A\\),
+    which satisfies \\(A_{ij}=1\\) whenever \\(w_{ij}&gt;0\\), and  \\(A_{ij}=0\\)
+    otherwise
+
+    Returns
+    -------
+    A : (n,n) scipy sparse matrix, float
+        Sparse adjacency matrix.
+    &#34;&#34;&#34;
+
+    n = self.num_nodes
+    A = sparse.coo_matrix((np.ones(len(self.V),),(self.I,self.J)),shape=(n,n)).tocsr() 
+    return A</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.amle"><code class="name flex">
+<span>def <span class="ident">amle</span></span>(<span>self, bdy_set, bdy_val, tol=1e-05, max_num_it=1000, weighted=True, prog=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="absolutely-minimal-lipschitz-extension-amle">Absolutely Minimal Lipschitz Extension (AMLE)</h1>
+<p>Computes the absolutely minimal Lipschitz extension (AMLE) of boundary values on a graph.
+The AMLE is the solution of the graph infinity Laplace equation
+<span><span class="MathJax_Preview"> \min_j w_{ij}(u_i-u_j) + \max_j w_{ij} (u_i-u_j) = 0</span><script type="math/tex; mode=display"> \min_j w_{ij}(u_i-u_j) + \max_j w_{ij} (u_i-u_j) = 0</script></span>
+for <span><span class="MathJax_Preview">i\not\in \Gamma</span><script type="math/tex">i\not\in \Gamma</script></span>, subject to <span><span class="MathJax_Preview">u_i=g_i</span><script type="math/tex">u_i=g_i</script></span> for <span><span class="MathJax_Preview">i\in \Gamma</span><script type="math/tex">i\in \Gamma</script></span>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>bdy_set</code></strong> :&ensp;<code>numpy array (int) </code></dt>
+<dd>Indices of boundary nodes <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>.</dd>
+<dt><strong><code>bdy_val</code></strong> :&ensp;<code>numpy array (float)</code></dt>
+<dd>Boundary values <span><span class="MathJax_Preview">g</span><script type="math/tex">g</script></span> on <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>.</dd>
+<dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1e-5</code></dt>
+<dd>Tolerance with which to solve the equation.</dd>
+<dt><strong><code>max_num_it</code></strong> :&ensp;<code>int (optional)</code>, default=<code>1000</code></dt>
+<dd>Maximum number of iterations.</dd>
+<dt><strong><code>weighted</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>True</code></dt>
+<dd>When set to False, the weights are converted to a 0/1 adjacency matrix,
+which allows for a much faster solver.</dd>
+<dt><strong><code>prog</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Toggles whether to print progress information.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>u</code></strong> :&ensp;<code>numpy array, float </code></dt>
+<dd>Absolutely minimal Lipschitz extension.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def amle(self, bdy_set, bdy_val, tol=1e-5, max_num_it=1000, weighted=True, prog=False):
+    &#34;&#34;&#34;Absolutely Minimal Lipschitz Extension (AMLE)
+    ======
+
+    Computes the absolutely minimal Lipschitz extension (AMLE) of boundary values on a graph.
+    The AMLE is the solution of the graph infinity Laplace equation
+    \\[ \\min_j w_{ij}(u_i-u_j) + \\max_j w_{ij} (u_i-u_j) = 0\\]
+    for \\(i\\not\\in \\Gamma\\), subject to \\(u_i=g_i\\) for \\(i\\in \\Gamma\\).
+
+    Parameters
+    ----------
+    bdy_set : numpy array (int) 
+        Indices of boundary nodes \\(\\Gamma\\).
+    bdy_val : numpy array (float)
+        Boundary values \\(g\\) on \\(\\Gamma\\).
+    tol : float (optional), default=1e-5
+        Tolerance with which to solve the equation.
+    max_num_it : int (optional), default=1000
+        Maximum number of iterations.
+    weighted : bool (optional), default=True
+        When set to False, the weights are converted to a 0/1 adjacency matrix,
+        which allows for a much faster solver.
+    prog : bool (optional), default=False
+        Toggles whether to print progress information.
+
+    Returns
+    -------
+    u : numpy array, float 
+        Absolutely minimal Lipschitz extension.
+    &#34;&#34;&#34;
+
+    #Import c extensions
+    from . import cextensions
+
+    #Variables
+    n = self.num_nodes
+    k = len(bdy_set)
+    u = np.zeros((n,))        #Initial condition
+    max_num_it = float(max_num_it)
+
+    #Type casting and memory blocking
+    u = np.ascontiguousarray(u,dtype=np.float64)
+    bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+    bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+
+    cextensions.lip_iterate(u,self.I,self.J,self.V,bdy_set,bdy_val,max_num_it,tol,float(prog),float(weighted))
+
+    return u</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.degree_matrix"><code class="name flex">
+<span>def <span class="ident">degree_matrix</span></span>(<span>self, p=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="degree-matrix">Degree Matrix</h1>
+<p>Given a weight matrix <span><span class="MathJax_Preview">W</span><script type="math/tex">W</script></span>, returns the diagonal degree matrix
+in the form
+<span><span class="MathJax_Preview">D_{ii} = \left(\sum_{j=1}^n w_{ij}\right)^p.</span><script type="math/tex; mode=display">D_{ii} = \left(\sum_{j=1}^n w_{ij}\right)^p.</script></span></p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>p</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1</code></dt>
+<dd>Optional exponent to apply to the degree.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>D</code></strong> :&ensp;<code>(n,n) scipy sparse matrix, float</code></dt>
+<dd>Sparse diagonal degree matrix.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def degree_matrix(self, p=1):
+    &#34;&#34;&#34;Degree Matrix
+    ======
+
+    Given a weight matrix \\(W\\), returns the diagonal degree matrix 
+    in the form
+    \\[D_{ii} = \\left(\\sum_{j=1}^n w_{ij}\\right)^p.\\]
+
+    Parameters
+    ----------
+    p : float (optional), default=1
+        Optional exponent to apply to the degree.
+
+    Returns
+    -------
+    D : (n,n) scipy sparse matrix, float
+        Sparse diagonal degree matrix.
+    &#34;&#34;&#34;
+
+    #Construct sparse degree matrix
+    d = self.degree_vector()
+    D = sparse.spdiags(d**p, 0, self.num_nodes, self.num_nodes)
+
+    return D.tocsr()</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.degree_vector"><code class="name flex">
+<span>def <span class="ident">degree_vector</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="degree-vector">Degree Vector</h1>
+<p>Given a weight matrix <span><span class="MathJax_Preview">W</span><script type="math/tex">W</script></span>, returns the diagonal degree vector
+<span><span class="MathJax_Preview">d_{i} = \sum_{j=1}^n w_{ij}.</span><script type="math/tex; mode=display">d_{i} = \sum_{j=1}^n w_{ij}.</script></span></p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>d</code></strong> :&ensp;<code>numpy array, float</code></dt>
+<dd>Degree vector for weight matrix.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def degree_vector(self):
+    &#34;&#34;&#34;Degree Vector
+    ======
+
+    Given a weight matrix \\(W\\), returns the diagonal degree vector
+    \\[d_{i} = \\sum_{j=1}^n w_{ij}.\\]
+
+    Returns
+    -------
+    d : numpy array, float
+        Degree vector for weight matrix.
+    &#34;&#34;&#34;
+
+    d = self.weight_matrix*np.ones(self.num_nodes)
+    return d</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.dijkstra"><code class="name flex">
+<span>def <span class="ident">dijkstra</span></span>(<span>self, bdy_set, bdy_val=0, f=1, max_dist=inf, return_cp=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="dijkstras-algorithm">Dijkstra's algorithm</h1>
+<p>Computes a graph distance function with Dijkstra's algorithm. The graph distance is
+<span><span class="MathJax_Preview"> d(x,y) = \min_p \sum_{i=1}^M w_{p_i,p_{i+1}}f_{p_{i+1}},</span><script type="math/tex; mode=display"> d(x,y) = \min_p \sum_{i=1}^M w_{p_i,p_{i+1}}f_{p_{i+1}},</script></span>
+where the minimum is over paths <span><span class="MathJax_Preview">p</span><script type="math/tex">p</script></span> connecting <span><span class="MathJax_Preview">x</span><script type="math/tex">x</script></span> and <span><span class="MathJax_Preview">y</span><script type="math/tex">y</script></span>, <span><span class="MathJax_Preview">w_{ij}</span><script type="math/tex">w_{ij}</script></span> is
+the weight from <span><span class="MathJax_Preview">i</span><script type="math/tex">i</script></span> to <span><span class="MathJax_Preview">j</span><script type="math/tex">j</script></span>, and <span><span class="MathJax_Preview">f_i</span><script type="math/tex">f_i</script></span> is an additional per-vertex weights.
+A path must satisfy <span><span class="MathJax_Preview">w_{p_i,p_{i+1}}&gt;0</span><script type="math/tex">w_{p_i,p_{i+1}}>0</script></span> for all <span><span class="MathJax_Preview">i</span><script type="math/tex">i</script></span>. Dijkstra's algorithm returns the
+distance function to a terminal set <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>, given by
+<span><span class="MathJax_Preview">u(x) = \min_{i\in \Gamma} \{g(x_i) + d(x,x_i)\},</span><script type="math/tex; mode=display">u(x) = \min_{i\in \Gamma} \{g(x_i) + d(x,x_i)\},</script></span>
+where <span><span class="MathJax_Preview">g</span><script type="math/tex">g</script></span> are boundary values.
+An optional feature also returns the closest point information
+<span><span class="MathJax_Preview">cp(x) = \text{argmin}_{i\in \Gamma} \{g(x_i) + d(x,x_i)\}.</span><script type="math/tex; mode=display">cp(x) = \text{argmin}_{i\in \Gamma} \{g(x_i) + d(x,x_i)\}.</script></span>
+We note that the distance function <span><span class="MathJax_Preview">u</span><script type="math/tex">u</script></span> can also be interpreted as the solution of the
+graph eikonal equation
+<span><span class="MathJax_Preview"> \max_j w_{ji}^{-1} (u(x_i) - u(x_j)) = f_i</span><script type="math/tex; mode=display"> \max_j w_{ji}^{-1} (u(x_i) - u(x_j)) = f_i</script></span>
+subject to <span><span class="MathJax_Preview">u=g</span><script type="math/tex">u=g</script></span> on <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>bdy_set</code></strong> :&ensp;<code>numpy array (int) </code></dt>
+<dd>Indices or boolean mask identifying the boundary nodes <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>.</dd>
+<dt><strong><code>bdy_val</code></strong> :&ensp;<code>numpy array (float)</code>, optional</dt>
+<dd>Boundary values <span><span class="MathJax_Preview">g</span><script type="math/tex">g</script></span> on <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>. A single float is
+interpreted as a constant over <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>.</dd>
+<dt><strong><code>f</code></strong> :&ensp;<code>numpy array</code> or <code>scalar float</code>, default=<code>1</code></dt>
+<dd>Right hand side of eikonal equation. If a scalar, it is extended to a vector
+over the graph.</dd>
+<dt><strong><code>max_dist</code></strong> :&ensp;<code>float</code> or <code>np.inf (optional)</code>, default <code>= np.inf</code></dt>
+<dd>Distance at which to terminate Dijkstra's algorithm. Nodes with distance
+greater than <code>max_dist</code> will contain the value <code>np.inf</code>.</dd>
+<dt><strong><code>return_cp</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Whether to return closest point. Nodes with distance greater than max_dist
+contain <code>-1</code> for closest point index.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>dist_func</code></strong> :&ensp;<code>numpy array, float </code></dt>
+<dd>Distance function computed via Dijkstra's algorithm.</dd>
+<dt><strong><code>cp</code></strong> :&ensp;<code>numpy array, int </code></dt>
+<dd>Closest point indices. Only returned if <code>return_cp=True</code></dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>This example uses Dijkstra's algorithm to compute the distance function to a single point,
+and compares the result to a cone: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/dijkstra.py">dijkstra.py</a>.</p>
+<pre><code class="py">import graphlearning as gl
+import numpy as np
+
+for n in [int(10**i) for i in range(3,6)]:
+
+    X = np.random.rand(n,2)
+    X[0,:]=[0.5,0.5]
+    W = gl.weightmatrix.knn(X,50,kernel='distance')
+    G = gl.graph(W)
+    u = G.dijkstra([0])
+
+    u_true = np.linalg.norm(X - [0.5,0.5],axis=1)
+    error = np.linalg.norm(u-u_true, ord=np.inf)
+    print('n = %d, Error = %f'%(n,error))
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False):
+    &#34;&#34;&#34;Dijkstra&#39;s algorithm
+    ======
+
+    Computes a graph distance function with Dijkstra&#39;s algorithm. The graph distance is
+    \\[ d(x,y) = \\min_p \\sum_{i=1}^M w_{p_i,p_{i+1}}f_{p_{i+1}},\\]
+    where the minimum is over paths \\(p\\) connecting \\(x\\) and \\(y\\), \\(w_{ij}\\) is 
+    the weight from \\(i\\) to \\(j\\), and \\(f_i\\) is an additional per-vertex weights. 
+    A path must satisfy \\(w_{p_i,p_{i+1}}&gt;0\\) for all \\(i\\). Dijkstra&#39;s algorithm returns the
+    distance function to a terminal set \\(\\Gamma\\), given by
+    \\[u(x) = \\min_{i\\in \\Gamma} \\{g(x_i) + d(x,x_i)\\},\\]
+    where \\(g\\) are boundary values.
+    An optional feature also returns the closest point information
+    \\[cp(x) = \\text{argmin}_{i\\in \\Gamma} \\{g(x_i) + d(x,x_i)\\}.\\]
+    We note that the distance function \\(u\\) can also be interpreted as the solution of the
+    graph eikonal equation
+    \\[ \\max_j w_{ji}^{-1} (u(x_i) - u(x_j)) = f_i\\]
+    subject to \\(u=g\\) on \\(\\Gamma\\).
+
+    Parameters
+    ----------
+    bdy_set : numpy array (int) 
+        Indices or boolean mask identifying the boundary nodes \\(\\Gamma\\).
+    bdy_val : numpy array (float), optional
+        Boundary values \\(g\\) on \\(\\Gamma\\). A single float is
+        interpreted as a constant over \\(\\Gamma\\).
+    f : numpy array or scalar float, default=1
+        Right hand side of eikonal equation. If a scalar, it is extended to a vector 
+        over the graph.
+    max_dist : float or np.inf (optional), default = np.inf
+        Distance at which to terminate Dijkstra&#39;s algorithm. Nodes with distance
+        greater than `max_dist` will contain the value `np.inf`.
+    return_cp : bool (optional), default=False
+        Whether to return closest point. Nodes with distance greater than max_dist 
+        contain `-1` for closest point index.
+
+    Returns
+    -------
+    dist_func : numpy array, float 
+        Distance function computed via Dijkstra&#39;s algorithm.
+    cp : numpy array, int 
+        Closest point indices. Only returned if `return_cp=True`
+
+    Example
+    -------
+    This example uses Dijkstra&#39;s algorithm to compute the distance function to a single point,
+    and compares the result to a cone: [dijkstra.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/dijkstra.py).
+    ```py
+    import graphlearning as gl
+    import numpy as np
+
+    for n in [int(10**i) for i in range(3,6)]:
+
+        X = np.random.rand(n,2)
+        X[0,:]=[0.5,0.5]
+        W = gl.weightmatrix.knn(X,50,kernel=&#39;distance&#39;)
+        G = gl.graph(W)
+        u = G.dijkstra([0])
+
+        u_true = np.linalg.norm(X - [0.5,0.5],axis=1)
+        error = np.linalg.norm(u-u_true, ord=np.inf)
+        print(&#39;n = %d, Error = %f&#39;%(n,error))
+    ```
+    &#34;&#34;&#34;
+
+    #Import c extensions
+    from . import cextensions
+
+    #Convert boundary data to standard format
+    bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+
+    #Variables
+    n = self.num_nodes
+    dist_func = np.ones((n,))*np.inf        
+    cp = -np.ones((n,),dtype=int)
+
+    #Right hand side
+    if type(f) != np.ndarray:
+        f = np.ones((n,))*f
+
+    #Type casting and memory blocking
+    dist_func = np.ascontiguousarray(dist_func,dtype=np.float64)
+    cp = np.ascontiguousarray(cp,dtype=np.int32)
+    bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+    bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+    f = np.ascontiguousarray(f,dtype=np.float64)
+
+    cextensions.dijkstra(dist_func,cp,self.I,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
+
+    if return_cp:
+        return dist_func, cp
+    else:
+        return dist_func</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.divergence"><code class="name flex">
+<span>def <span class="ident">divergence</span></span>(<span>self, V, weighted=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="graph-divergence">Graph Divergence</h1>
+<p>Computes the graph divergence <span><span class="MathJax_Preview">\text{div} V</span><script type="math/tex">\text{div} V</script></span> of a vector field <span><span class="MathJax_Preview">V\in \mathbb{R}^{n\times n}</span><script type="math/tex">V\in \mathbb{R}^{n\times n}</script></span>,
+which is the vector
+<span><span class="MathJax_Preview">\nabla u_{ij} = u_j - u_i,</span><script type="math/tex; mode=display">\nabla u_{ij} = u_j - u_i,</script></span>
+If <code>weighted=True</code> is chosen, then the divergence is weighted by the graph weight
+matrix as follows
+<span><span class="MathJax_Preview">\nabla u_{ij} = w_{ij}(u_j - u_i).</span><script type="math/tex; mode=display">\nabla u_{ij} = w_{ij}(u_j - u_i).</script></span></p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>V</code></strong> :&ensp;<code>scipy sparse matrix, float</code></dt>
+<dd>Sparse matrix representing a vector field over the graph.</dd>
+<dt><strong><code>weighted</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>True</code></dt>
+<dd>Whether to weight the divergence by the graph weight matrix.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>divV</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>Divergence of V.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def divergence(self, V, weighted=True):
+    &#34;&#34;&#34;Graph Divergence
+    ======
+
+    Computes the graph divergence \\(\\text{div} V\\) of a vector field \\(V\\in \\mathbb{R}^{n\\times n}\\), 
+    which is the vector 
+    \\[\\nabla u_{ij} = u_j - u_i,\\]
+    If `weighted=True` is chosen, then the divergence is weighted by the graph weight 
+    matrix as follows
+    \\[\\nabla u_{ij} = w_{ij}(u_j - u_i).\\]
+
+    Parameters
+    ----------
+    V : scipy sparse matrix, float
+        Sparse matrix representing a vector field over the graph.
+    weighted : bool (optional), default=True
+        Whether to weight the divergence by the graph weight matrix.
+
+    Returns
+    -------
+    divV : numpy array
+        Divergence of V.
+    &#34;&#34;&#34;
+
+    V = V - V.transpose()
+
+    if weighted:
+        V = V.multiply(self.weight_matrix)
+
+    divV = V*np.ones(self.num_nodes)/2
+
+    return divV</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.eigen_decomp"><code class="name flex">
+<span>def <span class="ident">eigen_decomp</span></span>(<span>self, normalization='combinatorial', method='exact', k=10, c=None, gamma=0, tol=0, q=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="eigen-decomposition-of-graph-laplacian">Eigen Decomposition of Graph Laplacian</h1>
+<p>Computes the the low-lying eigenvectors and eigenvalues of
+various normalizations of the graph Laplacian. Computations can
+be either exact, or use a fast low-rank approximation via
+randomized SVD. </p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>normalization</code></strong> :&ensp;<code>{'combinatorial','randomwalk','normalized'}</code>, default=<code>'combinatorial'</code></dt>
+<dd>Type of normalization of graph Laplacian to apply.</dd>
+<dt><strong><code>method</code></strong> :&ensp;<code>{'exact','lowrank'}</code>, default=<code>'exact'</code></dt>
+<dd>Method for computing eigenvectors. 'exact' uses scipy.sparse.linalg.eigs, while
+'lowrank' uses a low rank approximation via randomized SVD. Lowrank is not
+implemented for gamma &gt; 0.</dd>
+<dt><strong><code>k</code></strong> :&ensp;<code>int (optional)</code>, default=<code>10</code></dt>
+<dd>Number of eigenvectors to compute.</dd>
+<dt><strong><code>c</code></strong> :&ensp;<code>int (optional)</code>, default=<code>2*number</code></dt>
+<dd>Cutoff for randomized SVD.</dd>
+<dt><strong><code>gamma</code></strong> :&ensp;<code>float (optional)</code>, default=<code>0</code></dt>
+<dd>Parameter for modularity (add more details)</dd>
+<dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default=<code>0</code></dt>
+<dd>tolerance for eigensolvers.</dd>
+<dt><strong><code>q</code></strong> :&ensp;<code>int (optional)</code>, default=<code>1</code></dt>
+<dd>Exponent to use in randomized svd.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>vals</code></strong> :&ensp;<code>numpy array, float </code></dt>
+<dd>eigenvalues in increasing order.</dd>
+<dt><strong><code>vecs</code></strong> :&ensp;<code>(n,k) numpy array, float</code></dt>
+<dd>eigenvectors as columns.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>This example compares the exact and lowrank (ranomized svd) methods for computing the spectrum: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/randomized_svd.py">randomized_svd.py</a>.</p>
+<pre><code class="py">import numpy as np
+import matplotlib.pyplot as plt
+import sklearn.datasets as datasets
+import graphlearning as gl
+
+X,L = datasets.make_moons(n_samples=500,noise=0.1)
+W = gl.weightmatrix.knn(X,10)
+G = gl.graph(W)
+
+num_eig = 7
+vals_exact, vecs_exact = G.eigen_decomp(normalization='normalized', k=num_eig, method='exact')
+vals_rsvd, vecs_rsvd = G.eigen_decomp(normalization='normalized', k=num_eig, method='lowrank', q=50, c=50)
+
+for i in range(1,num_eig):
+    rsvd = vecs_rsvd[:,i]
+    exact = vecs_exact[:,i]
+
+    sign = np.sum(rsvd*exact)
+    if sign &lt; 0:
+        rsvd *= -1
+
+    err = np.max(np.absolute(rsvd - exact))/max(np.max(np.absolute(rsvd)),np.max(np.absolute(exact)))
+
+    fig, (ax1,ax2) = plt.subplots(1,2, figsize=(10,5))
+    fig.suptitle('Eigenvector %d, err=%f'%(i,err))
+
+    ax1.scatter(X[:,0],X[:,1], c=rsvd)
+    ax1.set_title('Random SVD')
+
+    ax2.scatter(X[:,0],X[:,1], c=exact)
+    ax2.set_title('Exact')
+
+plt.show()
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def eigen_decomp(self, normalization=&#39;combinatorial&#39;, method=&#39;exact&#39;, k=10, c=None, gamma=0, tol=0, q=1):
+    &#34;&#34;&#34;Eigen Decomposition of Graph Laplacian
+    ======
+
+    Computes the the low-lying eigenvectors and eigenvalues of 
+    various normalizations of the graph Laplacian. Computations can 
+    be either exact, or use a fast low-rank approximation via 
+    randomized SVD. 
+
+    Parameters
+    ----------
+    normalization : {&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;}, default=&#39;combinatorial&#39;
+        Type of normalization of graph Laplacian to apply.
+    method : {&#39;exact&#39;,&#39;lowrank&#39;}, default=&#39;exact&#39;
+        Method for computing eigenvectors. &#39;exact&#39; uses scipy.sparse.linalg.eigs, while
+        &#39;lowrank&#39; uses a low rank approximation via randomized SVD. Lowrank is not 
+        implemented for gamma &gt; 0.
+    k : int (optional), default=10
+        Number of eigenvectors to compute.
+    c : int (optional), default=2*number
+        Cutoff for randomized SVD.
+    gamma : float (optional), default=0
+        Parameter for modularity (add more details)
+    tol : float (optional), default=0
+        tolerance for eigensolvers.
+    q : int (optional), default=1
+        Exponent to use in randomized svd.
+
+    Returns
+    -------
+    vals : numpy array, float 
+        eigenvalues in increasing order.
+    vecs : (n,k) numpy array, float
+        eigenvectors as columns.
+
+    Example
+    -------
+    This example compares the exact and lowrank (ranomized svd) methods for computing the spectrum: [randomized_svd.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/randomized_svd.py).
+    ```py
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import sklearn.datasets as datasets
+    import graphlearning as gl
+
+    X,L = datasets.make_moons(n_samples=500,noise=0.1)
+    W = gl.weightmatrix.knn(X,10)
+    G = gl.graph(W)
+
+    num_eig = 7
+    vals_exact, vecs_exact = G.eigen_decomp(normalization=&#39;normalized&#39;, k=num_eig, method=&#39;exact&#39;)
+    vals_rsvd, vecs_rsvd = G.eigen_decomp(normalization=&#39;normalized&#39;, k=num_eig, method=&#39;lowrank&#39;, q=50, c=50)
+
+    for i in range(1,num_eig):
+        rsvd = vecs_rsvd[:,i]
+        exact = vecs_exact[:,i]
+
+        sign = np.sum(rsvd*exact)
+        if sign &lt; 0:
+            rsvd *= -1
+
+        err = np.max(np.absolute(rsvd - exact))/max(np.max(np.absolute(rsvd)),np.max(np.absolute(exact)))
+
+        fig, (ax1,ax2) = plt.subplots(1,2, figsize=(10,5))
+        fig.suptitle(&#39;Eigenvector %d, err=%f&#39;%(i,err))
+
+        ax1.scatter(X[:,0],X[:,1], c=rsvd)
+        ax1.set_title(&#39;Random SVD&#39;)
+
+        ax2.scatter(X[:,0],X[:,1], c=exact)
+        ax2.set_title(&#39;Exact&#39;)
+
+    plt.show()
+    ```
+    &#34;&#34;&#34;
+
+    #Default choice for c
+    if c is None:
+        c = 2*k
+
+    same_method = self.eigendata[normalization][&#39;method&#39;] == method
+    same_k = self.eigendata[normalization][&#39;k&#39;] == k
+    same_c = self.eigendata[normalization][&#39;c&#39;] == c
+    same_gamma = self.eigendata[normalization][&#39;gamma&#39;] == gamma
+    same_tol = self.eigendata[normalization][&#39;tol&#39;] == tol
+    same_q = self.eigendata[normalization][&#39;q&#39;] == q
+
+    #If already computed, then return eigenvectors
+    if same_method and same_k and same_c and same_gamma and same_tol and same_q:
+    
+        return self.eigendata[normalization][&#39;eigenvalues&#39;], self.eigendata[normalization][&#39;eigenvectors&#39;]
+    
+    #Else, we need to compute the eigenvectors
+    else:
+        self.eigendata[normalization][&#39;method&#39;] = method 
+        self.eigendata[normalization][&#39;k&#39;] = k
+        self.eigendata[normalization][&#39;c&#39;] = c
+        self.eigendata[normalization][&#39;gamma&#39;] = gamma
+        self.eigendata[normalization][&#39;tol&#39;] = tol
+        self.eigendata[normalization][&#39;q&#39;] = q
+
+        n = self.num_nodes
+
+        #If not using modularity
+        if gamma == 0:
+            
+            if normalization == &#39;randomwalk&#39; or normalization == &#39;normalized&#39;:
+
+                D = self.degree_matrix(p=-0.5)
+                A = D*self.weight_matrix*D
+
+                if method == &#39;exact&#39;:
+                    u,s,vt = splinalg.svds(A, k=k, tol=tol)
+                elif method == &#39;lowrank&#39;:
+                    u,s,vt = utils.randomized_svd(A, k=k, c=c, q=q)
+                else:
+                    sys.exit(&#39;Invalid eigensolver method &#39;+method)
+
+                vals = 1 - s
+                ind = np.argsort(vals)
+                vals = vals[ind]
+                vecs = u[:,ind]
+
+                if normalization == &#39;randomwalk&#39;:
+                    vecs = D@vecs
+
+            elif normalization == &#39;combinatorial&#39;:
+
+                L = self.laplacian()
+                deg = self.degree_vector()
+                M = 2*np.max(deg)
+                A = M*sparse.identity(n) - L
+
+                if method == &#39;exact&#39;:
+                    u,s,vt = splinalg.svds(A, k=k, tol=tol)
+                elif method == &#39;lowrank&#39;:
+                    u,s,vt = utils.randomized_svd(A, k=k, c=c, q=q)
+                else:
+                    sys.exit(&#39;Invalid eigensolver method &#39;+method)
+                
+                vals = M - s
+                ind = np.argsort(vals)
+                vals = vals[ind]
+                vecs = u[:,ind]
+
+            else:
+                sys.exit(&#39;Invalid choice of normalization&#39;)
+
+
+        #Modularity
+        else:
+
+            if method == &#39;lowrank&#39;:
+                sys.exit(&#39;Low rank not implemented for modularity&#39;)
+
+            if normalization == &#39;randomwalk&#39;:
+                lap = self.laplacian(normalization=&#39;normalized&#39;)
+                P = self.degree_matrix(p=-0.5)
+                p1,p2 = 1.5,0.5
+            else:
+                lap = self.laplacian(normalization=normalization)
+                P = sparse.identity(n)
+                p1,p2 = 1,1
+
+            #If using modularity
+            deg = self.degree_vector()
+            deg1 = deg**p1
+            deg2 = deg**p2
+            m = np.sum(deg)/2 
+            def M(v):
+                v = v.flatten()
+                return (lap*v).flatten() + (gamma/m)*(deg2.T@v)*deg1
+
+            L = sparse.linalg.LinearOperator((n,n), matvec=M)
+            vals, vecs = sparse.linalg.eigsh(L, k=k, which=&#39;SM&#39;, tol=tol)
+
+            #Correct for random walk Laplacian if chosen
+            vecs = P@vecs
+
+
+        #Store eigenvectors for resuse later
+        self.eigendata[normalization][&#39;eigenvalues&#39;] = vals
+        self.eigendata[normalization][&#39;eigenvectors&#39;] = vecs
+
+        return vals, vecs</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.fiedler_vector"><code class="name flex">
+<span>def <span class="ident">fiedler_vector</span></span>(<span>self, method='exact', tol=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="fiedler-vector">Fiedler vector</h1>
+<p>Computes the Fiedler vector, which is the second eigenvector for the
+combinatorial graph Laplacian <span><span class="MathJax_Preview">L = D-W</span><script type="math/tex">L = D-W</script></span>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>method</code></strong> :&ensp;<code>{'exact','lowrank'}</code>, default=<code>'exact'</code></dt>
+<dd>Method for computing eigenvectors. 'exact' uses scipy.sparse.linalg.eigs, while
+'lowrank' uses a low rank approximation via randomized SVD.</dd>
+<dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default=<code>0</code></dt>
+<dd>tolerance for eigensolvers.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>fiedler_vector</code></strong> :&ensp;<code>numpy array, float </code></dt>
+<dd>Contents of fiedler vector.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fiedler_vector(self, method=&#39;exact&#39;, tol=0):
+    &#34;&#34;&#34;Fiedler vector
+    ======
+
+    Computes the Fiedler vector, which is the second eigenvector for the 
+    combinatorial graph Laplacian \\(L = D-W\\).
+
+    Parameters
+    ----------
+    method : {&#39;exact&#39;,&#39;lowrank&#39;}, default=&#39;exact&#39;
+        Method for computing eigenvectors. &#39;exact&#39; uses scipy.sparse.linalg.eigs, while
+        &#39;lowrank&#39; uses a low rank approximation via randomized SVD.
+    tol : float (optional), default=0
+        tolerance for eigensolvers.
+
+
+    Returns
+    -------
+    fiedler_vector : numpy array, float 
+        Contents of fiedler vector.
+    &#34;&#34;&#34;
+
+    vals, vecs = self.eigen_decomp(normalization=&#39;combinatorial&#39;, method=method, k=2, tol=tol)
+    fiedler_vector = vecs[:,1]
+
+    return fiedler_vector</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.gradient"><code class="name flex">
+<span>def <span class="ident">gradient</span></span>(<span>self, u, weighted=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="graph-gradient">Graph Gradient</h1>
+<p>Computes the graph gradient <span><span class="MathJax_Preview">\nabla u</span><script type="math/tex">\nabla u</script></span> of <span><span class="MathJax_Preview">u\in \mathbb{R}^n</span><script type="math/tex">u\in \mathbb{R}^n</script></span>, which is
+the sparse matrix with the form
+<span><span class="MathJax_Preview">\nabla u_{ij} = u_j - u_i,</span><script type="math/tex; mode=display">\nabla u_{ij} = u_j - u_i,</script></span>
+whenever <span><span class="MathJax_Preview">w_{ij}&gt;0</span><script type="math/tex">w_{ij}>0</script></span>, and <span><span class="MathJax_Preview">\nabla u_{ij}=0</span><script type="math/tex">\nabla u_{ij}=0</script></span> otherwise.
+If <code>weighted=True</code> is chosen, then the gradient is weighted by the graph weight
+matrix as follows
+<span><span class="MathJax_Preview">\nabla u_{ij} = w_{ij}(u_j - u_i).</span><script type="math/tex; mode=display">\nabla u_{ij} = w_{ij}(u_j - u_i).</script></span></p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>u</code></strong> :&ensp;<code>numpy array, float</code></dt>
+<dd>Vector (graph function) to take gradient of</dd>
+<dt><strong><code>weighted</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Whether to weight the gradient by the graph weight matrix.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>G</code></strong> :&ensp;<code>(n,n) scipy sparse matrix, float</code></dt>
+<dd>Sparse graph gradient matrix</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gradient(self, u, weighted=False):
+    &#34;&#34;&#34;Graph Gradient
+    ======
+
+    Computes the graph gradient \\(\\nabla u\\) of \\(u\\in \\mathbb{R}^n\\), which is
+    the sparse matrix with the form
+    \\[\\nabla u_{ij} = u_j - u_i,\\]
+    whenever \\(w_{ij}&gt;0\\), and \\(\\nabla u_{ij}=0\\) otherwise.
+    If `weighted=True` is chosen, then the gradient is weighted by the graph weight 
+    matrix as follows
+    \\[\\nabla u_{ij} = w_{ij}(u_j - u_i).\\]
+
+    Parameters
+    ----------
+    u : numpy array, float
+        Vector (graph function) to take gradient of
+    weighted : bool (optional), default=False
+        Whether to weight the gradient by the graph weight matrix.
+
+    Returns
+    -------
+    G : (n,n) scipy sparse matrix, float
+        Sparse graph gradient matrix
+    &#34;&#34;&#34;
+
+    n = self.num_nodes
+
+    if weighted:
+        G = sparse.coo_matrix((self.V*(u[self.J]-u[self.I]), (self.I,self.J)),shape=(n,n)).tocsr()
+    else:
+        G = sparse.coo_matrix((u[self.J]-u[self.I], (self.I,self.J)),shape=(n,n)).tocsr()
+
+    return G</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.infinity_laplacian"><code class="name flex">
+<span>def <span class="ident">infinity_laplacian</span></span>(<span>self, u)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="graph-infinity-laplacian">Graph Infinity Laplacian</h1>
+<p>Computes the graph infinity Laplacian of a vector <span><span class="MathJax_Preview">u</span><script type="math/tex">u</script></span>, given by
+<span><span class="MathJax_Preview">L_\infty u_i= \min_j w_{ij}(u_j-u_i) + \max_j w_{ij} (u_j-u_i).</span><script type="math/tex; mode=display">L_\infty u_i= \min_j w_{ij}(u_j-u_i) + \max_j w_{ij} (u_j-u_i).</script></span></p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Lu</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>Graph infinity Laplacian.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def infinity_laplacian(self,u):
+    &#34;&#34;&#34;Graph Infinity Laplacian
+    ======
+
+    Computes the graph infinity Laplacian of a vector \\(u\\), given by
+    \\[L_\\infty u_i= \\min_j w_{ij}(u_j-u_i) + \\max_j w_{ij} (u_j-u_i).\\]
+           
+    Returns
+    -------
+    Lu : numpy array
+        Graph infinity Laplacian.
+    &#34;&#34;&#34;
+
+    n = self.num_nodes
+    M = sparse.coo_matrix((self.V*(u[self.J]-u[self.I]), (self.I,self.J)),shape=(n,n)).tocsr()
+    M = M.min(axis=1) + M.max(axis=1)
+    Lu = M.toarray().flatten()
+
+    return Lu</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.isconnected"><code class="name flex">
+<span>def <span class="ident">isconnected</span></span>(<span>W)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="is-connected">Is Connected</h1>
+<p>Checks if the graph is connected.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>connected</code></strong> :&ensp;<code>bool</code></dt>
+<dd>True or False, depending on connectivity.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def isconnected(W):
+    &#34;&#34;&#34;Is Connected
+    ======
+
+    Checks if the graph is connected.
+           
+    Returns
+    -------
+    connected : bool
+        True or False, depending on connectivity.
+    &#34;&#34;&#34;
+
+    num_comp,comp = csgraph.connected_components(W)
+    connected = False
+    if num_comp == 1:
+        connected = True
+    return connected</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.laplacian"><code class="name flex">
+<span>def <span class="ident">laplacian</span></span>(<span>self, normalization='combinatorial')</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="graph-laplacian">Graph Laplacian</h1>
+<p>Computes various normalizations of the graph Laplacian for a
+given weight matrix <span><span class="MathJax_Preview">W</span><script type="math/tex">W</script></span>. The choices are
+<span><span class="MathJax_Preview">L_{\rm combinatorial} = D - W,</span><script type="math/tex; mode=display">L_{\rm combinatorial} = D - W,</script></span>
+<span><span class="MathJax_Preview">L_{\rm randomwalk} = I - D^{-1}W,</span><script type="math/tex; mode=display">L_{\rm randomwalk} = I - D^{-1}W,</script></span>
+and
+<span><span class="MathJax_Preview">L_{\rm normalized} = I - D^{-1/2}WD^{-1/2},</span><script type="math/tex; mode=display">L_{\rm normalized} = I - D^{-1/2}WD^{-1/2},</script></span>
+where <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span> is the diagonal degree matrix, which is defined as
+<span><span class="MathJax_Preview">D_{ii} = \sum_{j=1}^n w_{ij}.</span><script type="math/tex; mode=display">D_{ii} = \sum_{j=1}^n w_{ij}.</script></span></p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>normalization</code></strong> :&ensp;<code>{'combinatorial','randomwalk','normalized'}</code>, default=<code>'combinatorial'</code></dt>
+<dd>Type of normalization to apply.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>L</code></strong> :&ensp;<code>(n,n) scipy sparse matrix, float</code></dt>
+<dd>Graph Laplacian as sparse scipy matrix.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def laplacian(self, normalization=&#34;combinatorial&#34;):
+    &#34;&#34;&#34;Graph Laplacian
+    ======
+
+    Computes various normalizations of the graph Laplacian for a 
+    given weight matrix \\(W\\). The choices are
+    \\[L_{\\rm combinatorial} = D - W,\\]
+    \\[L_{\\rm randomwalk} = I - D^{-1}W,\\]
+    and
+    \\[L_{\\rm normalized} = I - D^{-1/2}WD^{-1/2},\\]
+    where \\(D\\) is the diagonal degree matrix, which is defined as
+    \\[D_{ii} = \\sum_{j=1}^n w_{ij}.\\]
+
+    Parameters
+    ----------
+    normalization : {&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;}, default=&#39;combinatorial&#39;
+        Type of normalization to apply.
+
+    Returns
+    -------
+    L : (n,n) scipy sparse matrix, float
+        Graph Laplacian as sparse scipy matrix.
+    &#34;&#34;&#34;
+
+    I = sparse.identity(self.num_nodes)
+    D = self.degree_matrix()
+
+    if normalization == &#34;combinatorial&#34;:
+        L = D - self.weight_matrix
+    elif normalization == &#34;randomwalk&#34;:
+        Dinv = self.degree_matrix(p=-1)
+        L = I - Dinv*self.weight_matrix
+    elif normalization == &#34;normalized&#34;:
+        Dinv2 = self.degree_matrix(p=-0.5)
+        L = I - Dinv2*self.weight_matrix*Dinv2
+    else:
+        sys.exit(&#34;Invalid option for graph Laplacian normalization.&#34;)
+
+    return L.tocsr()</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.largest_connected_component"><code class="name flex">
+<span>def <span class="ident">largest_connected_component</span></span>(<span>W)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="largest-connected-component">Largest connected component</h1>
+<p>Finds the largest connected component of the graph. Returns the restricted
+graph, as well as a boolean mask indicating the nodes belonging to
+the component.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>G</code></strong> :&ensp;<code><a title="graphlearning.graph.graph" href="#graphlearning.graph.graph">graph</a> object</code></dt>
+<dd>Largest connected component graph.</dd>
+<dt><strong><code>ind</code></strong> :&ensp;<code>numpy array (bool)</code></dt>
+<dd>Mask indicating which nodes from the original graph belong to the
+largest component.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def largest_connected_component(W):
+    &#34;&#34;&#34;Largest connected component
+    ======
+
+    Finds the largest connected component of the graph. Returns the restricted 
+    graph, as well as a boolean mask indicating the nodes belonging to 
+    the component.
+           
+    Returns
+    -------
+    G : graph object
+        Largest connected component graph.
+    ind : numpy array (bool)
+        Mask indicating which nodes from the original graph belong to the 
+        largest component.
+    &#34;&#34;&#34;
+
+    ncomp,labels = csgraph.connected_components(W,directed=False) 
+    num_verts = np.zeros((ncomp,))
+    for i in range(ncomp):
+        num_verts[i] = np.sum(labels==i)
+    
+    i_max = np.argmax(num_verts)
+    ind = labels==i_max
+
+    A = self.weight_matrix[ind,:]
+    A = A[:,ind]
+    G = graph(A)
+
+    return G, ind</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.load"><code class="name flex">
+<span>def <span class="ident">load</span></span>(<span>filename)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="load">Load</h1>
+<p>Load a graph from a file.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>filename</code></strong> :&ensp;<code>string</code></dt>
+<dd>File to load graph from, without any extension.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load(filename):
+    &#34;&#34;&#34;Load
+    ======
+
+    Load a graph from a file.
+
+    Parameters
+    ----------
+    filename : string
+        File to load graph from, without any extension.
+    &#34;&#34;&#34;
+
+    filename += &#39;.pkl&#39;
+    with open(filename, &#39;rb&#39;) as inp:
+        G = pickle.load(inp)
+
+    return G</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.page_rank"><code class="name flex">
+<span>def <span class="ident">page_rank</span></span>(<span>self, alpha=0.85, v=None, tol=1e-10)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="pagerank">PageRank</h1>
+<p>Solves for the PageRank vector, which is the solution of the PageRank equation
+<span><span class="MathJax_Preview"> (I - \alpha P)u = (1-\alpha) v, </span><script type="math/tex; mode=display"> (I - \alpha P)u = (1-\alpha) v, </script></span>
+where <span><span class="MathJax_Preview">P = W^T D^{-1}</span><script type="math/tex">P = W^T D^{-1}</script></span> is the probability transition matrix, with <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span> the diagonal
+degree matrix, <span><span class="MathJax_Preview">v</span><script type="math/tex">v</script></span> is the teleportation distribution, and <span><span class="MathJax_Preview">\alpha</span><script type="math/tex">\alpha</script></span> is the
+teleportation paramter. Solution is computed with the power iteration
+<span><span class="MathJax_Preview"> u_{k+1} = \alpha P u_k + (1-\alpha) v.</span><script type="math/tex; mode=display"> u_{k+1} = \alpha P u_k + (1-\alpha) v.</script></span></p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>alpha</code></strong> :&ensp;<code>float (optional)</code>, default=<code>0.85</code></dt>
+<dd>Teleportation parameter.</dd>
+<dt><strong><code>v</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
+<dd>Teleportation distribution. Default is the uniform distribution.</dd>
+<dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1e-10</code></dt>
+<dd>Tolerance with which to solve the PageRank equation.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>u</code></strong> :&ensp;<code>numpy array, float </code></dt>
+<dd>PageRank vector.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def page_rank(self,alpha=0.85,v=None,tol=1e-10):
+    &#34;&#34;&#34;PageRank
+    ======
+
+    Solves for the PageRank vector, which is the solution of the PageRank equation
+    \\[ (I - \\alpha P)u = (1-\\alpha) v, \\]
+    where \\(P = W^T D^{-1}\\) is the probability transition matrix, with \\(D\\) the diagonal
+    degree matrix, \\(v\\) is the teleportation distribution, and \\(\\alpha\\) is the 
+    teleportation paramter. Solution is computed with the power iteration
+    \\[ u_{k+1} = \\alpha P u_k + (1-\\alpha) v.\\]
+
+    Parameters
+    ----------
+    alpha : float (optional), default=0.85
+        Teleportation parameter.
+    v : numpy array (optional), default=None
+        Teleportation distribution. Default is the uniform distribution.
+    tol : float (optional), default=1e-10
+        Tolerance with which to solve the PageRank equation.
+
+    Returns
+    -------
+    u : numpy array, float 
+        PageRank vector.
+    &#34;&#34;&#34;
+
+    n = self.num_nodes
+
+    u = np.ones((n,))/n
+    if v is None:
+        v = np.ones((n,))/n
+
+    D = self.degree_matrix(p=-1)
+    P = self.weight_matrix.T@D
+
+    err = tol+1
+    while err &gt; tol:
+        w = alpha*P@u + (1-alpha)*v
+        err = np.max(np.absolute(w-u))
+        u = w.copy()
+
+    return u</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.peikonal"><code class="name flex">
+<span>def <span class="ident">peikonal</span></span>(<span>self, bdy_set, bdy_val=0, f=1, p=1, u0=None, max_num_it=100000.0, tol=0.001, num_bisection_it=30, prog=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="p-eikonal-equation">p-eikonal equation</h1>
+<p>Sovles the graph p-eikonal equation
+<span><span class="MathJax_Preview"> \sum_{j=1}^n w_{ij} (u_i - u_j)_+^p = f_i</span><script type="math/tex; mode=display"> \sum_{j=1}^n w_{ij} (u_i - u_j)_+^p = f_i</script></span>
+for <span><span class="MathJax_Preview">i\not\in \Gamma</span><script type="math/tex">i\not\in \Gamma</script></span>, subject to <span><span class="MathJax_Preview">u_i=g_i</span><script type="math/tex">u_i=g_i</script></span> for <span><span class="MathJax_Preview">i\in \Gamma</span><script type="math/tex">i\in \Gamma</script></span>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>bdy_set</code></strong> :&ensp;<code>numpy array (int</code> or <code>bool) </code></dt>
+<dd>Indices or boolean mask indicating the boundary nodes <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>.</dd>
+<dt><strong><code>bdy_val</code></strong> :&ensp;<code>numpy array</code> or <code>single float (optional)</code>, default=<code>0</code></dt>
+<dd>Boundary values <span><span class="MathJax_Preview">g</span><script type="math/tex">g</script></span> on <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>. A single float is
+interpreted as a constant over <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>.</dd>
+<dt><strong><code>f</code></strong> :&ensp;<code>numpy array</code> or <code>single float (optional)</code>, default=<code>1</code></dt>
+<dd>Right hand side of the p-eikonal equation, a single float
+is interpreted as a constant vector of the graph.</dd>
+<dt><strong><code>p</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1</code></dt>
+<dd>Value of exponent p in the p-eikonal equation.</dd>
+<dt><strong><code>u0</code></strong> :&ensp;<code>numpy array (float</code>, optional<code>)</code>, default=<code>None</code></dt>
+<dd>Initialization of solver. If not provided, then u0=0.</dd>
+<dt><strong><code>max_num_it</code></strong> :&ensp;<code>int (optional)</code>, default=<code>1e5</code></dt>
+<dd>Maximum number of iterations.</dd>
+<dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1e-3</code></dt>
+<dd>Tolerance with which to solve the equation.</dd>
+<dt><strong><code>num_bisection_it</code></strong> :&ensp;<code>int (optional)</code>, default=<code>30</code></dt>
+<dd>Number of bisection iterations for solver.</dd>
+<dt><strong><code>prog</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Toggles whether to print progress information.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>u</code></strong> :&ensp;<code>numpy array (float)</code></dt>
+<dd>Solution of p-eikonal equation.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>This example uses the peikonal equation to compute a data depth: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/peikonal.py">peikonal.py</a>.</p>
+<pre><code class="py">import graphlearning as gl
+import numpy as np
+import matplotlib.pyplot as plt
+
+X = np.random.rand(int(1e4),2)
+x,y = X[:,0],X[:,1]
+
+eps = 0.02
+W = gl.weightmatrix.epsilon_ball(X, eps)
+G = gl.graph(W)
+
+bdy_set = (x &lt; eps) | (x &gt; 1-eps) | (y &lt; eps) | (y &gt; 1-eps)
+u = G.peikonal(bdy_set)
+
+plt.scatter(x,y,c=u,s=0.25)
+plt.scatter(x[bdy_set],y[bdy_set],c='r',s=0.5)
+plt.show() 
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, u0=None, max_num_it=1e5, 
+                            tol=1e-3, num_bisection_it=30, prog=False):
+    &#34;&#34;&#34;p-eikonal equation 
+    =====================
+
+    Sovles the graph p-eikonal equation 
+    \\[ \\sum_{j=1}^n w_{ij} (u_i - u_j)_+^p = f_i\\]
+    for \\(i\\not\\in \\Gamma\\), subject to \\(u_i=g_i\\) for \\(i\\in \\Gamma\\).
+
+    Parameters
+    ----------
+    bdy_set : numpy array (int or bool) 
+        Indices or boolean mask indicating the boundary nodes \\(\\Gamma\\).
+    bdy_val : numpy array or single float (optional), default=0
+        Boundary values \\(g\\) on \\(\\Gamma\\). A single float is
+        interpreted as a constant over \\(\\Gamma\\).
+    f : numpy array or single float (optional), default=1
+        Right hand side of the p-eikonal equation, a single float
+        is interpreted as a constant vector of the graph.
+    p : float (optional), default=1
+        Value of exponent p in the p-eikonal equation.
+    u0 : numpy array (float, optional), default=None
+        Initialization of solver. If not provided, then u0=0.
+    max_num_it : int (optional), default=1e5
+        Maximum number of iterations.
+    tol : float (optional), default=1e-3
+        Tolerance with which to solve the equation.
+    num_bisection_it : int (optional), default=30
+        Number of bisection iterations for solver.
+    prog : bool (optional), default=False
+        Toggles whether to print progress information.
+
+    Returns
+    -------
+    u : numpy array (float)
+        Solution of p-eikonal equation.
+
+    Example
+    -------
+    This example uses the peikonal equation to compute a data depth: [peikonal.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/peikonal.py).
+    ```py
+    import graphlearning as gl
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    X = np.random.rand(int(1e4),2)
+    x,y = X[:,0],X[:,1]
+
+    eps = 0.02
+    W = gl.weightmatrix.epsilon_ball(X, eps)
+    G = gl.graph(W)
+
+    bdy_set = (x &lt; eps) | (x &gt; 1-eps) | (y &lt; eps) | (y &gt; 1-eps)
+    u = G.peikonal(bdy_set)
+
+    plt.scatter(x,y,c=u,s=0.25)
+    plt.scatter(x[bdy_set],y[bdy_set],c=&#39;r&#39;,s=0.5)
+    plt.show() 
+    ```
+    &#34;&#34;&#34;
+
+    #Import c extensions
+    from . import cextensions
+    
+    n = self.num_nodes
+
+    #Set initial data
+    if u0 is None:
+        u = np.zeros((n,))
+    else:
+        u = u0.copy()
+
+    #Convert f to an array if scalar is given
+    if type(f) != np.ndarray:
+        f = np.ones((n,))*f
+
+    #Convert boundary data to standard format
+    bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+
+    #Type casting and memory blocking
+    u = np.ascontiguousarray(u,dtype=np.float64)
+    bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+    f = np.ascontiguousarray(f,dtype=np.float64)
+    bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+
+    cextensions.peikonal(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,max_num_it,tol,num_bisection_it,prog)
+
+    return u</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.plaplace"><code class="name flex">
+<span>def <span class="ident">plaplace</span></span>(<span>self, bdy_set, bdy_val, p, tol=0.1, max_num_it=1000000.0, prog=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="game-theoretic-p-laplacian">Game-theoretic p-Laplacian</h1>
+<p>Computes the solution of the game-theoretic p-Laplace equation <span><span class="MathJax_Preview">L_p u_i=0</span><script type="math/tex">L_p u_i=0</script></span>
+for <span><span class="MathJax_Preview">i\not\in \Gamma</span><script type="math/tex">i\not\in \Gamma</script></span>, subject to <span><span class="MathJax_Preview">u_i=g_i</span><script type="math/tex">u_i=g_i</script></span> for <span><span class="MathJax_Preview">i\in \Gamma</span><script type="math/tex">i\in \Gamma</script></span>.
+The game-theoretic p-Laplacian is given by
+<span><span class="MathJax_Preview"> L_p u = \frac{1}{p}L_{\rm randomwalk} + \left(1-\frac{2}{p}\right)L_\infty u,</span><script type="math/tex; mode=display"> L_p u = \frac{1}{p}L_{\rm randomwalk} + \left(1-\frac{2}{p}\right)L_\infty u,</script></span>
+where <span><span class="MathJax_Preview">L_{\rm randomwalk}</span><script type="math/tex">L_{\rm randomwalk}</script></span> is the random walk graph Laplacian and <span><span class="MathJax_Preview">L_\infty</span><script type="math/tex">L_\infty</script></span> is the
+graph infinity-Laplace operator, given by
+<span><span class="MathJax_Preview"> L_\infty u_i = \min_j w_{ij}(u_i-u_j) + \max_j w_{ij} (u_i-u_j).</span><script type="math/tex; mode=display"> L_\infty u_i = \min_j w_{ij}(u_i-u_j) + \max_j w_{ij} (u_i-u_j).</script></span></p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>bdy_set</code></strong> :&ensp;<code>numpy array (int</code> or <code>bool) </code></dt>
+<dd>Indices or boolean mask indicating the boundary nodes <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>.</dd>
+<dt><strong><code>bdy_val</code></strong> :&ensp;<code>numpy array</code> or <code>single float (optional)</code>, default=<code>0</code></dt>
+<dd>Boundary values <span><span class="MathJax_Preview">g</span><script type="math/tex">g</script></span> on <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>. A single float is
+interpreted as a constant over <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>.</dd>
+<dt><strong><code>p</code></strong> :&ensp;<code>float</code></dt>
+<dd>Value of <span><span class="MathJax_Preview">p</span><script type="math/tex">p</script></span>.</dd>
+<dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1e-1</code></dt>
+<dd>Tolerance with which to solve the equation.</dd>
+<dt><strong><code>max_num_it</code></strong> :&ensp;<code>int (optional)</code>, default=<code>1e6</code></dt>
+<dd>Maximum number of iterations.</dd>
+<dt><strong><code>prog</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Toggles whether to print progress information.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>u</code></strong> :&ensp;<code>numpy array, float </code></dt>
+<dd>Solution of graph p-Laplace equation.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>This example uses the p-Laplace equation to interpolate boundary values: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/plaplace.py">plaplace.py</a>.</p>
+<pre><code class="py">import graphlearning as gl
+import numpy as np
+import matplotlib.pyplot as plt
+
+X = np.random.rand(int(1e4),2)
+x,y = X[:,0],X[:,1]
+
+eps = 0.02
+W = gl.weightmatrix.epsilon_ball(X, eps)
+G = gl.graph(W)
+
+bdy_set = (x &lt; eps) | (x &gt; 1-eps) | (y &lt; eps) | (y &gt; 1-eps)
+bdy_val = x**2 - y**2
+
+u = G.plaplace(bdy_set, bdy_val[bdy_set], p=10)
+
+plt.scatter(x,y,c=u,s=0.25)
+plt.scatter(x[bdy_set],y[bdy_set],c='r',s=0.5)
+plt.show()
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plaplace(self, bdy_set, bdy_val, p, tol=1e-1, max_num_it=1e6, prog=False):
+    &#34;&#34;&#34;Game-theoretic p-Laplacian
+    ======
+
+    Computes the solution of the game-theoretic p-Laplace equation \\(L_p u_i=0\\) 
+    for \\(i\\not\\in \\Gamma\\), subject to \\(u_i=g_i\\) for \\(i\\in \\Gamma\\).
+    The game-theoretic p-Laplacian is given by
+    \\[ L_p u = \\frac{1}{p}L_{\\rm randomwalk} + \\left(1-\\frac{2}{p}\\right)L_\\infty u,\\]
+    where \\(L_{\\rm randomwalk}\\) is the random walk graph Laplacian and \\(L_\\infty\\) is the
+    graph infinity-Laplace operator, given by
+    \\[ L_\\infty u_i = \\min_j w_{ij}(u_i-u_j) + \\max_j w_{ij} (u_i-u_j).\\]
+
+    Parameters
+    ----------
+    bdy_set : numpy array (int or bool) 
+        Indices or boolean mask indicating the boundary nodes \\(\\Gamma\\).
+    bdy_val : numpy array or single float (optional), default=0
+        Boundary values \\(g\\) on \\(\\Gamma\\). A single float is
+        interpreted as a constant over \\(\\Gamma\\).
+    p : float
+        Value of \\(p\\).
+    tol : float (optional), default=1e-1
+        Tolerance with which to solve the equation.
+    max_num_it : int (optional), default=1e6
+        Maximum number of iterations.
+    prog : bool (optional), default=False
+        Toggles whether to print progress information.
+
+    Returns
+    -------
+    u : numpy array, float 
+        Solution of graph p-Laplace equation.
+
+    Example
+    -------
+    This example uses the p-Laplace equation to interpolate boundary values: [plaplace.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/plaplace.py).
+    ```py
+    import graphlearning as gl
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    X = np.random.rand(int(1e4),2)
+    x,y = X[:,0],X[:,1]
+
+    eps = 0.02
+    W = gl.weightmatrix.epsilon_ball(X, eps)
+    G = gl.graph(W)
+
+    bdy_set = (x &lt; eps) | (x &gt; 1-eps) | (y &lt; eps) | (y &gt; 1-eps)
+    bdy_val = x**2 - y**2
+
+    u = G.plaplace(bdy_set, bdy_val[bdy_set], p=10)
+
+    plt.scatter(x,y,c=u,s=0.25)
+    plt.scatter(x[bdy_set],y[bdy_set],c=&#39;r&#39;,s=0.5)
+    plt.show()
+    ```
+    &#34;&#34;&#34;
+        
+    #Import c extensions
+    from . import cextensions
+    
+    n = self.num_nodes
+
+    #Convert boundary data to standard format
+    bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+
+    uu = np.max(bdy_val)*np.ones((n,))
+    ul = np.min(bdy_val)*np.ones((n,))
+
+    #Set labels
+    uu[bdy_set] = bdy_val
+    ul[bdy_set] = bdy_val
+
+    #Type casting and memory blocking
+    uu = np.ascontiguousarray(uu,dtype=np.float64)
+    ul = np.ascontiguousarray(ul,dtype=np.float64)
+    bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+    bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+
+    cextensions.lp_iterate(uu,ul,self.I,self.J,self.V,bdy_set,bdy_val,p,float(max_num_it),float(tol),float(prog))
+    u = (uu+ul)/2
+
+    return u</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.reweight"><code class="name flex">
+<span>def <span class="ident">reweight</span></span>(<span>self, idx, method='poisson', X=None, alpha=2, zeta=10000000.0, r=0.1)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="reweight-a-weight-matrix">Reweight a weight matrix</h1>
+<p>Reweights the graph weight matrix more heavily near labeled nodes. Used in semi-supervised
+learning at very low label rates. [Need to describe all methods&hellip;]</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>idx</code></strong> :&ensp;<code>numpy array (int)</code></dt>
+<dd>Indices of points to reweight near (typically labeled points).</dd>
+<dt><strong><code>method</code></strong> :&ensp;<code>{'poisson','wnll','properly'}</code>, default=<code>'poisson'</code></dt>
+<dd>Reweighting method. 'poisson' is described in [1], 'wnll' is described in [2], and 'properly'
+is described in [3]. If 'properly' is selected, the user must supply the data features <code>X</code>.</dd>
+<dt><strong><code>X</code></strong> :&ensp;<code>numpy array (optional)</code></dt>
+<dd>Data features, used to construct the graph. This is required for the <code>properly</code> weighted
+graph Laplacian method.</dd>
+<dt><strong><code>alpha</code></strong> :&ensp;<code>float (optional)</code>, default=<code>2</code></dt>
+<dd>Parameter for <code>properly</code> reweighting.</dd>
+<dt><strong><code>zeta</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1e7</code></dt>
+<dd>Parameter for <code>properly</code> reweighting.</dd>
+<dt><strong><code>r</code></strong> :&ensp;<code>float (optional)</code>, default=<code>0.1</code></dt>
+<dd>Radius for <code>properly</code> reweighting.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>W</code></strong> :&ensp;<code>(n,n) scipy sparse matrix, float</code></dt>
+<dd>Reweighted weight matrix as sparse scipy matrix.</dd>
+</dl>
+<h2 id="references">References</h2>
+<p>[1] J. Calder, B. Cook, M. Thorpe, D. Slepcev. <a href="http://proceedings.mlr.press/v119/calder20a.html">Poisson Learning: Graph Based Semi-Supervised Learning at Very Low Label Rates.</a>,
+Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1306-1316, 2020.</p>
+<p>[2] Z. Shi, S. Osher, and W. Zhu. <a href="https://idp.springer.com/authorize/casa?redirect_uri=https://link.springer.com/article/10.1007/s10915-017-0421-z&amp;casa_token=33Z7gqJy3mMAAAAA:iMO0pGmpn_qf5PioVIGocSRq_p4CDm-KNOQhgIC1uvqG9pWlZ6t7I-IZtSJfocFDEHCdMpK8j7Fx1XbzDQ">Weighted nonlocal laplacian on interpolation from sparse data.</a>
+Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
+<p>[3] J. Calder, D. Slepčev. <a href="https://link.springer.com/article/10.1007/s00245-019-09637-3">Properly-weighted graph Laplacian for semi-supervised learning.</a> Applied mathematics &amp; optimization (2019): 1-49.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reweight(self, idx, method=&#39;poisson&#39;, X=None, alpha=2, zeta=1e7, r=0.1):
+    &#34;&#34;&#34;Reweight a weight matrix
+    ======
+
+    Reweights the graph weight matrix more heavily near labeled nodes. Used in semi-supervised
+    learning at very low label rates. [Need to describe all methods...]
+
+    Parameters
+    ----------
+    idx : numpy array (int)
+        Indices of points to reweight near (typically labeled points).
+    method : {&#39;poisson&#39;,&#39;wnll&#39;,&#39;properly&#39;}, default=&#39;poisson&#39;
+        Reweighting method. &#39;poisson&#39; is described in [1], &#39;wnll&#39; is described in [2], and &#39;properly&#39;
+        is described in [3]. If &#39;properly&#39; is selected, the user must supply the data features `X`.
+    X : numpy array (optional)
+        Data features, used to construct the graph. This is required for the `properly` weighted 
+        graph Laplacian method.
+    alpha : float (optional), default=2
+        Parameter for `properly` reweighting.
+    zeta : float (optional), default=1e7
+        Parameter for `properly` reweighting.
+    r : float (optional), default=0.1
+        Radius for `properly` reweighting.
+
+    Returns
+    -------
+    W : (n,n) scipy sparse matrix, float
+        Reweighted weight matrix as sparse scipy matrix.
+
+    References
+    ----------
+    [1] J. Calder, B. Cook, M. Thorpe, D. Slepcev. [Poisson Learning: Graph Based Semi-Supervised Learning at Very Low Label Rates.](http://proceedings.mlr.press/v119/calder20a.html), 
+    Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1306-1316, 2020.
+
+    [2] Z. Shi, S. Osher, and W. Zhu. [Weighted nonlocal laplacian on interpolation from sparse data.](https://idp.springer.com/authorize/casa?redirect_uri=https://link.springer.com/article/10.1007/s10915-017-0421-z&amp;casa_token=33Z7gqJy3mMAAAAA:iMO0pGmpn_qf5PioVIGocSRq_p4CDm-KNOQhgIC1uvqG9pWlZ6t7I-IZtSJfocFDEHCdMpK8j7Fx1XbzDQ)
+    Journal of Scientific Computing 73.2 (2017): 1164-1177.
+
+    [3] J. Calder, D. Slepčev. [Properly-weighted graph Laplacian for semi-supervised learning.](https://link.springer.com/article/10.1007/s00245-019-09637-3) Applied mathematics &amp; optimization (2019): 1-49.
+    &#34;&#34;&#34;
+
+    if method == &#39;poisson&#39;:
+        
+        n = self.num_nodes
+        f = np.zeros(n)
+        f[idx] = 1
+        f -= np.mean(f)
+
+        L = self.laplacian()
+        w = utils.conjgrad(L, f, tol=1e-5)
+        w -= np.min(w)
+        D = sparse.spdiags(w,0,n,n).tocsr()
+
+        return D*self.weight_matrix*D
+
+    elif method == &#39;wnll&#39;:
+
+        n = self.num_nodes
+        m = len(idx)
+
+        a = np.ones((n,))
+        a[idx] = n/m
+        
+        D = sparse.spdiags(a,0,n,n).tocsr()
+
+        return D*self.weight_matrix + self.weight_matrix*D
+
+    elif method == &#39;properly&#39;:
+
+        if X is None:
+            sys.exit(&#39;Must provide data features X for properly weighted graph Laplacian.&#39;)
+
+        n = self.num_nodes
+        m = len(idx)
+        rzeta = r/(zeta-1)**(1/alpha)
+        Xtree = spatial.cKDTree(X[idx,:])
+        D, J = Xtree.query(X)
+        D[D &lt; rzeta] = rzeta
+        gamma = 1 + (r/D)**alpha
+
+        D = sparse.spdiags(gamma,0,n,n).tocsr()
+
+        return D*self.weight_matrix + self.weight_matrix*D
+
+    else:
+        sys.exit(&#39;Invalid reweighting method &#39; + method + &#39;.&#39;)</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.save"><code class="name flex">
+<span>def <span class="ident">save</span></span>(<span>self, filename)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="save">Save</h1>
+<p>Saves the graph and all its attributes to a file.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>filename</code></strong> :&ensp;<code>string</code></dt>
+<dd>File to save graph to, without any extension.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save(self, filename):
+    &#34;&#34;&#34;Save
+    ======
+
+    Saves the graph and all its attributes to a file.
+
+    Parameters
+    ----------
+    filename : string
+        File to save graph to, without any extension.
+    &#34;&#34;&#34;
+
+    filename += &#39;.pkl&#39;
+    with open(filename, &#39;wb&#39;) as outp:
+        pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#graph-class">Graph Class</a></li>
+</ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="graphlearning" href="index.html">graphlearning</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="graphlearning.graph.graph" href="#graphlearning.graph.graph">graph</a></code></h4>
+<ul class="">
+<li><code><a title="graphlearning.graph.graph.adjacency" href="#graphlearning.graph.graph.adjacency">adjacency</a></code></li>
+<li><code><a title="graphlearning.graph.graph.amle" href="#graphlearning.graph.graph.amle">amle</a></code></li>
+<li><code><a title="graphlearning.graph.graph.degree_matrix" href="#graphlearning.graph.graph.degree_matrix">degree_matrix</a></code></li>
+<li><code><a title="graphlearning.graph.graph.degree_vector" href="#graphlearning.graph.graph.degree_vector">degree_vector</a></code></li>
+<li><code><a title="graphlearning.graph.graph.dijkstra" href="#graphlearning.graph.graph.dijkstra">dijkstra</a></code></li>
+<li><code><a title="graphlearning.graph.graph.divergence" href="#graphlearning.graph.graph.divergence">divergence</a></code></li>
+<li><code><a title="graphlearning.graph.graph.eigen_decomp" href="#graphlearning.graph.graph.eigen_decomp">eigen_decomp</a></code></li>
+<li><code><a title="graphlearning.graph.graph.fiedler_vector" href="#graphlearning.graph.graph.fiedler_vector">fiedler_vector</a></code></li>
+<li><code><a title="graphlearning.graph.graph.gradient" href="#graphlearning.graph.graph.gradient">gradient</a></code></li>
+<li><code><a title="graphlearning.graph.graph.infinity_laplacian" href="#graphlearning.graph.graph.infinity_laplacian">infinity_laplacian</a></code></li>
+<li><code><a title="graphlearning.graph.graph.isconnected" href="#graphlearning.graph.graph.isconnected">isconnected</a></code></li>
+<li><code><a title="graphlearning.graph.graph.laplacian" href="#graphlearning.graph.graph.laplacian">laplacian</a></code></li>
+<li><code><a title="graphlearning.graph.graph.largest_connected_component" href="#graphlearning.graph.graph.largest_connected_component">largest_connected_component</a></code></li>
+<li><code><a title="graphlearning.graph.graph.load" href="#graphlearning.graph.graph.load">load</a></code></li>
+<li><code><a title="graphlearning.graph.graph.page_rank" href="#graphlearning.graph.graph.page_rank">page_rank</a></code></li>
+<li><code><a title="graphlearning.graph.graph.peikonal" href="#graphlearning.graph.graph.peikonal">peikonal</a></code></li>
+<li><code><a title="graphlearning.graph.graph.plaplace" href="#graphlearning.graph.graph.plaplace">plaplace</a></code></li>
+<li><code><a title="graphlearning.graph.graph.reweight" href="#graphlearning.graph.graph.reweight">reweight</a></code></li>
+<li><code><a title="graphlearning.graph.graph.save" href="#graphlearning.graph.graph.save">save</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

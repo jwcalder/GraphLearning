@@ -56,10 +56,12 @@ void lp_iterate_main(double *uu, double *ul, int *I, int *J, double *W, int *ind
       invdeg[i] = alpha/invdeg[i];
    }
 
-   //Normalize weight matrix (not needed since done in Python)
-   /*double maxWGT = 0;
+   //Normalize weight matrix 
+   double maxWGT = 0;
    for(i=0;i<M;i++)
       maxWGT = MAX(maxWGT,W[i]);
+   dt = dt/maxWGT;
+   /*
    for(i=0;i<M;i++)
       W[i] = W[i]/maxWGT;*/
 

@@ -1,0 +1,2355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>graphlearning.utils API documentation</title>
+<meta name="description" content="Utilities
+…" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>graphlearning.utils</code></h1>
+</header>
+<section id="section-intro">
+<h1 id="utilities">Utilities</h1>
+<p>This module implements several useful functions that are used throughout the package.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Utilities
+==========
+
+This module implements several useful functions that are used throughout the package.
+&#34;&#34;&#34;
+
+import numpy as np
+from scipy import linalg
+from scipy import sparse
+import matplotlib.pyplot as plt
+import ssl, os, urllib, sys, re, csv
+
+from . import weightmatrix
+from . import graph
+
+def boundary_statistic(X, r, knn=False, return_normals=False, second_order=True, cutoff=True, knn_data=None):
+    &#34;&#34;&#34;Boundary test statistic
+    ===================
+
+    Computes the boundary test statistics from [1] for identifying the boundary of a point cloud.
+
+    Parameters
+    ----------
+    X : (n,d) numpy array (float)
+        Point cloud in dimension d.
+    r : float or int,
+        Radius for test (or numgber of neighbors if knn=True)
+    knn : bool (optional), default=False
+        Whether to ues the k-nearest neighbor version of the test, or the radius search version.
+    return_normals : bool (optional), default=False
+        Wehther to return estimated normal vectors as well.
+    second_order : bool (optional), default=True
+        Whether to use the second order version of the test.
+    cutoff : bool (optional), default=True
+        Whether to use the cutoff for the second order test.
+    knn_data : tuple (optional), default=None
+        Output of `weightmatrix.knnsearch`, which can be provided to accelerate the computation.
+
+    Returns
+    -------
+    T : numpy array
+        Test statistic as a length n numpy array.
+    nu : (n,d) numpy array
+        Estimated normals, if `return_normals=True`.
+
+    References
+    ---------
+    [1] J. Calder, S. Park, and D. Slepčev. [Boundary Estimation from Point Clouds: Algorithms, Guarantees and Applications.](https://arxiv.org/abs/2111.03217) arXiv:2111.03217, 2021.
+    &#34;&#34;&#34;
+
+    #Estimation of normal vectors
+    n = X.shape[0]
+    d = X.shape[1]
+    if knn:
+        k = r
+        #Run knnsearch only if knn_data is not provided
+        if knn_data is None:
+            knn_data = weightmatrix.knnsearch(X,k)
+        W = weightmatrix.knn(X, k, kernel=&#39;uniform&#39;, symmetrize=False, knn_data=knn_data)
+    else:
+        W = weightmatrix.epsilon_ball(X, r, kernel=&#39;uniform&#39;)
+        
+    deg = W*np.ones(n)
+    if np.min(deg)==1:
+        print(&#39;\nWarning: Some points have no neighbors!!!\n&#39;)
+
+    #Estimation of normals
+    if second_order:
+        if knn:
+            theta = graph.graph(W).degree_matrix(p=-1)
+        else:
+            W2 = weightmatrix.epsilon_ball(X, r/2, kernel=&#39;uniform&#39;)
+            theta = graph.graph(W).degree_matrix(p=-1)
+        nu = -graph.graph(W*theta).laplacian()*X
+    else:
+        nu = -graph.graph(W).laplacian()*X
+
+    #Normalize to unit norm
+    norms = np.sqrt(np.sum(nu*nu,axis=1))
+    nu = nu/norms[:,np.newaxis]
+
+    #Switch to knn if not selected
+    if not knn:
+        k = int(np.max(W*np.ones(W.shape[0]))) #Number of neighbors to use in knnsearch
+        J,D = weightmatrix.knnsearch(X,k); J=J[:,1:]; D=D[:,1:] #knnsearch and remove self (I not needed)
+
+    #Difference between center point and neighbors
+    V = X[:,np.newaxis,:] - X[J] #(x^0-x^i), nxkxd array
+
+    #Compute boundary statistic to all neighbors
+    if second_order:
+        nu2 = (nu[:,np.newaxis,:] + nu[J])/2
+        if cutoff:
+            nn_mask = np.sum(nu[:,np.newaxis,:]*nu[J],axis=2) &gt; 0
+            nn_mask = nn_mask[:,:,np.newaxis]
+            nu2 = nn_mask*nu2 + (1-nn_mask)*nu[:,np.newaxis,:]
+        xd = np.sum(V*nu2,axis=2) #xd coordinate (nxk)
+    else: #First order boundary test 
+        xd = np.sum(V*nu[:,np.newaxis,:],axis=2) #xd coordinate (nxk)
+
+    #Return test statistic, masking out to B(x,r), and normals if return_normals=True
+    if knn:
+        T = np.max(xd,axis=1)
+    else:
+        T = np.max(xd*(D&lt;=r),axis=1)
+
+    if return_normals:
+        return T,nu
+    else:
+        return T
+
+
+def class_priors(labels):
+    &#34;&#34;&#34;Class priors
+    ======
+
+    Computes class priors (fraction of data in each class). Ignores labels that are negative.
+
+    Parameters
+    ----------
+    labels : numpy array (int)
+        Labels as integers \\(0,1,\\dots,k-1\\), where \\(k\\) is the number of classes.
+
+    Returns
+    -------
+    class_priors : numpy array 
+        Fraction of data in each class
+    &#34;&#34;&#34;
+    L = np.unique(labels)
+    L = L[L&gt;=0]    
+
+    k = len(L)
+    n = np.sum(labels&gt;=0)
+    class_priors = np.zeros((k,))
+    for i in range(k):
+        class_priors[i] = np.sum(labels==L[i])/n
+
+    return class_priors
+
+def _boundary_handling(bdy_set,bdy_val):
+    &#34;&#34;&#34;Boundary value handling
+    ======
+
+    Converts boundary values from boolean or scalar to numpy arrays.
+
+    Parameters
+    ----------
+    bdy_set : numpy array (int or bool), or list
+        Indices of boundary nodes \\(\\Gamma\\) or boolean mask of boundary.
+    bdy_val : numpy array or single float (optioanl), default=0
+        Boundary values \\(g\\) on \\(\\Gamma\\). A single float is
+        interpreted as a constant over \\(\\Gamma\\).
+
+    Returns
+    -------
+    X : numpy array 
+        Contents of csv file
+    &#34;&#34;&#34;
+    if type(bdy_set) == list:
+        bdy_set = np.array(bdy_set)
+    if bdy_set.dtype == bool:  #If bdy_set is boolean
+        bdy_set = np.where(bdy_set)[0]
+    m = len(bdy_set)
+    if type(bdy_val) != np.ndarray:
+        bdy_val = np.ones((m,))*bdy_val
+
+    return bdy_set, bdy_val
+
+
+def csvread(filename):
+    &#34;&#34;&#34;CSV Read
+    ======
+
+    Reads numerical data from a csv file.
+
+    Parameters
+    ----------
+    filename : String
+        Name of csv file
+
+    Returns
+    -------
+    X : numpy array 
+        Contents of csv file
+    &#34;&#34;&#34;
+    
+    X = [] 
+    with open(filename) as csv_file:
+        csv_reader = csv.reader(csv_file,delimiter=&#39;,&#39;)
+        n = 0
+        for row in csv_reader:
+            #Skip if the row has letters
+            if not row[0].lower().islower():
+                X += [float(i) for i in row]
+                m = len(row)
+                n += 1
+
+    X = np.array(X).reshape((n,m))
+
+    return X
+
+
+#This is to santize url names so they agree with the specific cases on github
+def _sanitize_pathname(name):
+    name = re.sub(&#39;mnist&#39;, &#39;MNIST&#39;, name, flags=re.IGNORECASE)
+    name = re.sub(&#39;fashionmnist&#39;, &#39;FashionMNIST&#39;, name, flags=re.IGNORECASE)
+    name = re.sub(&#39;cifar&#39;, &#39;cifar&#39;, name, flags=re.IGNORECASE)
+    name = re.sub(&#39;webkb&#39;, &#39;WEBKB&#39;, name, flags=re.IGNORECASE)
+    name = re.sub(&#39;mult&#39;, &#39;Mult&#39;, name, flags=re.IGNORECASE)
+    name = re.sub(&#39;modrate&#39;, &#39;ModRate&#39;, name, flags=re.IGNORECASE)
+    return name
+
+def numpy_load(file, field):
+    &#34;&#34;&#34;Load an array from a numpy file
+    ======
+
+    Loads a numpy .npz file and returns a specific field.
+
+    Parameters
+    ----------
+    file : string
+        Namename of .npz file
+    field : string
+        Name of field to load
+    &#34;&#34;&#34;
+
+    try:
+        M = np.load(file,allow_pickle=True)
+        d = M[field]
+    except:
+        sys.exit(&#39;Error: Cannot open &#39;+file+&#39;.&#39;)
+
+    return d
+
+def download_file(url, file):
+    &#34;&#34;&#34;Download a file from a url
+    ======
+
+    Attemps to download from a url. 
+
+    Parameters
+    ----------
+    url : string 
+        Web address of file to download.
+    file : string
+        Name of file to download to.
+    &#34;&#34;&#34;
+
+    ssl._create_default_https_context = ssl._create_unverified_context
+    url = _sanitize_pathname(url)
+    try:
+        print(&#39;Downloading &#39;+url+&#39; to &#39;+file+&#39;...&#39;)
+        urllib.request.urlretrieve(url, file)
+    except:
+        sys.exit(&#39;Error: Cannot downoad &#39;+url+&#39;.&#39;)
+
+def sparse_max(A,B):
+    &#34;&#34;&#34;Max of two sparse matrices
+    ======
+
+    Computes the elementwise max of two sparse matrices.
+    Matrices should both be nonegative and square.
+
+    Parameters
+    ----------
+    A : (n,n) scipy sparse matrix
+        First matrix.
+    B : (n,n) scipy sparse matrix
+        Second matrix.
+
+    Returns
+    -------
+    C : (n,n) scipy sparse matrix
+        Sparse max of A and B
+    &#34;&#34;&#34;
+
+    I = (A + B) &gt; 0
+    IB = B&gt;A
+    IA = I - IB
+    return A.multiply(IA) + B.multiply(IB)
+
+def torch_sparse(A):
+    &#34;&#34;&#34;Torch sparse matrix, from scipy sparse
+    ======
+
+    Converts a scipy sparse matrix into a torch sparse matrix.
+
+    Parameters
+    ----------
+    A : (n,n) scipy sparse matrix
+        Matrix to convert to torch sparse
+
+    Returns
+    -------
+    A_torch : (n,n) torch.sparse.FloatTensor
+        Sparse matrix in torch form.
+    &#34;&#34;&#34;
+
+    import torch
+
+    A = A.tocoo()
+    values = A.data
+    indices = np.vstack((A.row, A.col))
+
+    i = torch.LongTensor(indices)
+    v = torch.FloatTensor(values)
+    shape = A.shape
+
+    A_torch = torch.sparse.FloatTensor(i, v, torch.Size(shape))
+
+    return A_torch
+
+#Constrained linear solve
+#Solves Lu = f subject to u(I)=g
+def constrained_solve(L,I,g,f=None,x0=None,tol=1e-10):
+    &#34;&#34;&#34;Constrained Solve
+    ======
+
+    Uses preconditioned [Conjugate Gradient Method](https://en.wikipedia.org/wiki/Conjugate_gradient_method) 
+    to solve the equation \\(Lx=f\\) subject to \\(x=g\\) on a contraint set. \\(L\\) must be positive
+    definite and symmetric.
+
+    Parameters
+    ----------
+    L : (n,n) numpy array or scipy sparse matrix
+        Left hand side of linear equation.
+    I : numpy array (bool or int)
+        Indices of contraint set.
+    g : numpy array (float)
+        Constrained values
+    f : numpy array (optional), default=None
+        Right hand side of linear equation. Default is interpreted as \\(f=0\\).
+    x0 : numpy array (optional), default=None
+        Initial condition. Default is zero.
+    tol : float (optional), default = 1e-10
+        Tolerance for the conjugate gradient method.
+
+    Returns
+    -------
+    x : numpy array
+        Solution of linear equation with constraints.
+    &#34;&#34;&#34;
+
+    L = L.tocsr()
+    n = L.shape[0]
+
+    #Locations of labels
+    idx = np.full((n,), True, dtype=bool)
+    idx[I] = False
+
+    #Right hand side
+    b = -L[:,I]*g
+    b = b[idx]
+
+    if f is not None:
+        b = b + f[idx]
+
+    #Left hand side matrix
+    A = L[idx,:]
+    A = A[:,idx]
+    
+
+    #Conjugate gradient with Jacobi preconditioner
+    m = A.shape[0]
+    M = A.diagonal()
+    M = sparse.spdiags(1/(M+1e-10),0,m,m).tocsr()
+
+    if x0 is None:
+        v,i = splinalg.cg(A,b,tol=tol,M=M)
+    else:
+        v,i = splinalg.cg(A,b,x0=x0[idx],tol=tol,M=M)
+
+    #Add labels back into array
+    u = np.ones((n,))
+    u[idx] = v
+    u[I] = g
+
+    return u
+
+def dirichlet_eigenvectors(L,ind,k):
+    &#34;&#34;&#34;Dirichlet eigenvectors
+    ======
+
+    Finds the smallest magnitude Dirichlet eigenvectors/eigenvalues of a symmetric matrix \\(L\\), which satisfy 
+    \\(x_i=0\\) for \\(i\\in \\Gamma\\) and \\(Lx_i=\\lambda x_i\\) for \\(i\\not\\in \\Gamma\\).
+
+    Parameters
+    ----------
+    L : (n,n) numpy array or scipy sparse matrix
+        Matrix to compute eigenvectors of.
+    ind : numpy array (bool or int)
+        Indices or boolean mask indicating contraint set \\(\\Gamma\\).
+    k : int 
+        Number of eigenvectors to find.
+
+    Returns
+    -------
+    vals : numpy array
+        Eigenvalues in increasing order.
+    vecs : numpy array
+        Corresponding eigenvectors as columns.
+    &#34;&#34;&#34;
+
+
+    L = L.tocsr()
+    n = L.shape[0]
+
+    #Locations of labels
+    idx = np.full((n,), True, dtype=bool)
+    idx[ind] = False
+
+    #Left hand side matrix
+    A = L[idx,:]
+    A = A[:,idx]
+    
+    #Eigenvector solver
+    vals, vec = sparse.linalg.eigsh(A,k=k,which=&#39;SM&#39;)
+    
+    #Add labels back into array
+    vecs = np.zeros((n,k))
+    vecs[idx,:] = vec
+
+    if k == 1:
+        vecs = vecs.flatten()
+
+    return vals, vecs
+
+
+def constrained_solve_gmres(L,f,R,g,ind,tol=1e-5):
+    &#34;&#34;&#34;Constrained GMRES Solve
+    ======
+
+    Uses preconditioned [GMRES](https://en.wikipedia.org/wiki/Generalized_minimal_residual_method) to solve
+    the equation \\(Lx=f\\) subject to \\(Rx=g\\) on a contraint set.
+
+    Parameters
+    ----------
+    L : (n,n) numpy array or scipy sparse matrix
+        Left hand side of linear equation.
+    f : (n,1) numpy array
+        Right hand side of linear equation.
+    R : (n,n) numpy array or scipy sparse matrix
+        Constraint matrix.
+    g : numpy array
+        Length n numpy array for boundary constriants.
+    ind : numpy array (bool or int)
+        Indices or boolean mask indicating contraint set.
+    tol : float (optional), default = 1e-5
+        Tolerance for GMRES.
+
+    Returns
+    -------
+    x : numpy array
+        Solution of linear equation with constraints.
+    &#34;&#34;&#34;
+
+    #Mix matrices based on boundary points
+    A = L.copy()
+    A = A.tolil()
+    A[ind,:] = R[ind,:]
+    A = A.tocsr()
+
+    #Right hand side
+    b = f.copy()
+    b[ind] = g[ind]
+
+    #Preconditioner
+    m = A.shape[0]
+    M = A.diagonal()
+    M = sparse.spdiags(1/M,0,m,m).tocsr()
+
+    #GMRES solver
+    u,info = sparse.linalg.gmres(A, b, M=M, tol=tol)
+
+    return u
+
+def conjgrad(A, b, x0=None, max_iter=1e5, tol=1e-10):
+    &#34;&#34;&#34;Conjugate Gradient Method
+    ======
+
+    Conjugate gradient method for solving the linear equation
+    \\[Ax = b\\]
+    where \\(A\\in \\mathbb{R}^{n\\times n}\\) is symmetric and positive semi-definite, 
+    \\(x\\in \\mathbb{R}^{n\\times k}\\) and \\(b\\in \\mathbb{R}^{n\\times k}\\).
+
+    Parameters
+    ----------
+    A : (n,n) numpy array or scipy sparse matrix
+        Left hand side of linear equation.
+    b : (n,k) numpy array
+        Right hand side of linear equation.
+    x0 : (n,k) numpy array (optional)
+        Initial guess. If not provided, then x0=0.
+    max_iter : int (optional), default = 1e5
+        Maximum number of iterations.
+    tol : float (optional), default = 1e-10
+        Tolerance for stopping conjugate gradient iterations.
+
+    Returns
+    -------
+    x : (n,k) numpy array
+        Solution of \\(Ax=b\\) with conjugate gradient
+    &#34;&#34;&#34;
+
+    if x0 is None:
+        x = np.zeros_like(b)
+    else:
+        x = x0
+
+    r = b - A@x
+    p = r
+    rsold = np.sum(r**2,axis=0)
+  
+    err = 1 
+    i = 0
+    while (err &gt; tol) and (i &lt; max_iter):
+        i += 1
+        Ap = A@p
+        alpha = rsold / np.sum(p*Ap,axis=0)
+        x += alpha * p
+        r -= alpha * Ap
+        rsnew = np.sum(r**2,axis=0)
+        err = np.sqrt(np.sum(rsnew)) 
+        p = r + (rsnew / rsold) * p
+        rsold = rsnew
+
+    return x
+
+
+
+def labels_to_onehot(labels, standardize=False):
+    &#34;&#34;&#34;Onehot labels
+    ======
+
+    Converts numerical labels to one hot vectors.
+
+    Parameters
+    ----------
+    labels : numpy array, int
+        Labels as integers.
+    standardize : bool (optional), default=False
+        Whether to map labels to 0,1,...,k-1 first, before encoding.
+
+    Returns
+    -------
+    onehot_labels : (n,k) numpy array, float
+        One hot representation of labels.
+    &#34;&#34;&#34;
+
+    n = labels.shape[0]
+
+    if standardize:
+        #First convert to standard 0,1,...,k-1
+        unique_labels = np.unique(L)
+        k = len(unique_labels)
+        for i in range(k):
+            labels[labels==unique_labels[i]] = i
+    else:
+        k = int(np.max(labels))+1
+
+    #Now convert to onehot
+    labels = labels.astype(int)
+    onehot_labels = np.zeros((n,k))
+    onehot_labels[range(n),labels] = 1
+
+    return onehot_labels
+
+def conjgrad(A, b, x=None, max_iter=1e5, tol=1e-10):
+    &#34;&#34;&#34;Conjugate Gradient Method
+    ======
+
+    Conjugate gradient method in matrix form for solving
+    \\[ Ax = b\\]
+    where \\(A\\) is \\(n\\times n\\), and \\(x\\) and \\(b\\) are \\(n\\times m\\).
+   
+    Parameters
+    ----------
+    A : (n,n) numpy array or matrix or scipy sparse matrix
+        Left hand side matrix.
+    b : (n,m) numpy array
+        Right hand side matrix.
+    x : (n,m) numpy array, optional
+        Initial guess.
+    max_iter : int (optional), default = 1e5
+        Maximum number of iterations.
+    tol : float (optional), default = 1e-10
+        Tolerance for stopping.
+
+    Returns
+    -------
+    x : (n,m) numpy array
+        Solution of \\(Ax=b\\) with the conjugate gradient method.
+    &#34;&#34;&#34;
+
+    if x is None:
+        x = np.zeros_like(b)
+
+    r = b - A@x
+    p = r
+    rsold = np.sum(r**2,axis=0)
+  
+    err = 1 
+    i = 0
+    while (err &gt; tol) and (i &lt; max_iter):
+        i += 1
+        Ap = A@p
+        alpha = rsold / np.sum(p*Ap,axis=0)
+        x += alpha * p
+        r -= alpha * Ap
+        rsnew = np.sum(r**2,axis=0)
+        err = np.sqrt(np.sum(rsnew)) 
+        p = r + (rsnew / rsold) * p
+        rsold = rsnew
+
+    return x
+
+
+def randomized_svd(A, k=10, c=None, q=1):
+    &#34;&#34;&#34;Randomized SVD
+    ======
+
+    Approximates top k singular values and vectors of A with a randomized
+    SVD algorithm.
+
+   
+    Parameters
+    ----------
+    A : numpy array or matrix, scipy sparse matrix, or sparse linear operator
+        Matrix to compute SVD of.
+    k : int (optional), default=10
+        Number of eigenvectors to compute.
+    q : int (optional), default=1
+        Exponent to use in randomized svd.
+    c : int (optional), default=2*k
+        Cutoff for randomized SVD.
+
+    Returns
+    -------
+    u : (n,k) numpy array, float 
+        Unitary matrix having left singular vectors as columns. 
+    s : numpy array, float
+        The singular values.
+    vt : (k,n) numpy array, float
+        Unitary matrix having right singular vectors as rows.
+
+    Reference
+    ---------
+    Halko, Nathan, Per-Gunnar Martinsson, and Joel A. Tropp. [Finding structure 
+    with randomness: Probabilistic algorithms for constructing approximate matrix 
+    decompositions.](https://arxiv.org/abs/0909.4061) SIAM review 53.2 (2011): 217-288.
+    &#34;&#34;&#34;
+
+
+    if c is None:
+        c = 2*k
+
+    n = A.shape[1]
+
+    #Random Gaussian projection
+    Omega = np.random.randn(n,c)
+    Y = A@Omega
+    for i in range(q):
+        Y = A@(A.T@Y)
+
+    #QR Factorization
+    Q,R = np.linalg.qr(Y)
+
+    #SVD
+    B = Q.T@A
+    u,s,vt = linalg.svd(B, full_matrices=False)
+    u = Q@u
+
+    #Sort singular values from largest to smallest
+    ind = np.argsort(-s)
+    u = u[:,ind]
+    s = s[ind]
+    vt = vt[ind,:]
+
+    #Truncate to k
+    u = u[:,:k]
+    s = s[:k]
+    vt = vt[:k,:]
+
+    return u,s,vt
+    
+
+def rand_annulus(n,d,r1,r2):
+    &#34;&#34;&#34;Random points in annulus
+    ======
+
+    Generates independent and uniformly distributed random variables in the annulus
+    \\(B_{r_2} \\setminus B_{r_1}\\).
+   
+    Parameters
+    ----------
+    n : int 
+        Number of points.
+    d : int
+        Dimension.
+    r1 : float
+        Inner radius.
+    r2 : float
+        Outer radius
+
+    Returns
+    -------
+    X : (n,d) numpy array
+        Random points in annulus.
+    &#34;&#34;&#34;
+
+    N = 0
+    X = np.zeros((1,d))
+    while X.shape[0] &lt;= n:
+
+        Y = r2*(2*rand(n,d) - 1)
+        dist2 = np.sum(Y*Y,axis=1) 
+        I = (dist2 &lt; r2*r2)&amp;(dist2 &gt; r1*r1)
+        Y = Y[I,:]
+        X = np.vstack((X,Y))
+
+
+    X = X[1:(n+1)]
+    return X
+
+
+def rand_ball(n,d):
+    &#34;&#34;&#34;Random points in a ball
+    ======
+
+    Generates independent and uniformly distributed random variables in the unit ball.
+   
+    Parameters
+    ----------
+    n : int 
+        Number of points.
+    d : int
+        Dimension.
+
+    Returns
+    -------
+    X : (n,d) numpy array
+        Random points in unit ball.
+    &#34;&#34;&#34;
+
+    N = 0
+    X = np.zeros((1,d))
+    while X.shape[0] &lt;= n:
+
+        Y = 2*rand(n,d) - 1
+        I = np.sum(Y*Y,axis=1) &lt; 1
+        Y = Y[I,:]
+        X = np.vstack((X,Y))
+
+
+    X = X[1:(n+1)]
+    return X
+
+
+def bean_data(n,h):
+    &#34;&#34;&#34;Random bean data
+    ======
+
+    Generates independent and uniformly distributed random variables in a bean shaped domain
+    in two dimensions.
+   
+    Parameters
+    ----------
+    n : int 
+        Number of points.
+    h : float
+        Height of bridge between the two sides of the bean.
+
+    Returns
+    -------
+    X : (n,2) numpy array
+        Random points in the bean.
+    &#34;&#34;&#34;
+
+    a=-1
+    b=1
+    x = a + (b-a)*random.rand(3*n);
+    c=-0.6
+    d=0.6;
+    y = c + (d-c)*random.rand(3*n);
+
+    X=np.transpose(np.vstack((x,y)))
+
+    dist_from_x_axis=0.4*np.sqrt(1-x**2)*(1+h-np.cos(3*x))
+    in_bean = abs(y) &lt;= dist_from_x_axis
+    X = X[in_bean,:]
+    if X.shape[0] &lt; n:
+        print(&#39;Not enough samples&#39;);
+    else:
+        X = X[:n,:]
+
+    return X
+
+
+def mesh(X, boundary_improvement=False):
+    &#34;&#34;&#34;Mesh
+    ======
+
+    Creates a Delaunay triangulation of a 2D point cloud. Useful for visualizations.
+   
+    Parameters
+    ----------
+    X : (n,d) numpy array
+        Numpy array of \\(n\\) points in dimension \\(d\\). If \\(d\\geq 3\\), only
+        first 2 coordintes are used.
+    boundary_improvement : bool (optional), default=False
+        Whether to use improved meshing near the boundary to ensure there are no 
+        boundary triangles with very large side lengths.
+
+    Returns
+    -------
+    T : (n,3) numpy array
+        Triangulation.
+    &#34;&#34;&#34;
+
+    if boundary_improvement:
+
+        n = X.shape[0]
+        d = X.shape[1]
+        if d &gt; 2:
+            X = X[:,0:2]
+
+        #Normalize data to unit box
+        x1 = X[:,0].min()
+        x2 = X[:,0].max()
+        y1 = X[:,1].min()
+        y2 = X[:,1].max()
+        X = X - [x1,y1]
+        X[:,0] = X[:,0]/(x2-x1)
+        X[:,1] = X[:,1]/(y2-y1)
+
+        #Add padding data around
+        pad = 10/np.sqrt(n)
+        m = int(pad*n)
+        Y = rand(m,2)
+        Y[:,0] = Y[:,0]*pad - pad
+        Z = np.vstack((X,Y))
+        Y = rand(m,2)
+        Y[:,0] = Y[:,0]*pad + 1
+        Z = np.vstack((Z,Y))
+        Y = rand(m,2)
+        Y[:,1] = Y[:,1]*pad - pad
+        Z = np.vstack((Z,Y))
+        Y = rand(m,2)
+        Y[:,1] = Y[:,1]*pad + 1
+        Z = np.vstack((Z,Y))
+
+        #Delaunay triangulation
+        T = spatial.Delaunay(Z);
+        Tri = T.simplices
+        J = np.sum(Tri &gt;= n,axis=1)==0;
+        T = Tri[J,:]
+
+    else:
+
+        T = spatial.Delaunay(X[:,:2])
+        T = T.simplices
+
+    return T
+
+
+def image_grid(X, n_rows=10, n_cols=10, padding=2, title=None, normalize=False, 
+                             fontsize=None, transpose=True, return_image=False):
+    &#34;&#34;&#34;Image Grid
+    ======
+
+    Displays (or returns) a grid of images.
+   
+    Parameters
+    ----------
+    X : numpy array
+        (n,m) numpy array of n grayscale images, flattened to length m arrays.
+        Alternatively, X can have shape (n_rows, n_cols, m), in which case the
+        parameters n_rows and n_cols below are overridden.
+    n_rows : int (optional), default=10
+        Number of rows in image grid.
+    n_cols : int (optional), default=10
+        Number of columns in image grid.
+    padding : int (optional), default=2
+        Amount of padding between images in the grid.
+    title : str (optional), default=None
+        Optional title to add to image.
+    normalize : bool (optional), default=False
+        Whether to normalie pixel intensities for viewing.
+    fontsize : int (optional), default=None
+        Font size for title, if provided. None uses the default in matplotlib.
+    transpose : bool (optional), default=True
+        Whether to transpose the images or not.
+    return_image : bool (optional), default=False
+        Whether to return the image or display it to a matplotlib window.
+
+    Returns
+    -------
+    I : numpy array
+        Image grid as a grayscale image (if `return_image=True).
+    &#34;&#34;&#34;
+
+    #Basic dimensions
+    if X.ndim == 3:
+        n_rows = X.shape[0]
+        n_cols = X.shape[1]
+        m = X.shape[2]
+        im_width = int(np.sqrt(m))
+  
+        #Reshape
+        X = np.reshape(X,(n_rows*n_cols,im_width,im_width))
+        n = X.shape[0]
+    else:
+        n = X.shape[0]
+        m = X.shape[1]
+        im_width = int(np.sqrt(m))
+  
+        #Reshape
+        X = np.reshape(X,(n,im_width,im_width))
+  
+    if normalize:
+        X = X - X.min()
+        X = X/X.max()
+  
+    #Declare memory for large image that contains the whole grid
+    I = np.ones(((n_rows-1)*padding+n_rows*im_width,(n_cols-1)*padding+n_cols*im_width))
+  
+    #Loop over the grid, placing each image in the correct position
+    c = 0
+    for j in range(n_rows):
+        row_pos = j*(im_width+padding)
+        for i in range(n_cols):
+            col_pos = i*(im_width+padding)
+            if c &lt; n:
+                im = X[c,:,:]
+                if transpose:
+                    im = im.T
+                I[row_pos:row_pos+im_width,col_pos:col_pos+im_width] = im
+                c += 1
+  
+    if return_image:
+        return I
+    else:
+        #Create a new window and plot the image
+        plt.figure(figsize=(10,10))
+        plt.imshow(I,cmap=&#39;gray&#39;)
+        plt.axis(&#39;off&#39;)
+        if title is not None:
+            if fontsize is not None:
+                plt.title(title,fontsize=fontsize)
+            else:
+                plt.title(title)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="graphlearning.utils.bean_data"><code class="name flex">
+<span>def <span class="ident">bean_data</span></span>(<span>n, h)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="random-bean-data">Random bean data</h1>
+<p>Generates independent and uniformly distributed random variables in a bean shaped domain
+in two dimensions.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>n</code></strong> :&ensp;<code>int </code></dt>
+<dd>Number of points.</dd>
+<dt><strong><code>h</code></strong> :&ensp;<code>float</code></dt>
+<dd>Height of bridge between the two sides of the bean.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>(n,2) numpy array</code></dt>
+<dd>Random points in the bean.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bean_data(n,h):
+    &#34;&#34;&#34;Random bean data
+    ======
+
+    Generates independent and uniformly distributed random variables in a bean shaped domain
+    in two dimensions.
+   
+    Parameters
+    ----------
+    n : int 
+        Number of points.
+    h : float
+        Height of bridge between the two sides of the bean.
+
+    Returns
+    -------
+    X : (n,2) numpy array
+        Random points in the bean.
+    &#34;&#34;&#34;
+
+    a=-1
+    b=1
+    x = a + (b-a)*random.rand(3*n);
+    c=-0.6
+    d=0.6;
+    y = c + (d-c)*random.rand(3*n);
+
+    X=np.transpose(np.vstack((x,y)))
+
+    dist_from_x_axis=0.4*np.sqrt(1-x**2)*(1+h-np.cos(3*x))
+    in_bean = abs(y) &lt;= dist_from_x_axis
+    X = X[in_bean,:]
+    if X.shape[0] &lt; n:
+        print(&#39;Not enough samples&#39;);
+    else:
+        X = X[:n,:]
+
+    return X</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.boundary_statistic"><code class="name flex">
+<span>def <span class="ident">boundary_statistic</span></span>(<span>X, r, knn=False, return_normals=False, second_order=True, cutoff=True, knn_data=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="boundary-test-statistic">Boundary test statistic</h1>
+<p>Computes the boundary test statistics from [1] for identifying the boundary of a point cloud.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>(n,d) numpy array (float)</code></dt>
+<dd>Point cloud in dimension d.</dd>
+<dt><strong><code>r</code></strong> :&ensp;<code>float</code> or <code>int,</code></dt>
+<dd>Radius for test (or numgber of neighbors if knn=True)</dd>
+<dt><strong><code>knn</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Whether to ues the k-nearest neighbor version of the test, or the radius search version.</dd>
+<dt><strong><code>return_normals</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Wehther to return estimated normal vectors as well.</dd>
+<dt><strong><code>second_order</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>True</code></dt>
+<dd>Whether to use the second order version of the test.</dd>
+<dt><strong><code>cutoff</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>True</code></dt>
+<dd>Whether to use the cutoff for the second order test.</dd>
+<dt><strong><code>knn_data</code></strong> :&ensp;<code>tuple (optional)</code>, default=<code>None</code></dt>
+<dd>Output of <code>weightmatrix.knnsearch</code>, which can be provided to accelerate the computation.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>Test statistic as a length n numpy array.</dd>
+<dt><strong><code>nu</code></strong> :&ensp;<code>(n,d) numpy array</code></dt>
+<dd>Estimated normals, if <code>return_normals=True</code>.</dd>
+</dl>
+<h2 id="references">References</h2>
+<p>[1] J. Calder, S. Park, and D. Slepčev. <a href="https://arxiv.org/abs/2111.03217">Boundary Estimation from Point Clouds: Algorithms, Guarantees and Applications.</a> arXiv:2111.03217, 2021.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def boundary_statistic(X, r, knn=False, return_normals=False, second_order=True, cutoff=True, knn_data=None):
+    &#34;&#34;&#34;Boundary test statistic
+    ===================
+
+    Computes the boundary test statistics from [1] for identifying the boundary of a point cloud.
+
+    Parameters
+    ----------
+    X : (n,d) numpy array (float)
+        Point cloud in dimension d.
+    r : float or int,
+        Radius for test (or numgber of neighbors if knn=True)
+    knn : bool (optional), default=False
+        Whether to ues the k-nearest neighbor version of the test, or the radius search version.
+    return_normals : bool (optional), default=False
+        Wehther to return estimated normal vectors as well.
+    second_order : bool (optional), default=True
+        Whether to use the second order version of the test.
+    cutoff : bool (optional), default=True
+        Whether to use the cutoff for the second order test.
+    knn_data : tuple (optional), default=None
+        Output of `weightmatrix.knnsearch`, which can be provided to accelerate the computation.
+
+    Returns
+    -------
+    T : numpy array
+        Test statistic as a length n numpy array.
+    nu : (n,d) numpy array
+        Estimated normals, if `return_normals=True`.
+
+    References
+    ---------
+    [1] J. Calder, S. Park, and D. Slepčev. [Boundary Estimation from Point Clouds: Algorithms, Guarantees and Applications.](https://arxiv.org/abs/2111.03217) arXiv:2111.03217, 2021.
+    &#34;&#34;&#34;
+
+    #Estimation of normal vectors
+    n = X.shape[0]
+    d = X.shape[1]
+    if knn:
+        k = r
+        #Run knnsearch only if knn_data is not provided
+        if knn_data is None:
+            knn_data = weightmatrix.knnsearch(X,k)
+        W = weightmatrix.knn(X, k, kernel=&#39;uniform&#39;, symmetrize=False, knn_data=knn_data)
+    else:
+        W = weightmatrix.epsilon_ball(X, r, kernel=&#39;uniform&#39;)
+        
+    deg = W*np.ones(n)
+    if np.min(deg)==1:
+        print(&#39;\nWarning: Some points have no neighbors!!!\n&#39;)
+
+    #Estimation of normals
+    if second_order:
+        if knn:
+            theta = graph.graph(W).degree_matrix(p=-1)
+        else:
+            W2 = weightmatrix.epsilon_ball(X, r/2, kernel=&#39;uniform&#39;)
+            theta = graph.graph(W).degree_matrix(p=-1)
+        nu = -graph.graph(W*theta).laplacian()*X
+    else:
+        nu = -graph.graph(W).laplacian()*X
+
+    #Normalize to unit norm
+    norms = np.sqrt(np.sum(nu*nu,axis=1))
+    nu = nu/norms[:,np.newaxis]
+
+    #Switch to knn if not selected
+    if not knn:
+        k = int(np.max(W*np.ones(W.shape[0]))) #Number of neighbors to use in knnsearch
+        J,D = weightmatrix.knnsearch(X,k); J=J[:,1:]; D=D[:,1:] #knnsearch and remove self (I not needed)
+
+    #Difference between center point and neighbors
+    V = X[:,np.newaxis,:] - X[J] #(x^0-x^i), nxkxd array
+
+    #Compute boundary statistic to all neighbors
+    if second_order:
+        nu2 = (nu[:,np.newaxis,:] + nu[J])/2
+        if cutoff:
+            nn_mask = np.sum(nu[:,np.newaxis,:]*nu[J],axis=2) &gt; 0
+            nn_mask = nn_mask[:,:,np.newaxis]
+            nu2 = nn_mask*nu2 + (1-nn_mask)*nu[:,np.newaxis,:]
+        xd = np.sum(V*nu2,axis=2) #xd coordinate (nxk)
+    else: #First order boundary test 
+        xd = np.sum(V*nu[:,np.newaxis,:],axis=2) #xd coordinate (nxk)
+
+    #Return test statistic, masking out to B(x,r), and normals if return_normals=True
+    if knn:
+        T = np.max(xd,axis=1)
+    else:
+        T = np.max(xd*(D&lt;=r),axis=1)
+
+    if return_normals:
+        return T,nu
+    else:
+        return T</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.class_priors"><code class="name flex">
+<span>def <span class="ident">class_priors</span></span>(<span>labels)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="class-priors">Class priors</h1>
+<p>Computes class priors (fraction of data in each class). Ignores labels that are negative.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>labels</code></strong> :&ensp;<code>numpy array (int)</code></dt>
+<dd>Labels as integers <span><span class="MathJax_Preview">0,1,\dots,k-1</span><script type="math/tex">0,1,\dots,k-1</script></span>, where <span><span class="MathJax_Preview">k</span><script type="math/tex">k</script></span> is the number of classes.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array </code></dt>
+<dd>Fraction of data in each class</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def class_priors(labels):
+    &#34;&#34;&#34;Class priors
+    ======
+
+    Computes class priors (fraction of data in each class). Ignores labels that are negative.
+
+    Parameters
+    ----------
+    labels : numpy array (int)
+        Labels as integers \\(0,1,\\dots,k-1\\), where \\(k\\) is the number of classes.
+
+    Returns
+    -------
+    class_priors : numpy array 
+        Fraction of data in each class
+    &#34;&#34;&#34;
+    L = np.unique(labels)
+    L = L[L&gt;=0]    
+
+    k = len(L)
+    n = np.sum(labels&gt;=0)
+    class_priors = np.zeros((k,))
+    for i in range(k):
+        class_priors[i] = np.sum(labels==L[i])/n
+
+    return class_priors</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.conjgrad"><code class="name flex">
+<span>def <span class="ident">conjgrad</span></span>(<span>A, b, x=None, max_iter=100000.0, tol=1e-10)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="conjugate-gradient-method">Conjugate Gradient Method</h1>
+<p>Conjugate gradient method in matrix form for solving
+<span><span class="MathJax_Preview"> Ax = b</span><script type="math/tex; mode=display"> Ax = b</script></span>
+where <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span> is <span><span class="MathJax_Preview">n\times n</span><script type="math/tex">n\times n</script></span>, and <span><span class="MathJax_Preview">x</span><script type="math/tex">x</script></span> and <span><span class="MathJax_Preview">b</span><script type="math/tex">b</script></span> are <span><span class="MathJax_Preview">n\times m</span><script type="math/tex">n\times m</script></span>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>A</code></strong> :&ensp;<code>(n,n) numpy array</code> or <code>matrix</code> or <code>scipy sparse matrix</code></dt>
+<dd>Left hand side matrix.</dd>
+<dt><strong><code>b</code></strong> :&ensp;<code>(n,m) numpy array</code></dt>
+<dd>Right hand side matrix.</dd>
+<dt><strong><code>x</code></strong> :&ensp;<code>(n,m) numpy array</code>, optional</dt>
+<dd>Initial guess.</dd>
+<dt><strong><code>max_iter</code></strong> :&ensp;<code>int (optional)</code>, default <code>= 1e5</code></dt>
+<dd>Maximum number of iterations.</dd>
+<dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default <code>= 1e-10</code></dt>
+<dd>Tolerance for stopping.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>(n,m) numpy array</code></dt>
+<dd>Solution of <span><span class="MathJax_Preview">Ax=b</span><script type="math/tex">Ax=b</script></span> with the conjugate gradient method.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def conjgrad(A, b, x=None, max_iter=1e5, tol=1e-10):
+    &#34;&#34;&#34;Conjugate Gradient Method
+    ======
+
+    Conjugate gradient method in matrix form for solving
+    \\[ Ax = b\\]
+    where \\(A\\) is \\(n\\times n\\), and \\(x\\) and \\(b\\) are \\(n\\times m\\).
+   
+    Parameters
+    ----------
+    A : (n,n) numpy array or matrix or scipy sparse matrix
+        Left hand side matrix.
+    b : (n,m) numpy array
+        Right hand side matrix.
+    x : (n,m) numpy array, optional
+        Initial guess.
+    max_iter : int (optional), default = 1e5
+        Maximum number of iterations.
+    tol : float (optional), default = 1e-10
+        Tolerance for stopping.
+
+    Returns
+    -------
+    x : (n,m) numpy array
+        Solution of \\(Ax=b\\) with the conjugate gradient method.
+    &#34;&#34;&#34;
+
+    if x is None:
+        x = np.zeros_like(b)
+
+    r = b - A@x
+    p = r
+    rsold = np.sum(r**2,axis=0)
+  
+    err = 1 
+    i = 0
+    while (err &gt; tol) and (i &lt; max_iter):
+        i += 1
+        Ap = A@p
+        alpha = rsold / np.sum(p*Ap,axis=0)
+        x += alpha * p
+        r -= alpha * Ap
+        rsnew = np.sum(r**2,axis=0)
+        err = np.sqrt(np.sum(rsnew)) 
+        p = r + (rsnew / rsold) * p
+        rsold = rsnew
+
+    return x</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.constrained_solve"><code class="name flex">
+<span>def <span class="ident">constrained_solve</span></span>(<span>L, I, g, f=None, x0=None, tol=1e-10)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="constrained-solve">Constrained Solve</h1>
+<p>Uses preconditioned <a href="https://en.wikipedia.org/wiki/Conjugate_gradient_method">Conjugate Gradient Method</a>
+to solve the equation <span><span class="MathJax_Preview">Lx=f</span><script type="math/tex">Lx=f</script></span> subject to <span><span class="MathJax_Preview">x=g</span><script type="math/tex">x=g</script></span> on a contraint set. <span><span class="MathJax_Preview">L</span><script type="math/tex">L</script></span> must be positive
+definite and symmetric.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>L</code></strong> :&ensp;<code>(n,n) numpy array</code> or <code>scipy sparse matrix</code></dt>
+<dd>Left hand side of linear equation.</dd>
+<dt><strong><code>I</code></strong> :&ensp;<code>numpy array (bool</code> or <code>int)</code></dt>
+<dd>Indices of contraint set.</dd>
+<dt><strong><code>g</code></strong> :&ensp;<code>numpy array (float)</code></dt>
+<dd>Constrained values</dd>
+<dt><strong><code>f</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
+<dd>Right hand side of linear equation. Default is interpreted as <span><span class="MathJax_Preview">f=0</span><script type="math/tex">f=0</script></span>.</dd>
+<dt><strong><code>x0</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
+<dd>Initial condition. Default is zero.</dd>
+<dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default <code>= 1e-10</code></dt>
+<dd>Tolerance for the conjugate gradient method.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>Solution of linear equation with constraints.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def constrained_solve(L,I,g,f=None,x0=None,tol=1e-10):
+    &#34;&#34;&#34;Constrained Solve
+    ======
+
+    Uses preconditioned [Conjugate Gradient Method](https://en.wikipedia.org/wiki/Conjugate_gradient_method) 
+    to solve the equation \\(Lx=f\\) subject to \\(x=g\\) on a contraint set. \\(L\\) must be positive
+    definite and symmetric.
+
+    Parameters
+    ----------
+    L : (n,n) numpy array or scipy sparse matrix
+        Left hand side of linear equation.
+    I : numpy array (bool or int)
+        Indices of contraint set.
+    g : numpy array (float)
+        Constrained values
+    f : numpy array (optional), default=None
+        Right hand side of linear equation. Default is interpreted as \\(f=0\\).
+    x0 : numpy array (optional), default=None
+        Initial condition. Default is zero.
+    tol : float (optional), default = 1e-10
+        Tolerance for the conjugate gradient method.
+
+    Returns
+    -------
+    x : numpy array
+        Solution of linear equation with constraints.
+    &#34;&#34;&#34;
+
+    L = L.tocsr()
+    n = L.shape[0]
+
+    #Locations of labels
+    idx = np.full((n,), True, dtype=bool)
+    idx[I] = False
+
+    #Right hand side
+    b = -L[:,I]*g
+    b = b[idx]
+
+    if f is not None:
+        b = b + f[idx]
+
+    #Left hand side matrix
+    A = L[idx,:]
+    A = A[:,idx]
+    
+
+    #Conjugate gradient with Jacobi preconditioner
+    m = A.shape[0]
+    M = A.diagonal()
+    M = sparse.spdiags(1/(M+1e-10),0,m,m).tocsr()
+
+    if x0 is None:
+        v,i = splinalg.cg(A,b,tol=tol,M=M)
+    else:
+        v,i = splinalg.cg(A,b,x0=x0[idx],tol=tol,M=M)
+
+    #Add labels back into array
+    u = np.ones((n,))
+    u[idx] = v
+    u[I] = g
+
+    return u</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.constrained_solve_gmres"><code class="name flex">
+<span>def <span class="ident">constrained_solve_gmres</span></span>(<span>L, f, R, g, ind, tol=1e-05)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="constrained-gmres-solve">Constrained GMRES Solve</h1>
+<p>Uses preconditioned <a href="https://en.wikipedia.org/wiki/Generalized_minimal_residual_method">GMRES</a> to solve
+the equation <span><span class="MathJax_Preview">Lx=f</span><script type="math/tex">Lx=f</script></span> subject to <span><span class="MathJax_Preview">Rx=g</span><script type="math/tex">Rx=g</script></span> on a contraint set.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>L</code></strong> :&ensp;<code>(n,n) numpy array</code> or <code>scipy sparse matrix</code></dt>
+<dd>Left hand side of linear equation.</dd>
+<dt><strong><code>f</code></strong> :&ensp;<code>(n,1) numpy array</code></dt>
+<dd>Right hand side of linear equation.</dd>
+<dt><strong><code>R</code></strong> :&ensp;<code>(n,n) numpy array</code> or <code>scipy sparse matrix</code></dt>
+<dd>Constraint matrix.</dd>
+<dt><strong><code>g</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>Length n numpy array for boundary constriants.</dd>
+<dt><strong><code>ind</code></strong> :&ensp;<code>numpy array (bool</code> or <code>int)</code></dt>
+<dd>Indices or boolean mask indicating contraint set.</dd>
+<dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default <code>= 1e-5</code></dt>
+<dd>Tolerance for GMRES.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>Solution of linear equation with constraints.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def constrained_solve_gmres(L,f,R,g,ind,tol=1e-5):
+    &#34;&#34;&#34;Constrained GMRES Solve
+    ======
+
+    Uses preconditioned [GMRES](https://en.wikipedia.org/wiki/Generalized_minimal_residual_method) to solve
+    the equation \\(Lx=f\\) subject to \\(Rx=g\\) on a contraint set.
+
+    Parameters
+    ----------
+    L : (n,n) numpy array or scipy sparse matrix
+        Left hand side of linear equation.
+    f : (n,1) numpy array
+        Right hand side of linear equation.
+    R : (n,n) numpy array or scipy sparse matrix
+        Constraint matrix.
+    g : numpy array
+        Length n numpy array for boundary constriants.
+    ind : numpy array (bool or int)
+        Indices or boolean mask indicating contraint set.
+    tol : float (optional), default = 1e-5
+        Tolerance for GMRES.
+
+    Returns
+    -------
+    x : numpy array
+        Solution of linear equation with constraints.
+    &#34;&#34;&#34;
+
+    #Mix matrices based on boundary points
+    A = L.copy()
+    A = A.tolil()
+    A[ind,:] = R[ind,:]
+    A = A.tocsr()
+
+    #Right hand side
+    b = f.copy()
+    b[ind] = g[ind]
+
+    #Preconditioner
+    m = A.shape[0]
+    M = A.diagonal()
+    M = sparse.spdiags(1/M,0,m,m).tocsr()
+
+    #GMRES solver
+    u,info = sparse.linalg.gmres(A, b, M=M, tol=tol)
+
+    return u</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.csvread"><code class="name flex">
+<span>def <span class="ident">csvread</span></span>(<span>filename)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="csv-read">CSV Read</h1>
+<p>Reads numerical data from a csv file.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>filename</code></strong> :&ensp;<code>String</code></dt>
+<dd>Name of csv file</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>numpy array </code></dt>
+<dd>Contents of csv file</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def csvread(filename):
+    &#34;&#34;&#34;CSV Read
+    ======
+
+    Reads numerical data from a csv file.
+
+    Parameters
+    ----------
+    filename : String
+        Name of csv file
+
+    Returns
+    -------
+    X : numpy array 
+        Contents of csv file
+    &#34;&#34;&#34;
+    
+    X = [] 
+    with open(filename) as csv_file:
+        csv_reader = csv.reader(csv_file,delimiter=&#39;,&#39;)
+        n = 0
+        for row in csv_reader:
+            #Skip if the row has letters
+            if not row[0].lower().islower():
+                X += [float(i) for i in row]
+                m = len(row)
+                n += 1
+
+    X = np.array(X).reshape((n,m))
+
+    return X</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.dirichlet_eigenvectors"><code class="name flex">
+<span>def <span class="ident">dirichlet_eigenvectors</span></span>(<span>L, ind, k)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="dirichlet-eigenvectors">Dirichlet eigenvectors</h1>
+<p>Finds the smallest magnitude Dirichlet eigenvectors/eigenvalues of a symmetric matrix <span><span class="MathJax_Preview">L</span><script type="math/tex">L</script></span>, which satisfy
+<span><span class="MathJax_Preview">x_i=0</span><script type="math/tex">x_i=0</script></span> for <span><span class="MathJax_Preview">i\in \Gamma</span><script type="math/tex">i\in \Gamma</script></span> and <span><span class="MathJax_Preview">Lx_i=\lambda x_i</span><script type="math/tex">Lx_i=\lambda x_i</script></span> for <span><span class="MathJax_Preview">i\not\in \Gamma</span><script type="math/tex">i\not\in \Gamma</script></span>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>L</code></strong> :&ensp;<code>(n,n) numpy array</code> or <code>scipy sparse matrix</code></dt>
+<dd>Matrix to compute eigenvectors of.</dd>
+<dt><strong><code>ind</code></strong> :&ensp;<code>numpy array (bool</code> or <code>int)</code></dt>
+<dd>Indices or boolean mask indicating contraint set <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>.</dd>
+<dt><strong><code>k</code></strong> :&ensp;<code>int </code></dt>
+<dd>Number of eigenvectors to find.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>vals</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>Eigenvalues in increasing order.</dd>
+<dt><strong><code>vecs</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>Corresponding eigenvectors as columns.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dirichlet_eigenvectors(L,ind,k):
+    &#34;&#34;&#34;Dirichlet eigenvectors
+    ======
+
+    Finds the smallest magnitude Dirichlet eigenvectors/eigenvalues of a symmetric matrix \\(L\\), which satisfy 
+    \\(x_i=0\\) for \\(i\\in \\Gamma\\) and \\(Lx_i=\\lambda x_i\\) for \\(i\\not\\in \\Gamma\\).
+
+    Parameters
+    ----------
+    L : (n,n) numpy array or scipy sparse matrix
+        Matrix to compute eigenvectors of.
+    ind : numpy array (bool or int)
+        Indices or boolean mask indicating contraint set \\(\\Gamma\\).
+    k : int 
+        Number of eigenvectors to find.
+
+    Returns
+    -------
+    vals : numpy array
+        Eigenvalues in increasing order.
+    vecs : numpy array
+        Corresponding eigenvectors as columns.
+    &#34;&#34;&#34;
+
+
+    L = L.tocsr()
+    n = L.shape[0]
+
+    #Locations of labels
+    idx = np.full((n,), True, dtype=bool)
+    idx[ind] = False
+
+    #Left hand side matrix
+    A = L[idx,:]
+    A = A[:,idx]
+    
+    #Eigenvector solver
+    vals, vec = sparse.linalg.eigsh(A,k=k,which=&#39;SM&#39;)
+    
+    #Add labels back into array
+    vecs = np.zeros((n,k))
+    vecs[idx,:] = vec
+
+    if k == 1:
+        vecs = vecs.flatten()
+
+    return vals, vecs</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.download_file"><code class="name flex">
+<span>def <span class="ident">download_file</span></span>(<span>url, file)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="download-a-file-from-a-url">Download a file from a url</h1>
+<p>Attemps to download from a url. </p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>url</code></strong> :&ensp;<code>string </code></dt>
+<dd>Web address of file to download.</dd>
+<dt><strong><code>file</code></strong> :&ensp;<code>string</code></dt>
+<dd>Name of file to download to.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def download_file(url, file):
+    &#34;&#34;&#34;Download a file from a url
+    ======
+
+    Attemps to download from a url. 
+
+    Parameters
+    ----------
+    url : string 
+        Web address of file to download.
+    file : string
+        Name of file to download to.
+    &#34;&#34;&#34;
+
+    ssl._create_default_https_context = ssl._create_unverified_context
+    url = _sanitize_pathname(url)
+    try:
+        print(&#39;Downloading &#39;+url+&#39; to &#39;+file+&#39;...&#39;)
+        urllib.request.urlretrieve(url, file)
+    except:
+        sys.exit(&#39;Error: Cannot downoad &#39;+url+&#39;.&#39;)</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.image_grid"><code class="name flex">
+<span>def <span class="ident">image_grid</span></span>(<span>X, n_rows=10, n_cols=10, padding=2, title=None, normalize=False, fontsize=None, transpose=True, return_image=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="image-grid">Image Grid</h1>
+<p>Displays (or returns) a grid of images.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>(n,m) numpy array of n grayscale images, flattened to length m arrays.
+Alternatively, X can have shape (n_rows, n_cols, m), in which case the
+parameters n_rows and n_cols below are overridden.</dd>
+<dt><strong><code>n_rows</code></strong> :&ensp;<code>int (optional)</code>, default=<code>10</code></dt>
+<dd>Number of rows in image grid.</dd>
+<dt><strong><code>n_cols</code></strong> :&ensp;<code>int (optional)</code>, default=<code>10</code></dt>
+<dd>Number of columns in image grid.</dd>
+<dt><strong><code>padding</code></strong> :&ensp;<code>int (optional)</code>, default=<code>2</code></dt>
+<dd>Amount of padding between images in the grid.</dd>
+<dt><strong><code>title</code></strong> :&ensp;<code>str (optional)</code>, default=<code>None</code></dt>
+<dd>Optional title to add to image.</dd>
+<dt><strong><code>normalize</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Whether to normalie pixel intensities for viewing.</dd>
+<dt><strong><code>fontsize</code></strong> :&ensp;<code>int (optional)</code>, default=<code>None</code></dt>
+<dd>Font size for title, if provided. None uses the default in matplotlib.</dd>
+<dt><strong><code>transpose</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>True</code></dt>
+<dd>Whether to transpose the images or not.</dd>
+<dt><strong><code>return_image</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Whether to return the image or display it to a matplotlib window.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>I</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>Image grid as a grayscale image (if `return_image=True).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def image_grid(X, n_rows=10, n_cols=10, padding=2, title=None, normalize=False, 
+                             fontsize=None, transpose=True, return_image=False):
+    &#34;&#34;&#34;Image Grid
+    ======
+
+    Displays (or returns) a grid of images.
+   
+    Parameters
+    ----------
+    X : numpy array
+        (n,m) numpy array of n grayscale images, flattened to length m arrays.
+        Alternatively, X can have shape (n_rows, n_cols, m), in which case the
+        parameters n_rows and n_cols below are overridden.
+    n_rows : int (optional), default=10
+        Number of rows in image grid.
+    n_cols : int (optional), default=10
+        Number of columns in image grid.
+    padding : int (optional), default=2
+        Amount of padding between images in the grid.
+    title : str (optional), default=None
+        Optional title to add to image.
+    normalize : bool (optional), default=False
+        Whether to normalie pixel intensities for viewing.
+    fontsize : int (optional), default=None
+        Font size for title, if provided. None uses the default in matplotlib.
+    transpose : bool (optional), default=True
+        Whether to transpose the images or not.
+    return_image : bool (optional), default=False
+        Whether to return the image or display it to a matplotlib window.
+
+    Returns
+    -------
+    I : numpy array
+        Image grid as a grayscale image (if `return_image=True).
+    &#34;&#34;&#34;
+
+    #Basic dimensions
+    if X.ndim == 3:
+        n_rows = X.shape[0]
+        n_cols = X.shape[1]
+        m = X.shape[2]
+        im_width = int(np.sqrt(m))
+  
+        #Reshape
+        X = np.reshape(X,(n_rows*n_cols,im_width,im_width))
+        n = X.shape[0]
+    else:
+        n = X.shape[0]
+        m = X.shape[1]
+        im_width = int(np.sqrt(m))
+  
+        #Reshape
+        X = np.reshape(X,(n,im_width,im_width))
+  
+    if normalize:
+        X = X - X.min()
+        X = X/X.max()
+  
+    #Declare memory for large image that contains the whole grid
+    I = np.ones(((n_rows-1)*padding+n_rows*im_width,(n_cols-1)*padding+n_cols*im_width))
+  
+    #Loop over the grid, placing each image in the correct position
+    c = 0
+    for j in range(n_rows):
+        row_pos = j*(im_width+padding)
+        for i in range(n_cols):
+            col_pos = i*(im_width+padding)
+            if c &lt; n:
+                im = X[c,:,:]
+                if transpose:
+                    im = im.T
+                I[row_pos:row_pos+im_width,col_pos:col_pos+im_width] = im
+                c += 1
+  
+    if return_image:
+        return I
+    else:
+        #Create a new window and plot the image
+        plt.figure(figsize=(10,10))
+        plt.imshow(I,cmap=&#39;gray&#39;)
+        plt.axis(&#39;off&#39;)
+        if title is not None:
+            if fontsize is not None:
+                plt.title(title,fontsize=fontsize)
+            else:
+                plt.title(title)</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.labels_to_onehot"><code class="name flex">
+<span>def <span class="ident">labels_to_onehot</span></span>(<span>labels, standardize=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="onehot-labels">Onehot labels</h1>
+<p>Converts numerical labels to one hot vectors.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>labels</code></strong> :&ensp;<code>numpy array, int</code></dt>
+<dd>Labels as integers.</dd>
+<dt><strong><code>standardize</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Whether to map labels to 0,1,&hellip;,k-1 first, before encoding.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>onehot_labels</code></strong> :&ensp;<code>(n,k) numpy array, float</code></dt>
+<dd>One hot representation of labels.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def labels_to_onehot(labels, standardize=False):
+    &#34;&#34;&#34;Onehot labels
+    ======
+
+    Converts numerical labels to one hot vectors.
+
+    Parameters
+    ----------
+    labels : numpy array, int
+        Labels as integers.
+    standardize : bool (optional), default=False
+        Whether to map labels to 0,1,...,k-1 first, before encoding.
+
+    Returns
+    -------
+    onehot_labels : (n,k) numpy array, float
+        One hot representation of labels.
+    &#34;&#34;&#34;
+
+    n = labels.shape[0]
+
+    if standardize:
+        #First convert to standard 0,1,...,k-1
+        unique_labels = np.unique(L)
+        k = len(unique_labels)
+        for i in range(k):
+            labels[labels==unique_labels[i]] = i
+    else:
+        k = int(np.max(labels))+1
+
+    #Now convert to onehot
+    labels = labels.astype(int)
+    onehot_labels = np.zeros((n,k))
+    onehot_labels[range(n),labels] = 1
+
+    return onehot_labels</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.mesh"><code class="name flex">
+<span>def <span class="ident">mesh</span></span>(<span>X, boundary_improvement=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="mesh">Mesh</h1>
+<p>Creates a Delaunay triangulation of a 2D point cloud. Useful for visualizations.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>(n,d) numpy array</code></dt>
+<dd>Numpy array of <span><span class="MathJax_Preview">n</span><script type="math/tex">n</script></span> points in dimension <span><span class="MathJax_Preview">d</span><script type="math/tex">d</script></span>. If <span><span class="MathJax_Preview">d\geq 3</span><script type="math/tex">d\geq 3</script></span>, only
+first 2 coordintes are used.</dd>
+<dt><strong><code>boundary_improvement</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Whether to use improved meshing near the boundary to ensure there are no
+boundary triangles with very large side lengths.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>(n,3) numpy array</code></dt>
+<dd>Triangulation.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mesh(X, boundary_improvement=False):
+    &#34;&#34;&#34;Mesh
+    ======
+
+    Creates a Delaunay triangulation of a 2D point cloud. Useful for visualizations.
+   
+    Parameters
+    ----------
+    X : (n,d) numpy array
+        Numpy array of \\(n\\) points in dimension \\(d\\). If \\(d\\geq 3\\), only
+        first 2 coordintes are used.
+    boundary_improvement : bool (optional), default=False
+        Whether to use improved meshing near the boundary to ensure there are no 
+        boundary triangles with very large side lengths.
+
+    Returns
+    -------
+    T : (n,3) numpy array
+        Triangulation.
+    &#34;&#34;&#34;
+
+    if boundary_improvement:
+
+        n = X.shape[0]
+        d = X.shape[1]
+        if d &gt; 2:
+            X = X[:,0:2]
+
+        #Normalize data to unit box
+        x1 = X[:,0].min()
+        x2 = X[:,0].max()
+        y1 = X[:,1].min()
+        y2 = X[:,1].max()
+        X = X - [x1,y1]
+        X[:,0] = X[:,0]/(x2-x1)
+        X[:,1] = X[:,1]/(y2-y1)
+
+        #Add padding data around
+        pad = 10/np.sqrt(n)
+        m = int(pad*n)
+        Y = rand(m,2)
+        Y[:,0] = Y[:,0]*pad - pad
+        Z = np.vstack((X,Y))
+        Y = rand(m,2)
+        Y[:,0] = Y[:,0]*pad + 1
+        Z = np.vstack((Z,Y))
+        Y = rand(m,2)
+        Y[:,1] = Y[:,1]*pad - pad
+        Z = np.vstack((Z,Y))
+        Y = rand(m,2)
+        Y[:,1] = Y[:,1]*pad + 1
+        Z = np.vstack((Z,Y))
+
+        #Delaunay triangulation
+        T = spatial.Delaunay(Z);
+        Tri = T.simplices
+        J = np.sum(Tri &gt;= n,axis=1)==0;
+        T = Tri[J,:]
+
+    else:
+
+        T = spatial.Delaunay(X[:,:2])
+        T = T.simplices
+
+    return T</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.numpy_load"><code class="name flex">
+<span>def <span class="ident">numpy_load</span></span>(<span>file, field)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="load-an-array-from-a-numpy-file">Load an array from a numpy file</h1>
+<p>Loads a numpy .npz file and returns a specific field.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>file</code></strong> :&ensp;<code>string</code></dt>
+<dd>Namename of .npz file</dd>
+<dt><strong><code>field</code></strong> :&ensp;<code>string</code></dt>
+<dd>Name of field to load</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def numpy_load(file, field):
+    &#34;&#34;&#34;Load an array from a numpy file
+    ======
+
+    Loads a numpy .npz file and returns a specific field.
+
+    Parameters
+    ----------
+    file : string
+        Namename of .npz file
+    field : string
+        Name of field to load
+    &#34;&#34;&#34;
+
+    try:
+        M = np.load(file,allow_pickle=True)
+        d = M[field]
+    except:
+        sys.exit(&#39;Error: Cannot open &#39;+file+&#39;.&#39;)
+
+    return d</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.rand_annulus"><code class="name flex">
+<span>def <span class="ident">rand_annulus</span></span>(<span>n, d, r1, r2)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="random-points-in-annulus">Random points in annulus</h1>
+<p>Generates independent and uniformly distributed random variables in the annulus
+<span><span class="MathJax_Preview">B_{r_2} \setminus B_{r_1}</span><script type="math/tex">B_{r_2} \setminus B_{r_1}</script></span>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>n</code></strong> :&ensp;<code>int </code></dt>
+<dd>Number of points.</dd>
+<dt><strong><code>d</code></strong> :&ensp;<code>int</code></dt>
+<dd>Dimension.</dd>
+<dt><strong><code>r1</code></strong> :&ensp;<code>float</code></dt>
+<dd>Inner radius.</dd>
+<dt><strong><code>r2</code></strong> :&ensp;<code>float</code></dt>
+<dd>Outer radius</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>(n,d) numpy array</code></dt>
+<dd>Random points in annulus.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rand_annulus(n,d,r1,r2):
+    &#34;&#34;&#34;Random points in annulus
+    ======
+
+    Generates independent and uniformly distributed random variables in the annulus
+    \\(B_{r_2} \\setminus B_{r_1}\\).
+   
+    Parameters
+    ----------
+    n : int 
+        Number of points.
+    d : int
+        Dimension.
+    r1 : float
+        Inner radius.
+    r2 : float
+        Outer radius
+
+    Returns
+    -------
+    X : (n,d) numpy array
+        Random points in annulus.
+    &#34;&#34;&#34;
+
+    N = 0
+    X = np.zeros((1,d))
+    while X.shape[0] &lt;= n:
+
+        Y = r2*(2*rand(n,d) - 1)
+        dist2 = np.sum(Y*Y,axis=1) 
+        I = (dist2 &lt; r2*r2)&amp;(dist2 &gt; r1*r1)
+        Y = Y[I,:]
+        X = np.vstack((X,Y))
+
+
+    X = X[1:(n+1)]
+    return X</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.rand_ball"><code class="name flex">
+<span>def <span class="ident">rand_ball</span></span>(<span>n, d)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="random-points-in-a-ball">Random points in a ball</h1>
+<p>Generates independent and uniformly distributed random variables in the unit ball.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>n</code></strong> :&ensp;<code>int </code></dt>
+<dd>Number of points.</dd>
+<dt><strong><code>d</code></strong> :&ensp;<code>int</code></dt>
+<dd>Dimension.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>(n,d) numpy array</code></dt>
+<dd>Random points in unit ball.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rand_ball(n,d):
+    &#34;&#34;&#34;Random points in a ball
+    ======
+
+    Generates independent and uniformly distributed random variables in the unit ball.
+   
+    Parameters
+    ----------
+    n : int 
+        Number of points.
+    d : int
+        Dimension.
+
+    Returns
+    -------
+    X : (n,d) numpy array
+        Random points in unit ball.
+    &#34;&#34;&#34;
+
+    N = 0
+    X = np.zeros((1,d))
+    while X.shape[0] &lt;= n:
+
+        Y = 2*rand(n,d) - 1
+        I = np.sum(Y*Y,axis=1) &lt; 1
+        Y = Y[I,:]
+        X = np.vstack((X,Y))
+
+
+    X = X[1:(n+1)]
+    return X</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.randomized_svd"><code class="name flex">
+<span>def <span class="ident">randomized_svd</span></span>(<span>A, k=10, c=None, q=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="randomized-svd">Randomized SVD</h1>
+<p>Approximates top k singular values and vectors of A with a randomized
+SVD algorithm.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>A</code></strong> :&ensp;<code>numpy array</code> or <code>matrix, scipy sparse matrix,</code> or <code>sparse linear operator</code></dt>
+<dd>Matrix to compute SVD of.</dd>
+<dt><strong><code>k</code></strong> :&ensp;<code>int (optional)</code>, default=<code>10</code></dt>
+<dd>Number of eigenvectors to compute.</dd>
+<dt><strong><code>q</code></strong> :&ensp;<code>int (optional)</code>, default=<code>1</code></dt>
+<dd>Exponent to use in randomized svd.</dd>
+<dt><strong><code>c</code></strong> :&ensp;<code>int (optional)</code>, default=<code>2*k</code></dt>
+<dd>Cutoff for randomized SVD.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>u</code></strong> :&ensp;<code>(n,k) numpy array, float </code></dt>
+<dd>Unitary matrix having left singular vectors as columns.</dd>
+<dt><strong><code>s</code></strong> :&ensp;<code>numpy array, float</code></dt>
+<dd>The singular values.</dd>
+<dt><strong><code>vt</code></strong> :&ensp;<code>(k,n) numpy array, float</code></dt>
+<dd>Unitary matrix having right singular vectors as rows.</dd>
+</dl>
+<h2 id="reference">Reference</h2>
+<p>Halko, Nathan, Per-Gunnar Martinsson, and Joel A. Tropp. <a href="https://arxiv.org/abs/0909.4061">Finding structure
+with randomness: Probabilistic algorithms for constructing approximate matrix
+decompositions.</a> SIAM review 53.2 (2011): 217-288.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def randomized_svd(A, k=10, c=None, q=1):
+    &#34;&#34;&#34;Randomized SVD
+    ======
+
+    Approximates top k singular values and vectors of A with a randomized
+    SVD algorithm.
+
+   
+    Parameters
+    ----------
+    A : numpy array or matrix, scipy sparse matrix, or sparse linear operator
+        Matrix to compute SVD of.
+    k : int (optional), default=10
+        Number of eigenvectors to compute.
+    q : int (optional), default=1
+        Exponent to use in randomized svd.
+    c : int (optional), default=2*k
+        Cutoff for randomized SVD.
+
+    Returns
+    -------
+    u : (n,k) numpy array, float 
+        Unitary matrix having left singular vectors as columns. 
+    s : numpy array, float
+        The singular values.
+    vt : (k,n) numpy array, float
+        Unitary matrix having right singular vectors as rows.
+
+    Reference
+    ---------
+    Halko, Nathan, Per-Gunnar Martinsson, and Joel A. Tropp. [Finding structure 
+    with randomness: Probabilistic algorithms for constructing approximate matrix 
+    decompositions.](https://arxiv.org/abs/0909.4061) SIAM review 53.2 (2011): 217-288.
+    &#34;&#34;&#34;
+
+
+    if c is None:
+        c = 2*k
+
+    n = A.shape[1]
+
+    #Random Gaussian projection
+    Omega = np.random.randn(n,c)
+    Y = A@Omega
+    for i in range(q):
+        Y = A@(A.T@Y)
+
+    #QR Factorization
+    Q,R = np.linalg.qr(Y)
+
+    #SVD
+    B = Q.T@A
+    u,s,vt = linalg.svd(B, full_matrices=False)
+    u = Q@u
+
+    #Sort singular values from largest to smallest
+    ind = np.argsort(-s)
+    u = u[:,ind]
+    s = s[ind]
+    vt = vt[ind,:]
+
+    #Truncate to k
+    u = u[:,:k]
+    s = s[:k]
+    vt = vt[:k,:]
+
+    return u,s,vt</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.sparse_max"><code class="name flex">
+<span>def <span class="ident">sparse_max</span></span>(<span>A, B)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="max-of-two-sparse-matrices">Max of two sparse matrices</h1>
+<p>Computes the elementwise max of two sparse matrices.
+Matrices should both be nonegative and square.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>A</code></strong> :&ensp;<code>(n,n) scipy sparse matrix</code></dt>
+<dd>First matrix.</dd>
+<dt><strong><code>B</code></strong> :&ensp;<code>(n,n) scipy sparse matrix</code></dt>
+<dd>Second matrix.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>C</code></strong> :&ensp;<code>(n,n) scipy sparse matrix</code></dt>
+<dd>Sparse max of A and B</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sparse_max(A,B):
+    &#34;&#34;&#34;Max of two sparse matrices
+    ======
+
+    Computes the elementwise max of two sparse matrices.
+    Matrices should both be nonegative and square.
+
+    Parameters
+    ----------
+    A : (n,n) scipy sparse matrix
+        First matrix.
+    B : (n,n) scipy sparse matrix
+        Second matrix.
+
+    Returns
+    -------
+    C : (n,n) scipy sparse matrix
+        Sparse max of A and B
+    &#34;&#34;&#34;
+
+    I = (A + B) &gt; 0
+    IB = B&gt;A
+    IA = I - IB
+    return A.multiply(IA) + B.multiply(IB)</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.utils.torch_sparse"><code class="name flex">
+<span>def <span class="ident">torch_sparse</span></span>(<span>A)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="torch-sparse-matrix-from-scipy-sparse">Torch sparse matrix, from scipy sparse</h1>
+<p>Converts a scipy sparse matrix into a torch sparse matrix.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>A</code></strong> :&ensp;<code>(n,n) scipy sparse matrix</code></dt>
+<dd>Matrix to convert to torch sparse</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>A_torch</code></strong> :&ensp;<code>(n,n) torch.sparse.FloatTensor</code></dt>
+<dd>Sparse matrix in torch form.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def torch_sparse(A):
+    &#34;&#34;&#34;Torch sparse matrix, from scipy sparse
+    ======
+
+    Converts a scipy sparse matrix into a torch sparse matrix.
+
+    Parameters
+    ----------
+    A : (n,n) scipy sparse matrix
+        Matrix to convert to torch sparse
+
+    Returns
+    -------
+    A_torch : (n,n) torch.sparse.FloatTensor
+        Sparse matrix in torch form.
+    &#34;&#34;&#34;
+
+    import torch
+
+    A = A.tocoo()
+    values = A.data
+    indices = np.vstack((A.row, A.col))
+
+    i = torch.LongTensor(indices)
+    v = torch.FloatTensor(values)
+    shape = A.shape
+
+    A_torch = torch.sparse.FloatTensor(i, v, torch.Size(shape))
+
+    return A_torch</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#utilities">Utilities</a></li>
+</ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="graphlearning" href="index.html">graphlearning</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="graphlearning.utils.bean_data" href="#graphlearning.utils.bean_data">bean_data</a></code></li>
+<li><code><a title="graphlearning.utils.boundary_statistic" href="#graphlearning.utils.boundary_statistic">boundary_statistic</a></code></li>
+<li><code><a title="graphlearning.utils.class_priors" href="#graphlearning.utils.class_priors">class_priors</a></code></li>
+<li><code><a title="graphlearning.utils.conjgrad" href="#graphlearning.utils.conjgrad">conjgrad</a></code></li>
+<li><code><a title="graphlearning.utils.constrained_solve" href="#graphlearning.utils.constrained_solve">constrained_solve</a></code></li>
+<li><code><a title="graphlearning.utils.constrained_solve_gmres" href="#graphlearning.utils.constrained_solve_gmres">constrained_solve_gmres</a></code></li>
+<li><code><a title="graphlearning.utils.csvread" href="#graphlearning.utils.csvread">csvread</a></code></li>
+<li><code><a title="graphlearning.utils.dirichlet_eigenvectors" href="#graphlearning.utils.dirichlet_eigenvectors">dirichlet_eigenvectors</a></code></li>
+<li><code><a title="graphlearning.utils.download_file" href="#graphlearning.utils.download_file">download_file</a></code></li>
+<li><code><a title="graphlearning.utils.image_grid" href="#graphlearning.utils.image_grid">image_grid</a></code></li>
+<li><code><a title="graphlearning.utils.labels_to_onehot" href="#graphlearning.utils.labels_to_onehot">labels_to_onehot</a></code></li>
+<li><code><a title="graphlearning.utils.mesh" href="#graphlearning.utils.mesh">mesh</a></code></li>
+<li><code><a title="graphlearning.utils.numpy_load" href="#graphlearning.utils.numpy_load">numpy_load</a></code></li>
+<li><code><a title="graphlearning.utils.rand_annulus" href="#graphlearning.utils.rand_annulus">rand_annulus</a></code></li>
+<li><code><a title="graphlearning.utils.rand_ball" href="#graphlearning.utils.rand_ball">rand_ball</a></code></li>
+<li><code><a title="graphlearning.utils.randomized_svd" href="#graphlearning.utils.randomized_svd">randomized_svd</a></code></li>
+<li><code><a title="graphlearning.utils.sparse_max" href="#graphlearning.utils.sparse_max">sparse_max</a></code></li>
+<li><code><a title="graphlearning.utils.torch_sparse" href="#graphlearning.utils.torch_sparse">torch_sparse</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

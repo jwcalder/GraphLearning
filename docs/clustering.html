@@ -1,0 +1,1258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>graphlearning.clustering API documentation</title>
+<meta name="description" content="Clustering
+…" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>graphlearning.clustering</code></h1>
+</header>
+<section id="section-intro">
+<h1 id="clustering">Clustering</h1>
+<p>This module implements many graph-based clustering algorithms in an objected-oriented
+fashion, similar to <a href="https://scikit-learn.org/stable/">sklearn</a>.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Clustering
+==========
+
+This module implements many graph-based clustering algorithms in an objected-oriented
+fashion, similar to [sklearn](https://scikit-learn.org/stable/).
+&#34;&#34;&#34;
+
+from abc import ABCMeta, abstractmethod
+import scipy.optimize as opt
+#import sklearn.cluster as cluster
+from scipy import sparse
+import numpy as np
+import sys
+
+from . import graph
+
+class clustering:
+    __metaclass__ = ABCMeta
+
+    def __init__(self, W, num_clusters):
+        if type(W) == graph.graph:
+            self.graph = W
+        else:
+            self.graph = graph.graph(W)
+        self.cluster_labels = None
+        self.num_clusters = num_clusters
+        self.fitted = False
+
+    def predict(self):
+        &#34;&#34;&#34;Predict
+        ========
+
+        Makes label predictions based on clustering. 
+        
+        Returns
+        -------
+        pred_labels : (int) numpy array
+            Predicted labels as integers for all datapoints in the graph.
+        &#34;&#34;&#34;
+
+        if self.fitted == False:
+            sys.exit(&#39;Model has not been fitted yet.&#39;)
+
+        return self.cluster_labels
+
+    def fit_predict(self, all_labels=None):
+        &#34;&#34;&#34;Fit and predict
+        ======
+
+        Calls fit() and predict() sequentially.
+
+        Parameters
+        ----------
+        all_labels : numpy array, int (optional)
+            True labels for all datapoints.
+
+        Returns
+        -------
+        pred_labels : (int) numpy array
+            Predicted labels as integers for all datapoints in the graph.
+        &#34;&#34;&#34;
+
+        self.fit(all_labels=all_labels)
+        return self.predict()
+
+    def fit(self, all_labels=None):
+        &#34;&#34;&#34;Fit
+        ======
+
+        Solves clustering problem to perform clustering. 
+
+        Parameters
+        ----------
+        all_labels : numpy array, int (optional)
+            True labels for all datapoints.
+
+        Returns
+        -------
+        all_labels : numpy array, int (optional)
+            True labels for all datapoints.
+        &#34;&#34;&#34;
+
+        pred_labels = self._fit(all_labels=all_labels)
+        self.fitted = True
+        self.cluster_labels = pred_labels
+
+        return pred_labels
+
+
+    @abstractmethod
+    def _fit(self, all_labels=None):
+        &#34;&#34;&#34;Fit
+        ======
+
+        Solves clustering problem to perform clustering. 
+
+        Parameters
+        ----------
+        all_labels : numpy array, int (optional)
+            True labels for all datapoints.
+
+        Returns
+        -------
+        all_labels : numpy array, int (optional)
+            True labels for all datapoints.
+        &#34;&#34;&#34;
+
+        raise NotImplementedError(&#34;Must override _fit&#34;)
+
+
+class spectral(clustering):
+    def __init__(self, W, num_clusters, method=&#39;NgJordanWeiss&#39;, extra_dim=0):
+        &#34;&#34;&#34;Spectral clustering
+        ===================
+
+        Implements several methods for spectral clustering, including Shi-Malik and Ng-Jordan-Weiss. See
+        the tutorial paper [1] for details.
+
+        Parameters
+        ----------
+        W : numpy array, scipy sparse matrix, or graphlearning graph object
+            Weight matrix representing the graph.
+        num_clusters : int
+            Number of desired clusters.
+        method : {&#39;combinatorial&#39;, &#39;ShiMalik&#39;, &#39;NgJordanWeiss&#39;} (optional), default=&#39;NgJordanWeiss&#39;
+            Spectral clustering method.
+        extra_dim : int (optional), default=0
+            Extra dimensions to include in spectral embedding.
+        
+        Examples
+        ----
+        Spectral clustering on the two-moons dataset: [spectral_twomoons.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/spectral_twomoons.py).
+        ```py
+        import numpy as np
+        import graphlearning as gl
+        import matplotlib.pyplot as plt
+        import sklearn.datasets as datasets
+
+        X,labels = datasets.make_moons(n_samples=500,noise=0.1)
+        W = gl.weightmatrix.knn(X,10)
+
+        model = gl.clustering.spectral(W, num_clusters=2)
+        pred_labels = model.fit_predict()
+
+        accuracy = gl.clustering.clustering_accuracy(pred_labels, labels)
+        print(&#39;Clustering Accuracy: %.2f%%&#39;%accuracy)
+
+        plt.scatter(X[:,0],X[:,1], c=pred_labels)
+        plt.axis(&#39;off&#39;)
+        plt.show()
+        ```
+        Spectral clustering on MNIST: [spectral_mnist.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/spectral_mnist.py).
+        ```py
+        import graphlearning as gl
+
+        W = gl.weightmatrix.knn(&#39;mnist&#39;, 10, metric=&#39;vae&#39;)
+        labels = gl.datasets.load(&#39;mnist&#39;, labels_only=True)
+
+        model = gl.clustering.spectral(W, num_clusters=10, extra_dim=4)
+        pred_labels = model.fit_predict(all_labels=labels)
+        
+        accuracy = gl.clustering.clustering_accuracy(pred_labels,labels)
+        print(&#39;Clustering Accuracy: %.2f%%&#39;%accuracy)
+        ```
+
+        Reference
+        ---------
+        [1] U. Von Luxburg.  [A tutorial on spectral clustering.](https://link.springer.com/content/pdf/10.1007/s11222-007-9033-z.pdf) Statistics and computing 17.4 (2007): 395-416.
+        &#34;&#34;&#34;
+        super().__init__(W, num_clusters)
+            
+        self.method = method
+        self.extra_dim = extra_dim
+
+    def _fit(self, all_labels=None):
+
+        n = self.graph.num_nodes
+        num_clusters = self.num_clusters
+        method = self.method
+        extra_dim = self.extra_dim
+
+        if method == &#39;combinatorial&#39;:
+            vals, vec = self.graph.eigen_decomp(k=num_clusters+extra_dim)
+        elif method == &#39;ShiMalik&#39;:
+            vals, vec = self.graph.eigen_decomp(normalization=&#39;randomwalk&#39;, k=num_clusters+extra_dim)
+        elif method == &#39;NgJordanWeiss&#39;:
+            vals, vec = self.graph.eigen_decomp(normalization=&#39;normalized&#39;, k=num_clusters+extra_dim)
+            norms = np.sum(vec*vec,axis=1)
+            T = sparse.spdiags(norms**(-1/2),0,n,n)
+            vec = T@vec  #Normalize rows
+        else:
+            sys.exit(&#34;Invalid spectral clustering method &#34; + method)
+
+        kmeans = cluster.KMeans(n_clusters=num_clusters).fit(vec)
+
+        return kmeans.labels_
+
+class incres(clustering):
+    def __init__(self, W, num_clusters, speed=5, T=200):
+        &#34;&#34;&#34;INCRES clustering
+        ===================
+
+        Implements the INCRES clustering algorithm from [1].
+
+        Parameters
+        ----------
+        W : numpy array, scipy sparse matrix, or graphlearning graph object
+            Weight matrix representing the graph.
+        num_clusters : int
+            Number of desired clusters.
+        speed : float (optional), default=5
+            Speed parameter.
+        T : int (optional), default=100
+            Number of iterations.
+
+        Example
+        ----
+        INCRES clustering on MNIST: [incres_mnist.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/incres_mnist.py).
+        ```py
+        import graphlearning as gl
+
+        W = gl.weightmatrix.knn(&#39;mnist&#39;, 10, metric=&#39;vae&#39;)
+        labels = gl.datasets.load(&#39;mnist&#39;, labels_only=True)
+
+        model = gl.clustering.incres(W, num_clusters=10)
+        pred_labels = model.fit_predict(all_labels=labels)
+        
+        accuracy = gl.clustering.clustering_accuracy(pred_labels,labels)
+        print(&#39;Clustering Accuracy: %.2f%%&#39;%accuracy)
+        ```
+
+        Reference
+        ---------
+        [1] X. Bresson, H. Hu, T. Laurent, A. Szlam, and J. von Brecht. [An incremental reseeding strategy for clustering](https://arxiv.org/pdf/1406.3837.pdf). In International Conference on Imaging, Vision and Learning based on Optimization and PDEs (pp. 203-219), 2016.
+        &#34;&#34;&#34;
+        super().__init__(W, num_clusters)
+            
+        self.speed = speed
+        self.T = T
+
+    def _fit(self, all_labels=None):
+
+        #Short cuts
+        n = self.graph.num_nodes
+        speed = self.speed
+        T = self.T
+        k = self.num_clusters
+
+        #Increment
+        Dm = np.maximum(int(speed*1e-4*n/k),1)
+        
+        #Random initial labeling
+        u = np.random.randint(0,k,size=n)
+
+        #Initialization
+        F = np.zeros((n,k))
+        J = np.arange(n).astype(int)
+
+        #Random walk transition
+        D = self.graph.degree_matrix(p=-1)
+        P = self.graph.weight_matrix*D
+
+        m = int(1)
+        for i in range(T):
+            #Plant
+            F.fill(0)
+            for r in range(k):
+                I = u == r
+                ind = J[I]
+                F[ind[np.random.choice(np.sum(I),m)],r] = 1
+            
+            #Grow
+            while np.min(F) == 0:
+                F = P*F
+
+            #Harvest
+            u = np.argmax(F,axis=1)
+
+            #Increment
+            m = m + Dm
+                
+            #Compute accuracy
+            if all_labels is not None: 
+                acc = clustering_accuracy(u,all_labels)
+                print(&#34;Iteration &#34;+str(i)+&#34;: Accuracy = %.2f&#34; % acc+&#34;%%, #seeds= %d&#34; % m)
+
+        return u
+
+def withinss(x):
+    &#34;&#34;&#34;WithinSS
+    ======
+
+    Clustering of 1D data with WithinSS. Gives exact solution to the 2-means clustering problem
+
+    Parameters
+    ----------
+    x : numpy array
+        1D array of data to cluter.
+
+    Returns
+    -------
+    w : float
+        WithinSS value, essentially the 2-means energy.
+    m : float
+        Threshold that clusters the data array x optimally.
+    &#34;&#34;&#34;
+
+    x = np.sort(x)
+    n = x.shape[0]
+    sigma = np.std(x)
+    v = np.zeros(n-1,)
+
+    #Initial values for m1,m2
+    x1 = x[:1]
+    x2 = x[1:]
+    m1 = np.mean(x1)
+    m2 = np.mean(x2)
+    for i in range(n-1):
+        v[i] = (i+1)*m1**2 + (n-i-1)*m2**2
+        if i &lt; n-2:
+            m1 = ((i+1)*m1 + x[i+1])/(i+2)
+            m2 = ((n-i-1)*m2 - x[i+1])/(n-i-2)
+    ind = np.argmax(v)
+    m = x[ind]
+    w = (np.sum(x**2) - v[ind])/(n*sigma**2)
+    return w,m
+
+def RP1D(X,T=100):
+    &#34;&#34;&#34;Random Projection Clustering
+    ======
+
+    Binary clustering of 1D data with the Random Projection 1D (RP1D) clustering method from [1].
+
+    Parameters
+    ----------
+    X : numpy array
+        (n,d) dimensional array of n datapoints in dimension d.
+    T : int (optional), default=100
+        Number of random projections to try.
+
+    Example
+    -------
+    RP1D clustering on MNIST: [RP1D_mnist.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/RP1D_mnist.py).
+    ```py
+    import graphlearning as gl
+
+    data, labels = gl.datasets.load(&#39;mnist&#39;)
+
+    x = data[labels &lt;= 1] 
+    y = labels[labels &lt;= 1]
+    y_pred = gl.clustering.RP1D(x,20)
+
+    accuracy = gl.clustering.clustering_accuracy(y_pred, y)
+    print(&#39;Clustering Accuracy: %.2f%%&#39;%accuracy)
+    ```
+
+    Returns
+    -------
+    cluster_labels : int
+        0/1 array indicating cluster membership
+
+    References
+    ----------
+    [1] S. Han and M. Boutin. [The hidden structure of image datasets.](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7350969&amp;casa_token=UsN9y0textMAAAAA:-K9r-Sv4njFQ_txJUpkqCbavM-wTA2CmkgU3co7RjmjTKdcP3guTjahyHA7jZBs1WZTz-E2fETQ&amp;tag=1) 2015 IEEE International Conference on Image Processing (ICIP). IEEE, 2015.
+    &#34;&#34;&#34;
+
+    n = X.shape[0]
+    d = X.shape[1]
+    v = np.random.rand(T,d)
+    wmin = np.inf
+    imin = 0;
+    for i in range(T):
+        x = np.sum(v[i,:]*X,axis=1)
+        w,m = withinss(x)
+        if w &lt; wmin:
+            wmin = w
+            imin = i
+    x = np.sum(v[imin,:]*X,axis=1)
+    w,m = withinss(x)
+
+    cluster_labels = np.zeros(n,)
+    cluster_labels[x&gt;m] = 1
+
+    return cluster_labels
+
+def clustering_accuracy(pred_labels,true_labels):
+    &#34;&#34;&#34;Clustering accuracy
+    ======
+
+    Accuracy for clustering in graph learning. Uses a linear sum assignment
+    to find the best permutation of cluster labels.
+
+    Parameters
+    ----------
+    pred_labels : numpy array, int
+        Predicted labels
+    true_labels : numpy array, int
+        True labels
+
+    Returns
+    -------
+    accuracy : float
+        Accuracy as a number in [0,100].
+    &#34;&#34;&#34;
+
+    unique_classes = np.unique(true_labels)
+    num_classes = len(unique_classes)
+
+    C = np.zeros((num_classes, num_classes), dtype=float)
+    for i in range(num_classes):
+        for j in range(num_classes):
+            C[i][j] = np.sum((pred_labels == i) &amp; (true_labels != j))
+    row_ind, col_ind = opt.linear_sum_assignment(C)
+
+    return 100*(1-C[row_ind,col_ind].sum()/len(pred_labels))</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="graphlearning.clustering.RP1D"><code class="name flex">
+<span>def <span class="ident">RP1D</span></span>(<span>X, T=100)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="random-projection-clustering">Random Projection Clustering</h1>
+<p>Binary clustering of 1D data with the Random Projection 1D (RP1D) clustering method from [1].</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>(n,d) dimensional array of n datapoints in dimension d.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>int (optional)</code>, default=<code>100</code></dt>
+<dd>Number of random projections to try.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>RP1D clustering on MNIST: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/RP1D_mnist.py">RP1D_mnist.py</a>.</p>
+<pre><code class="py">import graphlearning as gl
+
+data, labels = gl.datasets.load('mnist')
+
+x = data[labels &lt;= 1] 
+y = labels[labels &lt;= 1]
+y_pred = gl.clustering.RP1D(x,20)
+
+accuracy = gl.clustering.clustering_accuracy(y_pred, y)
+print('Clustering Accuracy: %.2f%%'%accuracy)
+</code></pre>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>cluster_labels</code></strong> :&ensp;<code>int</code></dt>
+<dd>0/1 array indicating cluster membership</dd>
+</dl>
+<h2 id="references">References</h2>
+<p>[1] S. Han and M. Boutin. <a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7350969&amp;casa_token=UsN9y0textMAAAAA:-K9r-Sv4njFQ_txJUpkqCbavM-wTA2CmkgU3co7RjmjTKdcP3guTjahyHA7jZBs1WZTz-E2fETQ&amp;tag=1">The hidden structure of image datasets.</a> 2015 IEEE International Conference on Image Processing (ICIP). IEEE, 2015.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def RP1D(X,T=100):
+    &#34;&#34;&#34;Random Projection Clustering
+    ======
+
+    Binary clustering of 1D data with the Random Projection 1D (RP1D) clustering method from [1].
+
+    Parameters
+    ----------
+    X : numpy array
+        (n,d) dimensional array of n datapoints in dimension d.
+    T : int (optional), default=100
+        Number of random projections to try.
+
+    Example
+    -------
+    RP1D clustering on MNIST: [RP1D_mnist.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/RP1D_mnist.py).
+    ```py
+    import graphlearning as gl
+
+    data, labels = gl.datasets.load(&#39;mnist&#39;)
+
+    x = data[labels &lt;= 1] 
+    y = labels[labels &lt;= 1]
+    y_pred = gl.clustering.RP1D(x,20)
+
+    accuracy = gl.clustering.clustering_accuracy(y_pred, y)
+    print(&#39;Clustering Accuracy: %.2f%%&#39;%accuracy)
+    ```
+
+    Returns
+    -------
+    cluster_labels : int
+        0/1 array indicating cluster membership
+
+    References
+    ----------
+    [1] S. Han and M. Boutin. [The hidden structure of image datasets.](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7350969&amp;casa_token=UsN9y0textMAAAAA:-K9r-Sv4njFQ_txJUpkqCbavM-wTA2CmkgU3co7RjmjTKdcP3guTjahyHA7jZBs1WZTz-E2fETQ&amp;tag=1) 2015 IEEE International Conference on Image Processing (ICIP). IEEE, 2015.
+    &#34;&#34;&#34;
+
+    n = X.shape[0]
+    d = X.shape[1]
+    v = np.random.rand(T,d)
+    wmin = np.inf
+    imin = 0;
+    for i in range(T):
+        x = np.sum(v[i,:]*X,axis=1)
+        w,m = withinss(x)
+        if w &lt; wmin:
+            wmin = w
+            imin = i
+    x = np.sum(v[imin,:]*X,axis=1)
+    w,m = withinss(x)
+
+    cluster_labels = np.zeros(n,)
+    cluster_labels[x&gt;m] = 1
+
+    return cluster_labels</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.clustering.clustering_accuracy"><code class="name flex">
+<span>def <span class="ident">clustering_accuracy</span></span>(<span>pred_labels, true_labels)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="clustering-accuracy">Clustering accuracy</h1>
+<p>Accuracy for clustering in graph learning. Uses a linear sum assignment
+to find the best permutation of cluster labels.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>pred_labels</code></strong> :&ensp;<code>numpy array, int</code></dt>
+<dd>Predicted labels</dd>
+<dt><strong><code>true_labels</code></strong> :&ensp;<code>numpy array, int</code></dt>
+<dd>True labels</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>accuracy</code></strong> :&ensp;<code>float</code></dt>
+<dd>Accuracy as a number in [0,100].</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def clustering_accuracy(pred_labels,true_labels):
+    &#34;&#34;&#34;Clustering accuracy
+    ======
+
+    Accuracy for clustering in graph learning. Uses a linear sum assignment
+    to find the best permutation of cluster labels.
+
+    Parameters
+    ----------
+    pred_labels : numpy array, int
+        Predicted labels
+    true_labels : numpy array, int
+        True labels
+
+    Returns
+    -------
+    accuracy : float
+        Accuracy as a number in [0,100].
+    &#34;&#34;&#34;
+
+    unique_classes = np.unique(true_labels)
+    num_classes = len(unique_classes)
+
+    C = np.zeros((num_classes, num_classes), dtype=float)
+    for i in range(num_classes):
+        for j in range(num_classes):
+            C[i][j] = np.sum((pred_labels == i) &amp; (true_labels != j))
+    row_ind, col_ind = opt.linear_sum_assignment(C)
+
+    return 100*(1-C[row_ind,col_ind].sum()/len(pred_labels))</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.clustering.withinss"><code class="name flex">
+<span>def <span class="ident">withinss</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="withinss">WithinSS</h1>
+<p>Clustering of 1D data with WithinSS. Gives exact solution to the 2-means clustering problem</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>1D array of data to cluter.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>w</code></strong> :&ensp;<code>float</code></dt>
+<dd>WithinSS value, essentially the 2-means energy.</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>Threshold that clusters the data array x optimally.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def withinss(x):
+    &#34;&#34;&#34;WithinSS
+    ======
+
+    Clustering of 1D data with WithinSS. Gives exact solution to the 2-means clustering problem
+
+    Parameters
+    ----------
+    x : numpy array
+        1D array of data to cluter.
+
+    Returns
+    -------
+    w : float
+        WithinSS value, essentially the 2-means energy.
+    m : float
+        Threshold that clusters the data array x optimally.
+    &#34;&#34;&#34;
+
+    x = np.sort(x)
+    n = x.shape[0]
+    sigma = np.std(x)
+    v = np.zeros(n-1,)
+
+    #Initial values for m1,m2
+    x1 = x[:1]
+    x2 = x[1:]
+    m1 = np.mean(x1)
+    m2 = np.mean(x2)
+    for i in range(n-1):
+        v[i] = (i+1)*m1**2 + (n-i-1)*m2**2
+        if i &lt; n-2:
+            m1 = ((i+1)*m1 + x[i+1])/(i+2)
+            m2 = ((n-i-1)*m2 - x[i+1])/(n-i-2)
+    ind = np.argmax(v)
+    m = x[ind]
+    w = (np.sum(x**2) - v[ind])/(n*sigma**2)
+    return w,m</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="graphlearning.clustering.clustering"><code class="flex name class">
+<span>class <span class="ident">clustering</span></span>
+<span>(</span><span>W, num_clusters)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class clustering:
+    __metaclass__ = ABCMeta
+
+    def __init__(self, W, num_clusters):
+        if type(W) == graph.graph:
+            self.graph = W
+        else:
+            self.graph = graph.graph(W)
+        self.cluster_labels = None
+        self.num_clusters = num_clusters
+        self.fitted = False
+
+    def predict(self):
+        &#34;&#34;&#34;Predict
+        ========
+
+        Makes label predictions based on clustering. 
+        
+        Returns
+        -------
+        pred_labels : (int) numpy array
+            Predicted labels as integers for all datapoints in the graph.
+        &#34;&#34;&#34;
+
+        if self.fitted == False:
+            sys.exit(&#39;Model has not been fitted yet.&#39;)
+
+        return self.cluster_labels
+
+    def fit_predict(self, all_labels=None):
+        &#34;&#34;&#34;Fit and predict
+        ======
+
+        Calls fit() and predict() sequentially.
+
+        Parameters
+        ----------
+        all_labels : numpy array, int (optional)
+            True labels for all datapoints.
+
+        Returns
+        -------
+        pred_labels : (int) numpy array
+            Predicted labels as integers for all datapoints in the graph.
+        &#34;&#34;&#34;
+
+        self.fit(all_labels=all_labels)
+        return self.predict()
+
+    def fit(self, all_labels=None):
+        &#34;&#34;&#34;Fit
+        ======
+
+        Solves clustering problem to perform clustering. 
+
+        Parameters
+        ----------
+        all_labels : numpy array, int (optional)
+            True labels for all datapoints.
+
+        Returns
+        -------
+        all_labels : numpy array, int (optional)
+            True labels for all datapoints.
+        &#34;&#34;&#34;
+
+        pred_labels = self._fit(all_labels=all_labels)
+        self.fitted = True
+        self.cluster_labels = pred_labels
+
+        return pred_labels
+
+
+    @abstractmethod
+    def _fit(self, all_labels=None):
+        &#34;&#34;&#34;Fit
+        ======
+
+        Solves clustering problem to perform clustering. 
+
+        Parameters
+        ----------
+        all_labels : numpy array, int (optional)
+            True labels for all datapoints.
+
+        Returns
+        -------
+        all_labels : numpy array, int (optional)
+            True labels for all datapoints.
+        &#34;&#34;&#34;
+
+        raise NotImplementedError(&#34;Must override _fit&#34;)</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="graphlearning.clustering.incres" href="#graphlearning.clustering.incres">incres</a></li>
+<li><a title="graphlearning.clustering.spectral" href="#graphlearning.clustering.spectral">spectral</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="graphlearning.clustering.clustering.fit"><code class="name flex">
+<span>def <span class="ident">fit</span></span>(<span>self, all_labels=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="fit">Fit</h1>
+<p>Solves clustering problem to perform clustering. </p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>all_labels</code></strong> :&ensp;<code>numpy array, int (optional)</code></dt>
+<dd>True labels for all datapoints.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>all_labels</code></strong> :&ensp;<code>numpy array, int (optional)</code></dt>
+<dd>True labels for all datapoints.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fit(self, all_labels=None):
+    &#34;&#34;&#34;Fit
+    ======
+
+    Solves clustering problem to perform clustering. 
+
+    Parameters
+    ----------
+    all_labels : numpy array, int (optional)
+        True labels for all datapoints.
+
+    Returns
+    -------
+    all_labels : numpy array, int (optional)
+        True labels for all datapoints.
+    &#34;&#34;&#34;
+
+    pred_labels = self._fit(all_labels=all_labels)
+    self.fitted = True
+    self.cluster_labels = pred_labels
+
+    return pred_labels</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.clustering.clustering.fit_predict"><code class="name flex">
+<span>def <span class="ident">fit_predict</span></span>(<span>self, all_labels=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="fit-and-predict">Fit and predict</h1>
+<p>Calls fit() and predict() sequentially.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>all_labels</code></strong> :&ensp;<code>numpy array, int (optional)</code></dt>
+<dd>True labels for all datapoints.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>pred_labels</code></strong> :&ensp;<code>(int) numpy array</code></dt>
+<dd>Predicted labels as integers for all datapoints in the graph.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fit_predict(self, all_labels=None):
+    &#34;&#34;&#34;Fit and predict
+    ======
+
+    Calls fit() and predict() sequentially.
+
+    Parameters
+    ----------
+    all_labels : numpy array, int (optional)
+        True labels for all datapoints.
+
+    Returns
+    -------
+    pred_labels : (int) numpy array
+        Predicted labels as integers for all datapoints in the graph.
+    &#34;&#34;&#34;
+
+    self.fit(all_labels=all_labels)
+    return self.predict()</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.clustering.clustering.predict"><code class="name flex">
+<span>def <span class="ident">predict</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="predict">Predict</h1>
+<p>Makes label predictions based on clustering. </p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>pred_labels</code></strong> :&ensp;<code>(int) numpy array</code></dt>
+<dd>Predicted labels as integers for all datapoints in the graph.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def predict(self):
+    &#34;&#34;&#34;Predict
+    ========
+
+    Makes label predictions based on clustering. 
+    
+    Returns
+    -------
+    pred_labels : (int) numpy array
+        Predicted labels as integers for all datapoints in the graph.
+    &#34;&#34;&#34;
+
+    if self.fitted == False:
+        sys.exit(&#39;Model has not been fitted yet.&#39;)
+
+    return self.cluster_labels</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="graphlearning.clustering.incres"><code class="flex name class">
+<span>class <span class="ident">incres</span></span>
+<span>(</span><span>W, num_clusters, speed=5, T=200)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="incres-clustering">INCRES clustering</h1>
+<p>Implements the INCRES clustering algorithm from [1].</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dd>Weight matrix representing the graph.</dd>
+<dt><strong><code>num_clusters</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of desired clusters.</dd>
+<dt><strong><code>speed</code></strong> :&ensp;<code>float (optional)</code>, default=<code>5</code></dt>
+<dd>Speed parameter.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>int (optional)</code>, default=<code>100</code></dt>
+<dd>Number of iterations.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>INCRES clustering on MNIST: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/incres_mnist.py">incres_mnist.py</a>.</p>
+<pre><code class="py">import graphlearning as gl
+
+W = gl.weightmatrix.knn('mnist', 10, metric='vae')
+labels = gl.datasets.load('mnist', labels_only=True)
+
+model = gl.clustering.incres(W, num_clusters=10)
+pred_labels = model.fit_predict(all_labels=labels)
+
+accuracy = gl.clustering.clustering_accuracy(pred_labels,labels)
+print('Clustering Accuracy: %.2f%%'%accuracy)
+</code></pre>
+<h2 id="reference">Reference</h2>
+<p>[1] X. Bresson, H. Hu, T. Laurent, A. Szlam, and J. von Brecht. <a href="https://arxiv.org/pdf/1406.3837.pdf">An incremental reseeding strategy for clustering</a>. In International Conference on Imaging, Vision and Learning based on Optimization and PDEs (pp. 203-219), 2016.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class incres(clustering):
+    def __init__(self, W, num_clusters, speed=5, T=200):
+        &#34;&#34;&#34;INCRES clustering
+        ===================
+
+        Implements the INCRES clustering algorithm from [1].
+
+        Parameters
+        ----------
+        W : numpy array, scipy sparse matrix, or graphlearning graph object
+            Weight matrix representing the graph.
+        num_clusters : int
+            Number of desired clusters.
+        speed : float (optional), default=5
+            Speed parameter.
+        T : int (optional), default=100
+            Number of iterations.
+
+        Example
+        ----
+        INCRES clustering on MNIST: [incres_mnist.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/incres_mnist.py).
+        ```py
+        import graphlearning as gl
+
+        W = gl.weightmatrix.knn(&#39;mnist&#39;, 10, metric=&#39;vae&#39;)
+        labels = gl.datasets.load(&#39;mnist&#39;, labels_only=True)
+
+        model = gl.clustering.incres(W, num_clusters=10)
+        pred_labels = model.fit_predict(all_labels=labels)
+        
+        accuracy = gl.clustering.clustering_accuracy(pred_labels,labels)
+        print(&#39;Clustering Accuracy: %.2f%%&#39;%accuracy)
+        ```
+
+        Reference
+        ---------
+        [1] X. Bresson, H. Hu, T. Laurent, A. Szlam, and J. von Brecht. [An incremental reseeding strategy for clustering](https://arxiv.org/pdf/1406.3837.pdf). In International Conference on Imaging, Vision and Learning based on Optimization and PDEs (pp. 203-219), 2016.
+        &#34;&#34;&#34;
+        super().__init__(W, num_clusters)
+            
+        self.speed = speed
+        self.T = T
+
+    def _fit(self, all_labels=None):
+
+        #Short cuts
+        n = self.graph.num_nodes
+        speed = self.speed
+        T = self.T
+        k = self.num_clusters
+
+        #Increment
+        Dm = np.maximum(int(speed*1e-4*n/k),1)
+        
+        #Random initial labeling
+        u = np.random.randint(0,k,size=n)
+
+        #Initialization
+        F = np.zeros((n,k))
+        J = np.arange(n).astype(int)
+
+        #Random walk transition
+        D = self.graph.degree_matrix(p=-1)
+        P = self.graph.weight_matrix*D
+
+        m = int(1)
+        for i in range(T):
+            #Plant
+            F.fill(0)
+            for r in range(k):
+                I = u == r
+                ind = J[I]
+                F[ind[np.random.choice(np.sum(I),m)],r] = 1
+            
+            #Grow
+            while np.min(F) == 0:
+                F = P*F
+
+            #Harvest
+            u = np.argmax(F,axis=1)
+
+            #Increment
+            m = m + Dm
+                
+            #Compute accuracy
+            if all_labels is not None: 
+                acc = clustering_accuracy(u,all_labels)
+                print(&#34;Iteration &#34;+str(i)+&#34;: Accuracy = %.2f&#34; % acc+&#34;%%, #seeds= %d&#34; % m)
+
+        return u</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="graphlearning.clustering.clustering" href="#graphlearning.clustering.clustering">clustering</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="graphlearning.clustering.clustering" href="#graphlearning.clustering.clustering">clustering</a></b></code>:
+<ul class="hlist">
+<li><code><a title="graphlearning.clustering.clustering.fit" href="#graphlearning.clustering.clustering.fit">fit</a></code></li>
+<li><code><a title="graphlearning.clustering.clustering.fit_predict" href="#graphlearning.clustering.clustering.fit_predict">fit_predict</a></code></li>
+<li><code><a title="graphlearning.clustering.clustering.predict" href="#graphlearning.clustering.clustering.predict">predict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="graphlearning.clustering.spectral"><code class="flex name class">
+<span>class <span class="ident">spectral</span></span>
+<span>(</span><span>W, num_clusters, method='NgJordanWeiss', extra_dim=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="spectral-clustering">Spectral clustering</h1>
+<p>Implements several methods for spectral clustering, including Shi-Malik and Ng-Jordan-Weiss. See
+the tutorial paper [1] for details.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dd>Weight matrix representing the graph.</dd>
+<dt><strong><code>num_clusters</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of desired clusters.</dd>
+<dt><strong><code>method</code></strong> :&ensp;<code>{'combinatorial', 'ShiMalik', 'NgJordanWeiss'} (optional)</code>, default=<code>'NgJordanWeiss'</code></dt>
+<dd>Spectral clustering method.</dd>
+<dt><strong><code>extra_dim</code></strong> :&ensp;<code>int (optional)</code>, default=<code>0</code></dt>
+<dd>Extra dimensions to include in spectral embedding.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<p>Spectral clustering on the two-moons dataset: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/spectral_twomoons.py">spectral_twomoons.py</a>.</p>
+<pre><code class="py">import numpy as np
+import graphlearning as gl
+import matplotlib.pyplot as plt
+import sklearn.datasets as datasets
+
+X,labels = datasets.make_moons(n_samples=500,noise=0.1)
+W = gl.weightmatrix.knn(X,10)
+
+model = gl.clustering.spectral(W, num_clusters=2)
+pred_labels = model.fit_predict()
+
+accuracy = gl.clustering.clustering_accuracy(pred_labels, labels)
+print('Clustering Accuracy: %.2f%%'%accuracy)
+
+plt.scatter(X[:,0],X[:,1], c=pred_labels)
+plt.axis('off')
+plt.show()
+</code></pre>
+<p>Spectral clustering on MNIST: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/spectral_mnist.py">spectral_mnist.py</a>.</p>
+<pre><code class="py">import graphlearning as gl
+
+W = gl.weightmatrix.knn('mnist', 10, metric='vae')
+labels = gl.datasets.load('mnist', labels_only=True)
+
+model = gl.clustering.spectral(W, num_clusters=10, extra_dim=4)
+pred_labels = model.fit_predict(all_labels=labels)
+
+accuracy = gl.clustering.clustering_accuracy(pred_labels,labels)
+print('Clustering Accuracy: %.2f%%'%accuracy)
+</code></pre>
+<h2 id="reference">Reference</h2>
+<p>[1] U. Von Luxburg.
+<a href="https://link.springer.com/content/pdf/10.1007/s11222-007-9033-z.pdf">A tutorial on spectral clustering.</a> Statistics and computing 17.4 (2007): 395-416.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class spectral(clustering):
+    def __init__(self, W, num_clusters, method=&#39;NgJordanWeiss&#39;, extra_dim=0):
+        &#34;&#34;&#34;Spectral clustering
+        ===================
+
+        Implements several methods for spectral clustering, including Shi-Malik and Ng-Jordan-Weiss. See
+        the tutorial paper [1] for details.
+
+        Parameters
+        ----------
+        W : numpy array, scipy sparse matrix, or graphlearning graph object
+            Weight matrix representing the graph.
+        num_clusters : int
+            Number of desired clusters.
+        method : {&#39;combinatorial&#39;, &#39;ShiMalik&#39;, &#39;NgJordanWeiss&#39;} (optional), default=&#39;NgJordanWeiss&#39;
+            Spectral clustering method.
+        extra_dim : int (optional), default=0
+            Extra dimensions to include in spectral embedding.
+        
+        Examples
+        ----
+        Spectral clustering on the two-moons dataset: [spectral_twomoons.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/spectral_twomoons.py).
+        ```py
+        import numpy as np
+        import graphlearning as gl
+        import matplotlib.pyplot as plt
+        import sklearn.datasets as datasets
+
+        X,labels = datasets.make_moons(n_samples=500,noise=0.1)
+        W = gl.weightmatrix.knn(X,10)
+
+        model = gl.clustering.spectral(W, num_clusters=2)
+        pred_labels = model.fit_predict()
+
+        accuracy = gl.clustering.clustering_accuracy(pred_labels, labels)
+        print(&#39;Clustering Accuracy: %.2f%%&#39;%accuracy)
+
+        plt.scatter(X[:,0],X[:,1], c=pred_labels)
+        plt.axis(&#39;off&#39;)
+        plt.show()
+        ```
+        Spectral clustering on MNIST: [spectral_mnist.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/spectral_mnist.py).
+        ```py
+        import graphlearning as gl
+
+        W = gl.weightmatrix.knn(&#39;mnist&#39;, 10, metric=&#39;vae&#39;)
+        labels = gl.datasets.load(&#39;mnist&#39;, labels_only=True)
+
+        model = gl.clustering.spectral(W, num_clusters=10, extra_dim=4)
+        pred_labels = model.fit_predict(all_labels=labels)
+        
+        accuracy = gl.clustering.clustering_accuracy(pred_labels,labels)
+        print(&#39;Clustering Accuracy: %.2f%%&#39;%accuracy)
+        ```
+
+        Reference
+        ---------
+        [1] U. Von Luxburg.  [A tutorial on spectral clustering.](https://link.springer.com/content/pdf/10.1007/s11222-007-9033-z.pdf) Statistics and computing 17.4 (2007): 395-416.
+        &#34;&#34;&#34;
+        super().__init__(W, num_clusters)
+            
+        self.method = method
+        self.extra_dim = extra_dim
+
+    def _fit(self, all_labels=None):
+
+        n = self.graph.num_nodes
+        num_clusters = self.num_clusters
+        method = self.method
+        extra_dim = self.extra_dim
+
+        if method == &#39;combinatorial&#39;:
+            vals, vec = self.graph.eigen_decomp(k=num_clusters+extra_dim)
+        elif method == &#39;ShiMalik&#39;:
+            vals, vec = self.graph.eigen_decomp(normalization=&#39;randomwalk&#39;, k=num_clusters+extra_dim)
+        elif method == &#39;NgJordanWeiss&#39;:
+            vals, vec = self.graph.eigen_decomp(normalization=&#39;normalized&#39;, k=num_clusters+extra_dim)
+            norms = np.sum(vec*vec,axis=1)
+            T = sparse.spdiags(norms**(-1/2),0,n,n)
+            vec = T@vec  #Normalize rows
+        else:
+            sys.exit(&#34;Invalid spectral clustering method &#34; + method)
+
+        kmeans = cluster.KMeans(n_clusters=num_clusters).fit(vec)
+
+        return kmeans.labels_</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="graphlearning.clustering.clustering" href="#graphlearning.clustering.clustering">clustering</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="graphlearning.clustering.clustering" href="#graphlearning.clustering.clustering">clustering</a></b></code>:
+<ul class="hlist">
+<li><code><a title="graphlearning.clustering.clustering.fit" href="#graphlearning.clustering.clustering.fit">fit</a></code></li>
+<li><code><a title="graphlearning.clustering.clustering.fit_predict" href="#graphlearning.clustering.clustering.fit_predict">fit_predict</a></code></li>
+<li><code><a title="graphlearning.clustering.clustering.predict" href="#graphlearning.clustering.clustering.predict">predict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#clustering">Clustering</a></li>
+</ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="graphlearning" href="index.html">graphlearning</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="graphlearning.clustering.RP1D" href="#graphlearning.clustering.RP1D">RP1D</a></code></li>
+<li><code><a title="graphlearning.clustering.clustering_accuracy" href="#graphlearning.clustering.clustering_accuracy">clustering_accuracy</a></code></li>
+<li><code><a title="graphlearning.clustering.withinss" href="#graphlearning.clustering.withinss">withinss</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="graphlearning.clustering.clustering" href="#graphlearning.clustering.clustering">clustering</a></code></h4>
+<ul class="">
+<li><code><a title="graphlearning.clustering.clustering.fit" href="#graphlearning.clustering.clustering.fit">fit</a></code></li>
+<li><code><a title="graphlearning.clustering.clustering.fit_predict" href="#graphlearning.clustering.clustering.fit_predict">fit_predict</a></code></li>
+<li><code><a title="graphlearning.clustering.clustering.predict" href="#graphlearning.clustering.clustering.predict">predict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graphlearning.clustering.incres" href="#graphlearning.clustering.incres">incres</a></code></h4>
+</li>
+<li>
+<h4><code><a title="graphlearning.clustering.spectral" href="#graphlearning.clustering.spectral">spectral</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

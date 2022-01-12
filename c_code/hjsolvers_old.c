@@ -13,6 +13,16 @@
 #include "memory_allocation.h"
 #include "hjsolvers.h"
 
+//Strucure to hold the weights and values of nearest neighbors
+struct NearestNeighbors {
+   double w;
+   double u;
+};
+//Comparison function for NearestNeighbors
+int compare (const void * a, const void * b)
+{
+    return ( (*(struct NearestNeighbors*)b).u - (*(struct NearestNeighbors*)a).u );
+}
 //Heap functions
 //d = values in heap (indexed by graph vertex)
 //h = heap (contains indices of graph elements in heap)
@@ -388,7 +398,7 @@ void HJsolver_jacobi(double *d, int *l, int *WI, int *K, double *WV, int *I, int
                kk = WI[ii];
                if(d[kk] < INFINITY){
                   u_vals[num_nn] = d[kk];
-                  w_vals[num_nn] = WV[kk];
+                  w_vals[num_nn] = WV[ii];
                   num_nn++;
                }
             }
@@ -455,7 +465,37 @@ double peikonal_solver(double *u, double *w, double f, int n, double p, int num_
    return (a+b)/2.0;
 }
 
+double peikonal_solver_fast(double *u, double *w, double f, int n){
 
+   int i,j;
+   double min_val = u[0];
+   double max_val = u[0];
+   double degree = 0;
+   for(i=0; i<n; i++){
+      min_val = MIN(u[i],min_val);
+      max_val = MAX(u[i],max_val);
+      degree += w[i];
+   }
+
+   //Initial bounds for bisection
+   double inc = f/degree;
+   double a = min_val + inc;
+   double b = max_val + inc;
+
+   for(j=0; j<30; j++){
+      double op = 0.0;
+      double t = (a+b)/2.0;
+      for(i=0; i<n; i++){
+         double v = MAX(t-u[i],0);
+         op+=w[i]*v;
+      }
+      if(op > f)
+         b = t;
+      else
+         a = t;
+   }
+   return (a+b)/2.0;
+}
 
 
 void peikonal_main(double *u, int *WI, int *K, double *WV, int *I, double *f,  double *g, double p_val, int max_num_it, double tol, int num_bisection_it, bool prog, int n, int M, int k){
@@ -476,6 +516,7 @@ void peikonal_main(double *u, int *WI, int *K, double *WV, int *I, double *f,  d
    //Iteration for solving
    int T = 0;
    double err = tol+1;
+   double newu;
    while(T++ < max_num_it && err > tol){
       err = 0;
       for(j=0; j<n; j++){
@@ -489,7 +530,12 @@ void peikonal_main(double *u, int *WI, int *K, double *WV, int *I, double *f,  d
                num_nn++;
             }
             if(num_nn>0){
-               double newu = peikonal_solver(u_vals,w_vals,f[j],num_nn,p_val,num_bisection_it);
+
+               if(p_val == 1)
+                  newu = peikonal_solver_fast(u_vals,w_vals,f[j],num_nn);
+               else
+                  newu = peikonal_solver(u_vals,w_vals,f[j],num_nn,p_val,num_bisection_it);
+
                err = MAX(ABS(newu - u[j]),err);
                u[j] = newu;
             }else{
@@ -501,3 +547,5 @@ void peikonal_main(double *u, int *WI, int *K, double *WV, int *I, double *f,  d
          printf("T=%d, err=%f\n",T,err);
    }
 }
+
+
