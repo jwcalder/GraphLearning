@@ -164,7 +164,8 @@ class ssl:
 
         n = self.graph.num_nodes
         k = self.prob.shape[1]
-        self.weights = np.ones((k,))
+        if type(self.weights) == int:
+            self.weights = np.ones((k,))
 
         #Time step
         dt = 0.1
@@ -184,6 +185,8 @@ class ssl:
             self.weights = self.weights/self.weights[0]
 
         self.class_priors_error = err
+
+        return self.predict()
 
     def get_accuracy_filename(self):
         """Get accuracy filename
@@ -497,7 +500,7 @@ class poisson(ssl):
         \\(\\delta_j\\) are standard basis vectors. See the reference for more details.
 
         Implements 3 different solvers, spectral, gradient_descent, and conjugate_gradient. 
-        GPU acceleration is available for gradient descent. 
+        GPU acceleration is available for gradient descent. See [1] for details.
 
         Parameters
         ----------
@@ -550,7 +553,7 @@ class poisson(ssl):
 
         Reference
         ---------
-        J. Calder, B. Cook, M. Thorpe, D. Slepcev. [Poisson Learning: Graph Based Semi-Supervised
+        [1] J. Calder, B. Cook, M. Thorpe, D. Slepcev. [Poisson Learning: Graph Based Semi-Supervised
         Learning at Very Low Label Rates.](http://proceedings.mlr.press/v119/calder20a.html), 
         Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1306-1316, 2020.
         """
@@ -663,6 +666,152 @@ class poisson(ssl):
 
         else:
             sys.exit("Invalid Poisson solver " + self.solver)
+
+        return u
+
+class poisson_mbo(ssl):
+    def __init__(self, W, class_priors, solver='conjugate_gradient', use_cuda=False, min_iter=50, max_iter=1000, tol=1e-3, spectral_cutoff=10, Ns=40, mu=1, T=20):
+        """PoissonMBO 
+        ===================
+
+        Semi-supervised learning via Poisson MBO method [1].
+
+        Parameters
+        ----------
+        W : numpy array, scipy sparse matrix, or graphlearning graph object
+            Weight matrix representing the graph.
+        class_priors : numpy array
+            Class priors (fraction of data belonging to each class). 
+        solver : {'spectral', 'conjugate_gradient', 'gradient_descent'} (optional), default='conjugate_gradient'
+            Choice of solver for Poisson learning.
+        use_cuda : bool (optional), default=False
+            Whether to use GPU acceleration for gradient descent solver.
+        min_iter : int (optional), default=50
+            Minimum number of iterations of gradient descent before checking stopping condition.
+        max_iter : int (optional), default=1000
+            Maximum number of iterations of gradient descent.
+        tol : float (optional), default=1e-3
+            Tolerance for conjugate gradient solver.
+        spectral_cutoff : int (optional), default=10
+            Number of eigenvectors to use for spectral solver.
+        Ns : int (opitional), default=40
+            Number of inner iterations in PoissonMBO.
+        mu : float (optional), default=1
+            Fidelity parameter.
+        T : int (optional), default=20
+            Number of MBO iterations.
+        
+        Example
+        -------
+        Running PoissonMBO on MNIST at 1 label per class: [poisson_mbo.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/poisson_mbo.py).
+        ```py
+        import graphlearning as gl
+
+        labels = gl.datasets.load('mnist', labels_only=True)
+        W = gl.weightmatrix.knn('mnist', 10, metric='vae')
+
+        num_train_per_class = 1
+        train_ind = gl.trainsets.generate(labels, rate=num_train_per_class)
+        train_labels = labels[train_ind]
+
+        class_priors = gl.utils.class_priors(labels)
+        model = gl.ssl.poisson_mbo(W, class_priors)
+        pred_labels = model.fit_predict(train_ind,train_labels,all_labels=labels)
+
+        accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,len(train_ind))
+        print(model.name + ': %.2f%%'%accuracy)
+        ```
+        Reference
+        ---------
+        [1] J. Calder, B. Cook, M. Thorpe, D. Slepcev. [Poisson Learning: Graph Based Semi-Supervised
+        Learning at Very Low Label Rates.](http://proceedings.mlr.press/v119/calder20a.html), 
+        Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1306-1316, 2020.
+        """
+        super().__init__(W, class_priors)
+
+        self.poisson_model = poisson(W, solver=solver, use_cuda=use_cuda, min_iter=min_iter, 
+                                     max_iter=max_iter, tol=tol, spectral_cutoff=spectral_cutoff)
+
+        self.Ns = Ns
+        self.mu = mu
+        self.T = T
+        self.use_cuda = use_cuda
+
+        #Setup accuracy filename
+        fname = '_poisson_mbo' 
+        if solver == 'spectral':
+            fname += '_N%d'%spectral_cutoff
+            self.requries_eig = True
+        fname += '_Ns_%d_mu_%.2f_T_%d'%(Ns,mu,T)
+        self.accuracy_filename = fname
+
+        #Setup Algorithm name
+        self.name = 'Poisson MBO' 
+
+    def _fit(self, train_ind, train_labels, all_labels=None):
+
+        #Short forms
+        Ns = self.Ns
+        mu = self.mu
+        T = self.T
+        use_cuda = self.use_cuda
+
+        n = self.graph.num_nodes
+        unique_labels = np.unique(train_labels)
+        k = len(unique_labels)
+
+        #Zero out diagonal for faster convergence
+        W = self.graph.weight_matrix
+        W = W - sparse.spdiags(W.diagonal(),0,n,n)
+        G = graph.graph(W)
+        
+        #Poisson source term
+        onehot = utils.labels_to_onehot(train_labels)
+        source = np.zeros((n, onehot.shape[1]))
+        source[train_ind] = onehot - np.mean(onehot, axis=0)
+
+        #Initialize via Poisson learning
+        labels = self.poisson_model.fit_predict(train_ind, train_labels, all_labels=all_labels)
+        u = utils.labels_to_onehot(labels)
+
+        #Time step for stability
+        dt = 1/np.max(G.degree_vector())
+
+        #Precompute some things
+        P = sparse.identity(n) - dt*G.laplacian()
+        Db = mu*dt*source
+
+        if use_cuda:
+            import torch
+            Pt = utils.torch_sparse(P).cuda()
+            Dbt = torch.from_numpy(Db).float().cuda()
+
+        for i in range(T):
+
+            #Heat equation step
+            if use_cuda:
+
+                #Put on GPU and run heat equation
+                ut = torch.from_numpy(u).float().cuda()
+                for j in range(Ns):
+                    ut = torch.sparse.addmm(Dbt,Pt,ut)
+
+                #Put back on CPU
+                u = ut.cpu().numpy()
+             
+            else: #Use CPU 
+                for j in range(Ns):
+                    u = P*u + Db
+
+            #Projection step
+            self.prob = u
+            labels = self.volume_label_projection()
+            u = utils.labels_to_onehot(labels)
+
+            #Compute accuracy if all labels are provided
+            if all_labels is not None:
+                acc = ssl_accuracy(labels,all_labels,len(train_ind))
+                print('%d, Accuracy = %.2f'%(i,acc))
 
         return u
 

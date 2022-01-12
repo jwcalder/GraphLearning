@@ -41,7 +41,7 @@ import numpy as np
 from scipy import linalg
 from scipy import sparse
 import matplotlib.pyplot as plt
-import ssl, os, urllib, sys, re, csv
+import ssl, os, urllib.request, sys, re, csv
 
 from . import weightmatrix
 from . import graph
@@ -285,7 +285,7 @@ def download_file(url, file):
         print(&#39;Downloading &#39;+url+&#39; to &#39;+file+&#39;...&#39;)
         urllib.request.urlretrieve(url, file)
     except:
-        sys.exit(&#39;Error: Cannot downoad &#39;+url+&#39;.&#39;)
+        sys.exit(&#39;Error: Cannot download &#39;+url+&#39;.&#39;)
 
 def sparse_max(A,B):
     &#34;&#34;&#34;Max of two sparse matrices
@@ -1659,7 +1659,7 @@ the equation <span><span class="MathJax_Preview">Lx=f</span><script type="math/t
         print(&#39;Downloading &#39;+url+&#39; to &#39;+file+&#39;...&#39;)
         urllib.request.urlretrieve(url, file)
     except:
-        sys.exit(&#39;Error: Cannot downoad &#39;+url+&#39;.&#39;)</code></pre>
+        sys.exit(&#39;Error: Cannot download &#39;+url+&#39;.&#39;)</code></pre>
 </details>
 </dd>
 <dt id="graphlearning.utils.image_grid"><code class="name flex">

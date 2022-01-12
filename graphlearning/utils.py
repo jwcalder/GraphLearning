@@ -9,7 +9,7 @@ import numpy as np
 from scipy import linalg
 from scipy import sparse
 import matplotlib.pyplot as plt
-import ssl, os, urllib, sys, re, csv
+import ssl, os, urllib.request, sys, re, csv
 
 from . import weightmatrix
 from . import graph
@@ -253,7 +253,7 @@ def download_file(url, file):
         print('Downloading '+url+' to '+file+'...')
         urllib.request.urlretrieve(url, file)
     except:
-        sys.exit('Error: Cannot downoad '+url+'.')
+        sys.exit('Error: Cannot download '+url+'.')
 
 def sparse_max(A,B):
     """Max of two sparse matrices
