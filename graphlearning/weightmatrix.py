@@ -114,7 +114,7 @@ def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', knn
     W = sparse.coo_matrix((weights, (self_ind, knn_ind)),shape=(n,n)).tocsr()
 
     if symmetrize:
-        if kernel == 'distance':
+        if kernel in ['distance','uniform']:
             W = utils.sparse_max(W, W.transpose())
         else:
             W = (W + W.transpose())/2;

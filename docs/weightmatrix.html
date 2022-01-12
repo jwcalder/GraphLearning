@@ -147,7 +147,7 @@ def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#
     W = sparse.coo_matrix((weights, (self_ind, knn_ind)),shape=(n,n)).tocsr()
 
     if symmetrize:
-        if kernel == &#39;distance&#39;:
+        if kernel in [&#39;distance&#39;,&#39;uniform&#39;]:
             W = utils.sparse_max(W, W.transpose())
         else:
             W = (W + W.transpose())/2;
@@ -658,7 +658,7 @@ in order to bypass the knnsearch step, which can be slow for large datasets.</dd
     W = sparse.coo_matrix((weights, (self_ind, knn_ind)),shape=(n,n)).tocsr()
 
     if symmetrize:
-        if kernel == &#39;distance&#39;:
+        if kernel in [&#39;distance&#39;,&#39;uniform&#39;]:
             W = utils.sparse_max(W, W.transpose())
         else:
             W = (W + W.transpose())/2;
