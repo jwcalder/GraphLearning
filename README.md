@@ -2,7 +2,7 @@
 
 ![Clustering](https://github.com/jwcalder/GraphLearning/raw/master/images/clustering.png)
 
-This python package is devoted to efficient implementations of modern graph-based learning algorithms for both semi-supervised learning and clustering. The package implements many popular datasets (currently MNIST, FashionMNIST, and CIFAR-10) in a way that makes it simple for users to test out new algorithms and rapidly compare against existing methods.
+This python package is devoted to efficient implementations of modern graph-based learning algorithms for both semi-supervised learning and clustering. The package implements many popular datasets (currently MNIST, FashionMNIST, and CIFAR-10) in a way that makes it simple for users to test out new algorithms and rapidly compare against existing methods. Full [documentation](https://jwcalder.github.io/GraphLearning/) is available, including detailed example scripts.
 
 This package also reproduces experiments from the paper
 
