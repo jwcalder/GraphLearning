@@ -56,8 +56,10 @@ def boundary_statistic(X, r, knn=False, return_normals=False, second_order=True,
         k = r
         #Run knnsearch only if knn_data is not provided
         if knn_data is None:
-            knn_data = weightmatrix.knnsearch(X,k)
-        W = weightmatrix.knn(X, k, kernel='uniform', symmetrize=False, knn_data=knn_data)
+            J,D = weightmatrix.knnsearch(X,k)
+        else:
+            J,D = knn_data
+        W = weightmatrix.knn(X, k, kernel='uniform', symmetrize=False, knn_data=(J,D))
     else:
         W = weightmatrix.epsilon_ball(X, r, kernel='uniform')
         
@@ -83,7 +85,7 @@ def boundary_statistic(X, r, knn=False, return_normals=False, second_order=True,
     #Switch to knn if not selected
     if not knn:
         k = int(np.max(W*np.ones(W.shape[0]))) #Number of neighbors to use in knnsearch
-        J,D = weightmatrix.knnsearch(X,k); J=J[:,1:]; D=D[:,1:] #knnsearch and remove self (I not needed)
+        J,D = weightmatrix.knnsearch(X,k); J=J[:,1:]; D=D[:,1:] #knnsearch and remove self
 
     #Difference between center point and neighbors
     V = X[:,np.newaxis,:] - X[J] #(x^0-x^i), nxkxd array
@@ -713,7 +715,7 @@ def rand_annulus(n,d,r1,r2):
     X = np.zeros((1,d))
     while X.shape[0] <= n:
 
-        Y = r2*(2*rand(n,d) - 1)
+        Y = r2*(2*np.random.rand(n,d) - 1)
         dist2 = np.sum(Y*Y,axis=1) 
         I = (dist2 < r2*r2)&(dist2 > r1*r1)
         Y = Y[I,:]
@@ -747,7 +749,7 @@ def rand_ball(n,d):
     X = np.zeros((1,d))
     while X.shape[0] <= n:
 
-        Y = 2*rand(n,d) - 1
+        Y = 2*np.random.rand(n,d) - 1
         I = np.sum(Y*Y,axis=1) < 1
         Y = Y[I,:]
         X = np.vstack((X,Y))
@@ -779,10 +781,10 @@ def bean_data(n,h):
 
     a=-1
     b=1
-    x = a + (b-a)*random.rand(3*n);
+    x = a + (b-a)*np.random.rand(3*n);
     c=-0.6
     d=0.6;
-    y = c + (d-c)*random.rand(3*n);
+    y = c + (d-c)*np.random.rand(3*n);
 
     X=np.transpose(np.vstack((x,y)))
 

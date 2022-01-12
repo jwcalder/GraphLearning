@@ -340,7 +340,7 @@ class graph:
 
         return Lu
 
-    def isconnected(W):
+    def isconnected(self):
         """Is Connected
         ======
 
@@ -352,13 +352,13 @@ class graph:
             True or False, depending on connectivity.
         """
 
-        num_comp,comp = csgraph.connected_components(W)
+        num_comp,comp = csgraph.connected_components(self.weight_matrix)
         connected = False
         if num_comp == 1:
             connected = True
         return connected
 
-    def largest_connected_component(W):
+    def largest_connected_component(self):
         """Largest connected component
         ======
 
@@ -375,7 +375,7 @@ class graph:
             largest component.
         """
 
-        ncomp,labels = csgraph.connected_components(W,directed=False) 
+        ncomp,labels = csgraph.connected_components(self.weight_matrix,directed=False) 
         num_verts = np.zeros((ncomp,))
         for i in range(ncomp):
             num_verts[i] = np.sum(labels==i)

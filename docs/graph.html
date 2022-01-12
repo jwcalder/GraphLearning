@@ -374,7 +374,7 @@ class graph:
 
         return Lu
 
-    def isconnected(W):
+    def isconnected(self):
         &#34;&#34;&#34;Is Connected
         ======
 
@@ -386,13 +386,13 @@ class graph:
             True or False, depending on connectivity.
         &#34;&#34;&#34;
 
-        num_comp,comp = csgraph.connected_components(W)
+        num_comp,comp = csgraph.connected_components(self.weight_matrix)
         connected = False
         if num_comp == 1:
             connected = True
         return connected
 
-    def largest_connected_component(W):
+    def largest_connected_component(self):
         &#34;&#34;&#34;Largest connected component
         ======
 
@@ -409,7 +409,7 @@ class graph:
             largest component.
         &#34;&#34;&#34;
 
-        ncomp,labels = csgraph.connected_components(W,directed=False) 
+        ncomp,labels = csgraph.connected_components(self.weight_matrix,directed=False) 
         num_verts = np.zeros((ncomp,))
         for i in range(ncomp):
             num_verts[i] = np.sum(labels==i)
@@ -1383,7 +1383,7 @@ eigendecompositions, which are useful in graph learning.</p>
 
         return Lu
 
-    def isconnected(W):
+    def isconnected(self):
         &#34;&#34;&#34;Is Connected
         ======
 
@@ -1395,13 +1395,13 @@ eigendecompositions, which are useful in graph learning.</p>
             True or False, depending on connectivity.
         &#34;&#34;&#34;
 
-        num_comp,comp = csgraph.connected_components(W)
+        num_comp,comp = csgraph.connected_components(self.weight_matrix)
         connected = False
         if num_comp == 1:
             connected = True
         return connected
 
-    def largest_connected_component(W):
+    def largest_connected_component(self):
         &#34;&#34;&#34;Largest connected component
         ======
 
@@ -1418,7 +1418,7 @@ eigendecompositions, which are useful in graph learning.</p>
             largest component.
         &#34;&#34;&#34;
 
-        ncomp,labels = csgraph.connected_components(W,directed=False) 
+        ncomp,labels = csgraph.connected_components(self.weight_matrix,directed=False) 
         num_verts = np.zeros((ncomp,))
         for i in range(ncomp):
             num_verts[i] = np.sum(labels==i)
@@ -2882,7 +2882,7 @@ matrix as follows
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.isconnected"><code class="name flex">
-<span>def <span class="ident">isconnected</span></span>(<span>W)</span>
+<span>def <span class="ident">isconnected</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="is-connected">Is Connected</h1>
@@ -2896,7 +2896,7 @@ matrix as follows
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def isconnected(W):
+<pre><code class="python">def isconnected(self):
     &#34;&#34;&#34;Is Connected
     ======
 
@@ -2908,7 +2908,7 @@ matrix as follows
         True or False, depending on connectivity.
     &#34;&#34;&#34;
 
-    num_comp,comp = csgraph.connected_components(W)
+    num_comp,comp = csgraph.connected_components(self.weight_matrix)
     connected = False
     if num_comp == 1:
         connected = True
@@ -2984,7 +2984,7 @@ where <span><span class="MathJax_Preview">D</span><script type="math/tex">D</scr
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.largest_connected_component"><code class="name flex">
-<span>def <span class="ident">largest_connected_component</span></span>(<span>W)</span>
+<span>def <span class="ident">largest_connected_component</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="largest-connected-component">Largest connected component</h1>
@@ -3003,7 +3003,7 @@ largest component.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def largest_connected_component(W):
+<pre><code class="python">def largest_connected_component(self):
     &#34;&#34;&#34;Largest connected component
     ======
 
@@ -3020,7 +3020,7 @@ largest component.</dd>
         largest component.
     &#34;&#34;&#34;
 
-    ncomp,labels = csgraph.connected_components(W,directed=False) 
+    ncomp,labels = csgraph.connected_components(self.weight_matrix,directed=False) 
     num_verts = np.zeros((ncomp,))
     for i in range(ncomp):
         num_verts[i] = np.sum(labels==i)
