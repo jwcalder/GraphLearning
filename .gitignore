@@ -1,3 +1,4 @@
+dist/
 build/
 graphlearning.egg-info/
 graphlearning/__pycache__/
