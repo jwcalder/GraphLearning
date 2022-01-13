@@ -1,4 +1,4 @@
-name: Build Python Package
+name: MacOS Build
     
 on:
   push:

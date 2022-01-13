@@ -1,4 +1,4 @@
-name: Build Python Package
+name: Windows Build
     
 on:
   push:
