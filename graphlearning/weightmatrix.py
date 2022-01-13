@@ -332,7 +332,6 @@ def load_knn_data(dataset, metric='raw'):
         Distances to all neighbors.
     """
 
-    #dataFile = dataset.lower() + "_" + metric.lower() + ".npz" #Fix this later
     dataFile = dataset.lower() + "_" + metric.lower() + ".npz" 
     dataFile_path = os.path.join(knn_dir, dataFile)
 
@@ -349,6 +348,202 @@ def load_knn_data(dataset, metric='raw'):
     knn_dist = utils.numpy_load(dataFile_path, 'D')
 
     return knn_ind, knn_dist
+
+def vae(data, layer_widths=[400,20], no_cuda=False, batch_size=128, epochs=100, learning_rate=1e-3):
+    """Variational Autoencoder Embedding
+    ======
+
+    Embeds a dataset via a two layer variational autoencoder (VAE) latent representation. The VAE
+    is essentially the original one from [1].
+
+    Parameters
+    ----------
+    data : numpy array
+        (n,d) array of n datapoints in dimension d.
+    layer_widths : list of int, length=2 (optional), default=[400,20]
+        First element is the width of the hidden layer, while the second is the dimension
+        of the latent space.
+    no_cuda : bool (optional), default=False
+        Turn off GPU acceleration.
+    batch_size : int (optional), default=128
+        Batch size for gradient descent.
+    epochs : int (optional), default=100
+        How many epochs (loops over whole dataset) to train over.
+    learning_rate : float (optional), default=1e-3
+        Learning rate for optimizer.
+
+    Returns
+    -------
+    data_vae : numpy array
+        Data encoded by the VAE.
+
+    Example
+    -------
+    Using a VAE embedding to construct a similarity weight matrix on MNIST and running Poisson learning
+    at 1 label per class: [vae_mnist.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/vae_mnist.py).
+    ```py
+    import graphlearning as gl
+
+    data, labels = gl.datasets.load('mnist')
+    data_vae = gl.weightmatrix.vae(data)
+
+    W_raw = gl.weightmatrix.knn(data, 10)
+    W_vae = gl.weightmatrix.knn(data_vae, 10)
+
+    num_train_per_class = 1
+    train_ind = gl.trainsets.generate(labels, rate=num_train_per_class)
+    train_labels = labels[train_ind]
+
+    pred_labels_raw = gl.ssl.poisson(W_raw).fit_predict(train_ind,train_labels)
+    pred_labels_vae = gl.ssl.poisson(W_vae).fit_predict(train_ind,train_labels)
+
+    accuracy_raw = gl.ssl.ssl_accuracy(labels,pred_labels_raw,len(train_ind))
+    accuracy_vae = gl.ssl.ssl_accuracy(labels,pred_labels_vae,len(train_ind))
+
+    print('Raw Accuracy: %.2f%%'%accuracy_raw)
+    print('VAE Accuracy: %.2f%%'%accuracy_vae)
+    ```
+
+    References
+    ----------
+    [1] D.P. Kingma and M. Welling. [Auto-encoding variational bayes.](https://arxiv.org/abs/1312.6114) arXiv:1312.6114, 2014.
+    """
+
+    import torch
+    import torch.utils.data
+    from torch.utils.data import Dataset, DataLoader
+    from torch import nn, optim
+    from torch.nn import functional as F
+    from torchvision import datasets, transforms
+    from torchvision.utils import save_image
+
+    class MyDataset(Dataset):
+        def __init__(self, data, targets, transform=None):
+            self.data = data
+            self.targets = targets
+            self.transform = transform
+            
+        def __getitem__(self, index):
+            x = self.data[index]
+            y = self.targets[index]
+            
+            if self.transform:
+                x = self.transform(x)
+            
+            return x, y
+        
+        def __len__(self):
+            return len(self.data)
+
+    class VAE(nn.Module):
+        def __init__(self, layer_widths):
+            super(VAE, self).__init__()
+            
+            self.lw = layer_widths
+            self.fc1 = nn.Linear(self.lw[0], self.lw[1])
+            self.fc21 = nn.Linear(self.lw[1], self.lw[2])
+            self.fc22 = nn.Linear(self.lw[1], self.lw[2])
+            self.fc3 = nn.Linear(self.lw[2], self.lw[1])
+            self.fc4 = nn.Linear(self.lw[1], self.lw[0])
+
+        def encode(self, x):
+            h1 = F.relu(self.fc1(x))
+            return self.fc21(h1), self.fc22(h1)
+
+        def reparameterize(self, mu, logvar):
+            std = torch.exp(0.5*logvar)
+            eps = torch.randn_like(std)
+            return mu + eps*std
+
+        def decode(self, z):
+            h3 = F.relu(self.fc3(z))
+            return torch.sigmoid(self.fc4(h3))
+
+        def forward(self, x):
+            mu, logvar = self.encode(x.view(-1, self.lw[0]))
+            z = self.reparameterize(mu, logvar)
+            return self.decode(z), mu, logvar
+
+    # Reconstruction + KL divergence losses summed over all elements and batch
+    def loss_function(recon_x, x, mu, logvar):
+        BCE = F.binary_cross_entropy(recon_x, x.view(-1, data.shape[1]), reduction='sum')
+
+        # see Appendix B from VAE paper:
+        # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
+        # https://arxiv.org/abs/1312.6114
+        # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+        KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+
+        return BCE + KLD
+
+
+    def train(epoch):
+        model.train()
+        train_loss = 0
+        for batch_idx, (data, _) in enumerate(data_loader):
+            data = data.to(device)
+            optimizer.zero_grad()
+            recon_batch, mu, logvar = model(data)
+            loss = loss_function(recon_batch, data, mu, logvar)
+            loss.backward()
+            train_loss += loss.item()
+            optimizer.step()
+            if batch_idx % log_interval == 0:
+                print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                    epoch, batch_idx * len(data), len(data_loader.dataset),
+                    100. * batch_idx / len(data_loader),
+                    loss.item() / len(data)))
+
+        print('====> Epoch: {} Average loss: {:.4f}'.format(
+              epoch, train_loss / len(data_loader.dataset)))
+
+
+    layer_widths = [data.shape[1]] + layer_widths
+    log_interval = 10    #how many batches to wait before logging training status
+
+    #GPU settings
+    cuda = not no_cuda and torch.cuda.is_available()
+    device = torch.device("cuda" if cuda else "cpu")
+    kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
+
+    #Convert to torch dataloaders
+    data = data - data.min()
+    data = data/data.max()
+    data = torch.from_numpy(data).float()
+    target = np.zeros((data.shape[0],)).astype(int)
+    target = torch.from_numpy(target).long()
+    dataset = MyDataset(data, target) 
+    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, **kwargs)
+
+    #Put model on GPU and set up optimizer
+    model = VAE(layer_widths).to(device)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+    #Training epochs
+    for epoch in range(1, epochs + 1):
+        train(epoch)
+
+    #Encode the dataset and save to npz file
+    with torch.no_grad():
+        mu, logvar = model.encode(data.to(device).view(-1, layer_widths[0]))
+        data_vae = mu.cpu().numpy()
+
+    return data_vae
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
