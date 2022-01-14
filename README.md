@@ -43,6 +43,21 @@ pip install graphlearning==0.0.3
 ```
 To make sure you will load the old version when running `import graphlearning`, it may be necessary to uninstall all existing versions `pip uninstall graphlearning` before running the installation command above.
 
+## Citations
+
+If you use this package in your research, please cite the package with the bibtex entry below.
+```
+@software{graphlearning,
+  author       = {Jeff Calder},
+  title        = {GraphLearning Python Package},
+  month        = jan,
+  year         = 2022,
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.5850940},
+  url          = {https://doi.org/10.5281/zenodo.5850940}
+}
+```
+
 ## Contact and questions
 
 Email <jwcalder@umn.edu> with any questions or comments.
