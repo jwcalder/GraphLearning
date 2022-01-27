@@ -44,7 +44,7 @@ def load(dataset, trainset_name = ''):
 
     return trainset
 
-def generate(labels, rate=1, num_trials=1, mask=None, dataset=None, trainset_name='', overwrite=False):
+def generate(labels, rate=1, num_trials=1, mask=None, dataset=None, trainset_name='', overwrite=False, seed=None):
     """Generate training sets
     ======
 
@@ -74,6 +74,8 @@ def generate(labels, rate=1, num_trials=1, mask=None, dataset=None, trainset_nam
         A modifier to uniquely identify different training sets for each dataset.
     overwrite : bool (optional), default=False
         Whether to overwrite an exisiting training set file.
+    seed : int (optional), default=None
+        Option to seed the random number generator.
 
     Returns
     -------
@@ -81,6 +83,9 @@ def generate(labels, rate=1, num_trials=1, mask=None, dataset=None, trainset_nam
         If m=1 and num_trials=1 then a numpy array with indices of training points is returned. 
         Otherwise, a list of numpy arrays are returned, one for each trial.
     """
+
+    if seed is not None:
+        np.random.seed(seed)
     
     unique_labels = np.unique(labels)
     num_per_class = np.bincount(labels)
