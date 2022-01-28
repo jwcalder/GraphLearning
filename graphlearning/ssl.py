@@ -1563,7 +1563,7 @@ class amle(ssl):
         return u
 
 class peikonal(ssl):
-    def __init__(self, W, class_priors=None, D=None, p=1, alpha=1, max_num_it=1e5, tol=1e-3, num_bisection_it=30):
+    def __init__(self, W, class_priors=None, D=None, p=1, alpha=1, max_num_it=1e5, tol=1e-3, num_bisection_it=30, eps_ball_graph=False):
         """Graph p-eikonal classifier
         ===================
 
@@ -1590,6 +1590,9 @@ class peikonal(ssl):
             Tolerance with which to solve the equation.
         num_bisection_it : int (optional), default=30
             Number of bisection iterations for solver.
+        eps_ball_graph : bool (optional), default=False
+            Whether the graph is an epsilon-ball graph or not. If it is, then the density reweighting
+            will be done with the degree vector, which is a kernel density estimator in this case
         """
         super().__init__(W, class_priors)
 
@@ -1603,8 +1606,12 @@ class peikonal(ssl):
 
         #Cannot reweight if distance matrix not provided
         if D is None:
-            self.alpha = 0
-            self.f = 1
+            if eps_ball_graph:
+                d = self.graph.degree_vector()
+                self.f = (d/np.max(d))**(-alpha)
+            else:
+                self.alpha = 0
+                self.f = 1
         else:
             d = D.max(axis=1).toarray().flatten() #distance to furtherest neighbor
             self.f = (d/np.max(d))**alpha

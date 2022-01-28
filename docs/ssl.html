@@ -1693,7 +1693,7 @@ class amle(ssl):
         return u
 
 class peikonal(ssl):
-    def __init__(self, W, class_priors=None, D=None, p=1, alpha=1, max_num_it=1e5, tol=1e-3, num_bisection_it=30):
+    def __init__(self, W, class_priors=None, D=None, p=1, alpha=1, max_num_it=1e5, tol=1e-3, num_bisection_it=30, eps_ball_graph=False):
         &#34;&#34;&#34;Graph p-eikonal classifier
         ===================
 
@@ -1720,6 +1720,9 @@ class peikonal(ssl):
             Tolerance with which to solve the equation.
         num_bisection_it : int (optional), default=30
             Number of bisection iterations for solver.
+        eps_ball_graph : bool (optional), default=False
+            Whether the graph is an epsilon-ball graph or not. If it is, then the density reweighting
+            will be done with the degree vector, which is a kernel density estimator in this case
         &#34;&#34;&#34;
         super().__init__(W, class_priors)
 
@@ -1733,8 +1736,12 @@ class peikonal(ssl):
 
         #Cannot reweight if distance matrix not provided
         if D is None:
-            self.alpha = 0
-            self.f = 1
+            if eps_ball_graph:
+                d = self.graph.degree_vector()
+                self.f = (d/np.max(d))**(-alpha)
+            else:
+                self.alpha = 0
+                self.f = 1
         else:
             d = D.max(axis=1).toarray().flatten() #distance to furtherest neighbor
             self.f = (d/np.max(d))**alpha
@@ -3426,7 +3433,7 @@ nodes in each class.</dd>
 </dd>
 <dt id="graphlearning.ssl.peikonal"><code class="flex name class">
 <span>class <span class="ident">peikonal</span></span>
-<span>(</span><span>W, class_priors=None, D=None, p=1, alpha=1, max_num_it=100000.0, tol=0.001, num_bisection_it=30)</span>
+<span>(</span><span>W, class_priors=None, D=None, p=1, alpha=1, max_num_it=100000.0, tol=0.001, num_bisection_it=30, eps_ball_graph=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="graph-p-eikonal-classifier">Graph p-eikonal classifier</h1>
@@ -3452,13 +3459,16 @@ this is used to construct a knn density estimator for reweighting the p-eikonal 
 <dd>Tolerance with which to solve the equation.</dd>
 <dt><strong><code>num_bisection_it</code></strong> :&ensp;<code>int (optional)</code>, default=<code>30</code></dt>
 <dd>Number of bisection iterations for solver.</dd>
+<dt><strong><code>eps_ball_graph</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Whether the graph is an epsilon-ball graph or not. If it is, then the density reweighting
+will be done with the degree vector, which is a kernel density estimator in this case</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class peikonal(ssl):
-    def __init__(self, W, class_priors=None, D=None, p=1, alpha=1, max_num_it=1e5, tol=1e-3, num_bisection_it=30):
+    def __init__(self, W, class_priors=None, D=None, p=1, alpha=1, max_num_it=1e5, tol=1e-3, num_bisection_it=30, eps_ball_graph=False):
         &#34;&#34;&#34;Graph p-eikonal classifier
         ===================
 
@@ -3485,6 +3495,9 @@ this is used to construct a knn density estimator for reweighting the p-eikonal 
             Tolerance with which to solve the equation.
         num_bisection_it : int (optional), default=30
             Number of bisection iterations for solver.
+        eps_ball_graph : bool (optional), default=False
+            Whether the graph is an epsilon-ball graph or not. If it is, then the density reweighting
+            will be done with the degree vector, which is a kernel density estimator in this case
         &#34;&#34;&#34;
         super().__init__(W, class_priors)
 
@@ -3498,8 +3511,12 @@ this is used to construct a knn density estimator for reweighting the p-eikonal 
 
         #Cannot reweight if distance matrix not provided
         if D is None:
-            self.alpha = 0
-            self.f = 1
+            if eps_ball_graph:
+                d = self.graph.degree_vector()
+                self.f = (d/np.max(d))**(-alpha)
+            else:
+                self.alpha = 0
+                self.f = 1
         else:
             d = D.max(axis=1).toarray().flatten() #distance to furtherest neighbor
             self.f = (d/np.max(d))**alpha
