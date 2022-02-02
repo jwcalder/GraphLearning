@@ -132,10 +132,10 @@ class ssl:
     __metaclass__ = ABCMeta
 
     def __init__(self, W, class_priors):
-        if type(W) == graph.graph:
-            self.graph = W
+        if W is None:
+            self.graph = None
         else:
-            self.graph = graph.graph(W)
+            self.set_graph(W)
         self.prob = None
         self.fitted = False
         self.name = ''
@@ -148,6 +148,26 @@ class ssl:
             self.class_priors = self.class_priors / np.sum(self.class_priors)
         self.weights = 1
         self.class_priors_error = 1
+
+    def set_graph(self, W):
+        """Set Graph
+        ===================
+
+        Sets the graph object for semi-supervised learning.
+
+        Implements 3 different solvers, spectral, gradient_descent, and conjugate_gradient. 
+        GPU acceleration is available for gradient descent. See [1] for details.
+
+        Parameters
+        ----------
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
+            Weight matrix representing the graph.
+        """
+
+        if type(W) == graph.graph:
+            self.graph = W
+        else:
+            self.graph = graph.graph(W)
 
     def volume_label_projection(self):
         """Volume label projection
@@ -440,6 +460,9 @@ class ssl:
             Probabilities computed by graph-based learning for each node and each class.
         """
 
+        if self.graph is None:
+            sys.exit('SSL object has no graph. Use graph.set_graph() to provide a graph for SSL.')
+
         self.fitted = True
 
         #If a one-vs-rest classifier
@@ -488,7 +511,7 @@ class ssl:
 
 
 class poisson(ssl):
-    def __init__(self, W, class_priors=None, solver='conjugate_gradient', p=1, use_cuda=False, min_iter=50, max_iter=1000, tol=1e-3, spectral_cutoff=10):
+    def __init__(self, W=None, class_priors=None, solver='conjugate_gradient', p=1, use_cuda=False, min_iter=50, max_iter=1000, tol=1e-3, spectral_cutoff=10):
         """Poisson Learning
         ===================
 
@@ -504,7 +527,7 @@ class poisson(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -670,17 +693,17 @@ class poisson(ssl):
         return u
 
 class poisson_mbo(ssl):
-    def __init__(self, W, class_priors, solver='conjugate_gradient', use_cuda=False, min_iter=50, max_iter=1000, tol=1e-3, spectral_cutoff=10, Ns=40, mu=1, T=20):
+    def __init__(self, W=None, class_priors=None, solver='conjugate_gradient', use_cuda=False, min_iter=50, max_iter=1000, tol=1e-3, spectral_cutoff=10, Ns=40, mu=1, T=20):
         """PoissonMBO 
         ===================
 
-        Semi-supervised learning via Poisson MBO method [1].
+        Semi-supervised learning via Poisson MBO method [1]. class_priors must be provided.
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
-        class_priors : numpy array
+        class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). 
         solver : {'spectral', 'conjugate_gradient', 'gradient_descent'} (optional), default='conjugate_gradient'
             Choice of solver for Poisson learning.
@@ -816,17 +839,17 @@ class poisson_mbo(ssl):
         return u
 
 class volume_mbo(ssl):
-    def __init__(self, W, class_priors, temperature=0.1, volume_constraint=0.5):
+    def __init__(self, W=None, class_priors=None, temperature=0.1, volume_constraint=0.5):
         """Volume MBO
         ===================
 
-        Semi-supervised learning with the VolumeMBO method [1].
+        Semi-supervised learning with the VolumeMBO method [1]. class_priors must be provided.
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
-        class_priors : numpy array, default=None
+        class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). 
         temperature : float (optional), default=0.1
             Temperature for volume constrained MBO.
@@ -885,7 +908,7 @@ class volume_mbo(ssl):
         return u
 
 class multiclass_mbo(ssl):
-    def __init__(self, W, class_priors=None, Ns=6, T=10, dt=0.15, mu=50, num_eig=50):
+    def __init__(self, W=None, class_priors=None, Ns=6, T=10, dt=0.15, mu=50, num_eig=50):
         """Multiclass MBO
         ===================
 
@@ -893,7 +916,7 @@ class multiclass_mbo(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -980,7 +1003,7 @@ class multiclass_mbo(ssl):
         return u.T
 
 class modularity_mbo(ssl):
-    def __init__(self, W, class_priors=None, gamma=0.5, epsilon=1, lamb=1, T=20, Ns=5):
+    def __init__(self, W=None, class_priors=None, gamma=0.5, epsilon=1, lamb=1, T=20, Ns=5):
         """Modularity MBO
         ===================
 
@@ -988,7 +1011,7 @@ class modularity_mbo(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1079,7 +1102,7 @@ class modularity_mbo(ssl):
 
 
 class laplace(ssl):
-    def __init__(self, W, class_priors=None, X=None, reweighting='none', normalization='combinatorial', 
+    def __init__(self, W=None, class_priors=None, X=None, reweighting='none', normalization='combinatorial', 
                  mean_shift=False, tol=1e-5, alpha=2, zeta=1e7, r=0.1):
         """Laplace Learning
         ===================
@@ -1096,7 +1119,7 @@ class laplace(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1210,7 +1233,7 @@ class laplace(ssl):
         return u
 
 class dynamic_label_propagation(ssl):
-    def __init__(self, W, class_priors=None, alpha=0.05, lam=0.1, T=2):
+    def __init__(self, W=None, class_priors=None, alpha=0.05, lam=0.1, T=2):
         """Dynamic Label Propagation
         ===================
 
@@ -1218,7 +1241,7 @@ class dynamic_label_propagation(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1293,7 +1316,7 @@ class dynamic_label_propagation(ssl):
 
 
 class centered_kernel(ssl):
-    def __init__(self, W, class_priors=None, tol=1e-10, power_it=100, alpha=1.05):
+    def __init__(self, W=None, class_priors=None, tol=1e-10, power_it=100, alpha=1.05):
         """Centered Kernel Method
         ===================
 
@@ -1301,7 +1324,7 @@ class centered_kernel(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1376,7 +1399,7 @@ class centered_kernel(ssl):
 
 
 class sparse_label_propagation(ssl):
-    def __init__(self, W, class_priors=None, T=100):
+    def __init__(self, W=None, class_priors=None, T=100):
         """Sparse Label Propagation
         ===================
 
@@ -1384,7 +1407,7 @@ class sparse_label_propagation(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1458,7 +1481,7 @@ class sparse_label_propagation(ssl):
 
 
 class graph_nearest_neighbor(ssl):
-    def __init__(self, W, class_priors=None, D=None, alpha=1):
+    def __init__(self, W=None, class_priors=None, D=None, alpha=1):
         """Graph nearest neighbor classifier
         ===================
 
@@ -1470,7 +1493,7 @@ class graph_nearest_neighbor(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1493,7 +1516,6 @@ class graph_nearest_neighbor(ssl):
 
         #Cannot reweight if distance matrix not provided
         if D is None:
-            self.alpha = 0
             self.f = 1
         else:
             d = D.max(axis=1).toarray().flatten() #distance to furtherest neighbor
@@ -1516,7 +1538,7 @@ class graph_nearest_neighbor(ssl):
         return u
 
 class amle(ssl):
-    def __init__(self, W, class_priors=None, tol=1e-3, max_num_it=1e5, weighted=False, prog=False):
+    def __init__(self, W=None, class_priors=None, tol=1e-3, max_num_it=1e5, weighted=False, prog=False):
         """AMLE learning
         ===================
 
@@ -1526,7 +1548,7 @@ class amle(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             (n,n) Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1563,7 +1585,7 @@ class amle(ssl):
         return u
 
 class peikonal(ssl):
-    def __init__(self, W, class_priors=None, D=None, p=1, alpha=1, max_num_it=1e5, tol=1e-3, num_bisection_it=30, eps_ball_graph=False):
+    def __init__(self, W=None, class_priors=None, D=None, p=1, alpha=1, max_num_it=1e5, tol=1e-3, num_bisection_it=30, eps_ball_graph=False):
         """Graph p-eikonal classifier
         ===================
 
@@ -1571,7 +1593,7 @@ class peikonal(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             (n,n) Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1610,7 +1632,6 @@ class peikonal(ssl):
                 d = self.graph.degree_vector()
                 self.f = (d/np.max(d))**(-alpha)
             else:
-                self.alpha = 0
                 self.f = 1
         else:
             d = D.max(axis=1).toarray().flatten() #distance to furtherest neighbor
@@ -1629,7 +1650,7 @@ class peikonal(ssl):
 
 
 class plaplace(ssl):
-    def __init__(self, W, class_priors=None, p=10, max_num_it=1e6, tol=1e-1):
+    def __init__(self, W=None, class_priors=None, p=10, max_num_it=1e6, tol=1e-1):
         """Graph p-laplace classifier
         ===================
 
@@ -1637,7 +1658,7 @@ class plaplace(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             (n,n) Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1673,7 +1694,7 @@ class plaplace(ssl):
 
 
 class randomwalk(ssl):
-    def __init__(self, W, class_priors=None, alpha=0.95):
+    def __init__(self, W=None, class_priors=None, alpha=0.95):
         """Lazy random walk classification
         ===================
 
@@ -1683,7 +1704,7 @@ class randomwalk(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function

@@ -262,10 +262,10 @@ class ssl:
     __metaclass__ = ABCMeta
 
     def __init__(self, W, class_priors):
-        if type(W) == graph.graph:
-            self.graph = W
+        if W is None:
+            self.graph = None
         else:
-            self.graph = graph.graph(W)
+            self.set_graph(W)
         self.prob = None
         self.fitted = False
         self.name = &#39;&#39;
@@ -278,6 +278,26 @@ class ssl:
             self.class_priors = self.class_priors / np.sum(self.class_priors)
         self.weights = 1
         self.class_priors_error = 1
+
+    def set_graph(self, W):
+        &#34;&#34;&#34;Set Graph
+        ===================
+
+        Sets the graph object for semi-supervised learning.
+
+        Implements 3 different solvers, spectral, gradient_descent, and conjugate_gradient. 
+        GPU acceleration is available for gradient descent. See [1] for details.
+
+        Parameters
+        ----------
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
+            Weight matrix representing the graph.
+        &#34;&#34;&#34;
+
+        if type(W) == graph.graph:
+            self.graph = W
+        else:
+            self.graph = graph.graph(W)
 
     def volume_label_projection(self):
         &#34;&#34;&#34;Volume label projection
@@ -570,6 +590,9 @@ class ssl:
             Probabilities computed by graph-based learning for each node and each class.
         &#34;&#34;&#34;
 
+        if self.graph is None:
+            sys.exit(&#39;SSL object has no graph. Use graph.set_graph() to provide a graph for SSL.&#39;)
+
         self.fitted = True
 
         #If a one-vs-rest classifier
@@ -618,7 +641,7 @@ class ssl:
 
 
 class poisson(ssl):
-    def __init__(self, W, class_priors=None, solver=&#39;conjugate_gradient&#39;, p=1, use_cuda=False, min_iter=50, max_iter=1000, tol=1e-3, spectral_cutoff=10):
+    def __init__(self, W=None, class_priors=None, solver=&#39;conjugate_gradient&#39;, p=1, use_cuda=False, min_iter=50, max_iter=1000, tol=1e-3, spectral_cutoff=10):
         &#34;&#34;&#34;Poisson Learning
         ===================
 
@@ -634,7 +657,7 @@ class poisson(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -800,17 +823,17 @@ class poisson(ssl):
         return u
 
 class poisson_mbo(ssl):
-    def __init__(self, W, class_priors, solver=&#39;conjugate_gradient&#39;, use_cuda=False, min_iter=50, max_iter=1000, tol=1e-3, spectral_cutoff=10, Ns=40, mu=1, T=20):
+    def __init__(self, W=None, class_priors=None, solver=&#39;conjugate_gradient&#39;, use_cuda=False, min_iter=50, max_iter=1000, tol=1e-3, spectral_cutoff=10, Ns=40, mu=1, T=20):
         &#34;&#34;&#34;PoissonMBO 
         ===================
 
-        Semi-supervised learning via Poisson MBO method [1].
+        Semi-supervised learning via Poisson MBO method [1]. class_priors must be provided.
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
-        class_priors : numpy array
+        class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). 
         solver : {&#39;spectral&#39;, &#39;conjugate_gradient&#39;, &#39;gradient_descent&#39;} (optional), default=&#39;conjugate_gradient&#39;
             Choice of solver for Poisson learning.
@@ -946,17 +969,17 @@ class poisson_mbo(ssl):
         return u
 
 class volume_mbo(ssl):
-    def __init__(self, W, class_priors, temperature=0.1, volume_constraint=0.5):
+    def __init__(self, W=None, class_priors=None, temperature=0.1, volume_constraint=0.5):
         &#34;&#34;&#34;Volume MBO
         ===================
 
-        Semi-supervised learning with the VolumeMBO method [1].
+        Semi-supervised learning with the VolumeMBO method [1]. class_priors must be provided.
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
-        class_priors : numpy array, default=None
+        class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). 
         temperature : float (optional), default=0.1
             Temperature for volume constrained MBO.
@@ -1015,7 +1038,7 @@ class volume_mbo(ssl):
         return u
 
 class multiclass_mbo(ssl):
-    def __init__(self, W, class_priors=None, Ns=6, T=10, dt=0.15, mu=50, num_eig=50):
+    def __init__(self, W=None, class_priors=None, Ns=6, T=10, dt=0.15, mu=50, num_eig=50):
         &#34;&#34;&#34;Multiclass MBO
         ===================
 
@@ -1023,7 +1046,7 @@ class multiclass_mbo(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1110,7 +1133,7 @@ class multiclass_mbo(ssl):
         return u.T
 
 class modularity_mbo(ssl):
-    def __init__(self, W, class_priors=None, gamma=0.5, epsilon=1, lamb=1, T=20, Ns=5):
+    def __init__(self, W=None, class_priors=None, gamma=0.5, epsilon=1, lamb=1, T=20, Ns=5):
         &#34;&#34;&#34;Modularity MBO
         ===================
 
@@ -1118,7 +1141,7 @@ class modularity_mbo(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1209,7 +1232,7 @@ class modularity_mbo(ssl):
 
 
 class laplace(ssl):
-    def __init__(self, W, class_priors=None, X=None, reweighting=&#39;none&#39;, normalization=&#39;combinatorial&#39;, 
+    def __init__(self, W=None, class_priors=None, X=None, reweighting=&#39;none&#39;, normalization=&#39;combinatorial&#39;, 
                  mean_shift=False, tol=1e-5, alpha=2, zeta=1e7, r=0.1):
         &#34;&#34;&#34;Laplace Learning
         ===================
@@ -1226,7 +1249,7 @@ class laplace(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1340,7 +1363,7 @@ class laplace(ssl):
         return u
 
 class dynamic_label_propagation(ssl):
-    def __init__(self, W, class_priors=None, alpha=0.05, lam=0.1, T=2):
+    def __init__(self, W=None, class_priors=None, alpha=0.05, lam=0.1, T=2):
         &#34;&#34;&#34;Dynamic Label Propagation
         ===================
 
@@ -1348,7 +1371,7 @@ class dynamic_label_propagation(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1423,7 +1446,7 @@ class dynamic_label_propagation(ssl):
 
 
 class centered_kernel(ssl):
-    def __init__(self, W, class_priors=None, tol=1e-10, power_it=100, alpha=1.05):
+    def __init__(self, W=None, class_priors=None, tol=1e-10, power_it=100, alpha=1.05):
         &#34;&#34;&#34;Centered Kernel Method
         ===================
 
@@ -1431,7 +1454,7 @@ class centered_kernel(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1506,7 +1529,7 @@ class centered_kernel(ssl):
 
 
 class sparse_label_propagation(ssl):
-    def __init__(self, W, class_priors=None, T=100):
+    def __init__(self, W=None, class_priors=None, T=100):
         &#34;&#34;&#34;Sparse Label Propagation
         ===================
 
@@ -1514,7 +1537,7 @@ class sparse_label_propagation(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1588,7 +1611,7 @@ class sparse_label_propagation(ssl):
 
 
 class graph_nearest_neighbor(ssl):
-    def __init__(self, W, class_priors=None, D=None, alpha=1):
+    def __init__(self, W=None, class_priors=None, D=None, alpha=1):
         &#34;&#34;&#34;Graph nearest neighbor classifier
         ===================
 
@@ -1600,7 +1623,7 @@ class graph_nearest_neighbor(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1623,7 +1646,6 @@ class graph_nearest_neighbor(ssl):
 
         #Cannot reweight if distance matrix not provided
         if D is None:
-            self.alpha = 0
             self.f = 1
         else:
             d = D.max(axis=1).toarray().flatten() #distance to furtherest neighbor
@@ -1646,7 +1668,7 @@ class graph_nearest_neighbor(ssl):
         return u
 
 class amle(ssl):
-    def __init__(self, W, class_priors=None, tol=1e-3, max_num_it=1e5, weighted=False, prog=False):
+    def __init__(self, W=None, class_priors=None, tol=1e-3, max_num_it=1e5, weighted=False, prog=False):
         &#34;&#34;&#34;AMLE learning
         ===================
 
@@ -1656,7 +1678,7 @@ class amle(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             (n,n) Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1693,7 +1715,7 @@ class amle(ssl):
         return u
 
 class peikonal(ssl):
-    def __init__(self, W, class_priors=None, D=None, p=1, alpha=1, max_num_it=1e5, tol=1e-3, num_bisection_it=30, eps_ball_graph=False):
+    def __init__(self, W=None, class_priors=None, D=None, p=1, alpha=1, max_num_it=1e5, tol=1e-3, num_bisection_it=30, eps_ball_graph=False):
         &#34;&#34;&#34;Graph p-eikonal classifier
         ===================
 
@@ -1701,7 +1723,7 @@ class peikonal(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             (n,n) Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1740,7 +1762,6 @@ class peikonal(ssl):
                 d = self.graph.degree_vector()
                 self.f = (d/np.max(d))**(-alpha)
             else:
-                self.alpha = 0
                 self.f = 1
         else:
             d = D.max(axis=1).toarray().flatten() #distance to furtherest neighbor
@@ -1759,7 +1780,7 @@ class peikonal(ssl):
 
 
 class plaplace(ssl):
-    def __init__(self, W, class_priors=None, p=10, max_num_it=1e6, tol=1e-1):
+    def __init__(self, W=None, class_priors=None, p=10, max_num_it=1e6, tol=1e-1):
         &#34;&#34;&#34;Graph p-laplace classifier
         ===================
 
@@ -1767,7 +1788,7 @@ class plaplace(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             (n,n) Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -1803,7 +1824,7 @@ class plaplace(ssl):
 
 
 class randomwalk(ssl):
-    def __init__(self, W, class_priors=None, alpha=0.95):
+    def __init__(self, W=None, class_priors=None, alpha=0.95):
         &#34;&#34;&#34;Lazy random walk classification
         ===================
 
@@ -1813,7 +1834,7 @@ class randomwalk(ssl):
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -2473,7 +2494,7 @@ accuracy computation.</p>
 <dl>
 <dt id="graphlearning.ssl.amle"><code class="flex name class">
 <span>class <span class="ident">amle</span></span>
-<span>(</span><span>W, class_priors=None, tol=0.001, max_num_it=100000.0, weighted=False, prog=False)</span>
+<span>(</span><span>W=None, class_priors=None, tol=0.001, max_num_it=100000.0, weighted=False, prog=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="amle-learning">AMLE learning</h1>
@@ -2482,7 +2503,7 @@ p-Laplace with <span><span class="MathJax_Preview">p=\infty</span><script type="
 accelerates the solver.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object (optional)</code>, default=<code>None</code></dt>
 <dd>(n,n) Weight matrix representing the graph.</dd>
 <dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
 <dd>Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -2502,7 +2523,7 @@ nodes in each class.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class amle(ssl):
-    def __init__(self, W, class_priors=None, tol=1e-3, max_num_it=1e5, weighted=False, prog=False):
+    def __init__(self, W=None, class_priors=None, tol=1e-3, max_num_it=1e5, weighted=False, prog=False):
         &#34;&#34;&#34;AMLE learning
         ===================
 
@@ -2512,7 +2533,7 @@ nodes in each class.</dd>
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             (n,n) Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -2560,6 +2581,7 @@ nodes in each class.</dd>
 <li><code><a title="graphlearning.ssl.ssl.fit_predict" href="#graphlearning.ssl.ssl.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.get_accuracy_filename" href="#graphlearning.ssl.ssl.get_accuracy_filename">get_accuracy_filename</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.predict" href="#graphlearning.ssl.ssl.predict">predict</a></code></li>
+<li><code><a title="graphlearning.ssl.ssl.set_graph" href="#graphlearning.ssl.ssl.set_graph">set_graph</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.ssl_trials" href="#graphlearning.ssl.ssl.ssl_trials">ssl_trials</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.trials_statistics" href="#graphlearning.ssl.ssl.trials_statistics">trials_statistics</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.volume_label_projection" href="#graphlearning.ssl.ssl.volume_label_projection">volume_label_projection</a></code></li>
@@ -2569,14 +2591,14 @@ nodes in each class.</dd>
 </dd>
 <dt id="graphlearning.ssl.centered_kernel"><code class="flex name class">
 <span>class <span class="ident">centered_kernel</span></span>
-<span>(</span><span>W, class_priors=None, tol=1e-10, power_it=100, alpha=1.05)</span>
+<span>(</span><span>W=None, class_priors=None, tol=1e-10, power_it=100, alpha=1.05)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="centered-kernel-method">Centered Kernel Method</h1>
 <p>Semi-supervised learning via the centered kernel method of [1].</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object (optional)</code>, default=<code>None</code></dt>
 <dd>Weight matrix representing the graph.</dd>
 <dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
 <dd>Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -2596,7 +2618,7 @@ nodes in each class.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class centered_kernel(ssl):
-    def __init__(self, W, class_priors=None, tol=1e-10, power_it=100, alpha=1.05):
+    def __init__(self, W=None, class_priors=None, tol=1e-10, power_it=100, alpha=1.05):
         &#34;&#34;&#34;Centered Kernel Method
         ===================
 
@@ -2604,7 +2626,7 @@ nodes in each class.</dd>
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -2689,6 +2711,7 @@ nodes in each class.</dd>
 <li><code><a title="graphlearning.ssl.ssl.fit_predict" href="#graphlearning.ssl.ssl.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.get_accuracy_filename" href="#graphlearning.ssl.ssl.get_accuracy_filename">get_accuracy_filename</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.predict" href="#graphlearning.ssl.ssl.predict">predict</a></code></li>
+<li><code><a title="graphlearning.ssl.ssl.set_graph" href="#graphlearning.ssl.ssl.set_graph">set_graph</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.ssl_trials" href="#graphlearning.ssl.ssl.ssl_trials">ssl_trials</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.trials_statistics" href="#graphlearning.ssl.ssl.trials_statistics">trials_statistics</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.volume_label_projection" href="#graphlearning.ssl.ssl.volume_label_projection">volume_label_projection</a></code></li>
@@ -2698,14 +2721,14 @@ nodes in each class.</dd>
 </dd>
 <dt id="graphlearning.ssl.dynamic_label_propagation"><code class="flex name class">
 <span>class <span class="ident">dynamic_label_propagation</span></span>
-<span>(</span><span>W, class_priors=None, alpha=0.05, lam=0.1, T=2)</span>
+<span>(</span><span>W=None, class_priors=None, alpha=0.05, lam=0.1, T=2)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="dynamic-label-propagation">Dynamic Label Propagation</h1>
 <p>Semi-supervised learning via dynamic label propagation [1].</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object (optional)</code>, default=<code>None</code></dt>
 <dd>Weight matrix representing the graph.</dd>
 <dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
 <dd>Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -2725,7 +2748,7 @@ nodes in each class.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class dynamic_label_propagation(ssl):
-    def __init__(self, W, class_priors=None, alpha=0.05, lam=0.1, T=2):
+    def __init__(self, W=None, class_priors=None, alpha=0.05, lam=0.1, T=2):
         &#34;&#34;&#34;Dynamic Label Propagation
         ===================
 
@@ -2733,7 +2756,7 @@ nodes in each class.</dd>
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -2818,6 +2841,7 @@ nodes in each class.</dd>
 <li><code><a title="graphlearning.ssl.ssl.fit_predict" href="#graphlearning.ssl.ssl.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.get_accuracy_filename" href="#graphlearning.ssl.ssl.get_accuracy_filename">get_accuracy_filename</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.predict" href="#graphlearning.ssl.ssl.predict">predict</a></code></li>
+<li><code><a title="graphlearning.ssl.ssl.set_graph" href="#graphlearning.ssl.ssl.set_graph">set_graph</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.ssl_trials" href="#graphlearning.ssl.ssl.ssl_trials">ssl_trials</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.trials_statistics" href="#graphlearning.ssl.ssl.trials_statistics">trials_statistics</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.volume_label_projection" href="#graphlearning.ssl.ssl.volume_label_projection">volume_label_projection</a></code></li>
@@ -2827,7 +2851,7 @@ nodes in each class.</dd>
 </dd>
 <dt id="graphlearning.ssl.graph_nearest_neighbor"><code class="flex name class">
 <span>class <span class="ident">graph_nearest_neighbor</span></span>
-<span>(</span><span>W, class_priors=None, D=None, alpha=1)</span>
+<span>(</span><span>W=None, class_priors=None, D=None, alpha=1)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="graph-nearest-neighbor-classifier">Graph nearest neighbor classifier</h1>
@@ -2838,7 +2862,7 @@ where the minimum is over paths <span><span class="MathJax_Preview">p</span><scr
 returned for each testing point is the label of the closest labeled point.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object (optional)</code>, default=<code>None</code></dt>
 <dd>Weight matrix representing the graph.</dd>
 <dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
 <dd>Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -2855,7 +2879,7 @@ this is used to construct a knn density estimator for reweighting the eikonal eq
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class graph_nearest_neighbor(ssl):
-    def __init__(self, W, class_priors=None, D=None, alpha=1):
+    def __init__(self, W=None, class_priors=None, D=None, alpha=1):
         &#34;&#34;&#34;Graph nearest neighbor classifier
         ===================
 
@@ -2867,7 +2891,7 @@ this is used to construct a knn density estimator for reweighting the eikonal eq
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -2890,7 +2914,6 @@ this is used to construct a knn density estimator for reweighting the eikonal eq
 
         #Cannot reweight if distance matrix not provided
         if D is None:
-            self.alpha = 0
             self.f = 1
         else:
             d = D.max(axis=1).toarray().flatten() #distance to furtherest neighbor
@@ -2924,6 +2947,7 @@ this is used to construct a knn density estimator for reweighting the eikonal eq
 <li><code><a title="graphlearning.ssl.ssl.fit_predict" href="#graphlearning.ssl.ssl.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.get_accuracy_filename" href="#graphlearning.ssl.ssl.get_accuracy_filename">get_accuracy_filename</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.predict" href="#graphlearning.ssl.ssl.predict">predict</a></code></li>
+<li><code><a title="graphlearning.ssl.ssl.set_graph" href="#graphlearning.ssl.ssl.set_graph">set_graph</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.ssl_trials" href="#graphlearning.ssl.ssl.ssl_trials">ssl_trials</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.trials_statistics" href="#graphlearning.ssl.ssl.trials_statistics">trials_statistics</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.volume_label_projection" href="#graphlearning.ssl.ssl.volume_label_projection">volume_label_projection</a></code></li>
@@ -2933,7 +2957,7 @@ this is used to construct a knn density estimator for reweighting the eikonal eq
 </dd>
 <dt id="graphlearning.ssl.laplace"><code class="flex name class">
 <span>class <span class="ident">laplace</span></span>
-<span>(</span><span>W, class_priors=None, X=None, reweighting='none', normalization='combinatorial', mean_shift=False, tol=1e-05, alpha=2, zeta=10000000.0, r=0.1)</span>
+<span>(</span><span>W=None, class_priors=None, X=None, reweighting='none', normalization='combinatorial', mean_shift=False, tol=1e-05, alpha=2, zeta=10000000.0, r=0.1)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="laplace-learning">Laplace Learning</h1>
@@ -2947,7 +2971,7 @@ schemes <code><a title="graphlearning.ssl.poisson" href="#graphlearning.ssl.pois
 If <code>properly</code> is selected, the user must additionally provide the data features <code>X</code>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object (optional)</code>, default=<code>None</code></dt>
 <dd>Weight matrix representing the graph.</dd>
 <dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
 <dd>Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -2987,7 +3011,7 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class laplace(ssl):
-    def __init__(self, W, class_priors=None, X=None, reweighting=&#39;none&#39;, normalization=&#39;combinatorial&#39;, 
+    def __init__(self, W=None, class_priors=None, X=None, reweighting=&#39;none&#39;, normalization=&#39;combinatorial&#39;, 
                  mean_shift=False, tol=1e-5, alpha=2, zeta=1e7, r=0.1):
         &#34;&#34;&#34;Laplace Learning
         ===================
@@ -3004,7 +3028,7 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -3129,6 +3153,7 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 <li><code><a title="graphlearning.ssl.ssl.fit_predict" href="#graphlearning.ssl.ssl.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.get_accuracy_filename" href="#graphlearning.ssl.ssl.get_accuracy_filename">get_accuracy_filename</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.predict" href="#graphlearning.ssl.ssl.predict">predict</a></code></li>
+<li><code><a title="graphlearning.ssl.ssl.set_graph" href="#graphlearning.ssl.ssl.set_graph">set_graph</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.ssl_trials" href="#graphlearning.ssl.ssl.ssl_trials">ssl_trials</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.trials_statistics" href="#graphlearning.ssl.ssl.trials_statistics">trials_statistics</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.volume_label_projection" href="#graphlearning.ssl.ssl.volume_label_projection">volume_label_projection</a></code></li>
@@ -3138,14 +3163,14 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 </dd>
 <dt id="graphlearning.ssl.modularity_mbo"><code class="flex name class">
 <span>class <span class="ident">modularity_mbo</span></span>
-<span>(</span><span>W, class_priors=None, gamma=0.5, epsilon=1, lamb=1, T=20, Ns=5)</span>
+<span>(</span><span>W=None, class_priors=None, gamma=0.5, epsilon=1, lamb=1, T=20, Ns=5)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="modularity-mbo">Modularity MBO</h1>
 <p>Semi-supervised learning via the Modularity MBO method [1].</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object (optional)</code>, default=<code>None</code></dt>
 <dd>Weight matrix representing the graph.</dd>
 <dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
 <dd>Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -3169,7 +3194,7 @@ nodes in each class.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class modularity_mbo(ssl):
-    def __init__(self, W, class_priors=None, gamma=0.5, epsilon=1, lamb=1, T=20, Ns=5):
+    def __init__(self, W=None, class_priors=None, gamma=0.5, epsilon=1, lamb=1, T=20, Ns=5):
         &#34;&#34;&#34;Modularity MBO
         ===================
 
@@ -3177,7 +3202,7 @@ nodes in each class.</dd>
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -3278,6 +3303,7 @@ nodes in each class.</dd>
 <li><code><a title="graphlearning.ssl.ssl.fit_predict" href="#graphlearning.ssl.ssl.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.get_accuracy_filename" href="#graphlearning.ssl.ssl.get_accuracy_filename">get_accuracy_filename</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.predict" href="#graphlearning.ssl.ssl.predict">predict</a></code></li>
+<li><code><a title="graphlearning.ssl.ssl.set_graph" href="#graphlearning.ssl.ssl.set_graph">set_graph</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.ssl_trials" href="#graphlearning.ssl.ssl.ssl_trials">ssl_trials</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.trials_statistics" href="#graphlearning.ssl.ssl.trials_statistics">trials_statistics</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.volume_label_projection" href="#graphlearning.ssl.ssl.volume_label_projection">volume_label_projection</a></code></li>
@@ -3287,14 +3313,14 @@ nodes in each class.</dd>
 </dd>
 <dt id="graphlearning.ssl.multiclass_mbo"><code class="flex name class">
 <span>class <span class="ident">multiclass_mbo</span></span>
-<span>(</span><span>W, class_priors=None, Ns=6, T=10, dt=0.15, mu=50, num_eig=50)</span>
+<span>(</span><span>W=None, class_priors=None, Ns=6, T=10, dt=0.15, mu=50, num_eig=50)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="multiclass-mbo">Multiclass MBO</h1>
 <p>Semi-supervised learning via the Multiclass MBO method [1].</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object (optional)</code>, default=<code>None</code></dt>
 <dd>Weight matrix representing the graph.</dd>
 <dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
 <dd>Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -3318,7 +3344,7 @@ nodes in each class.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class multiclass_mbo(ssl):
-    def __init__(self, W, class_priors=None, Ns=6, T=10, dt=0.15, mu=50, num_eig=50):
+    def __init__(self, W=None, class_priors=None, Ns=6, T=10, dt=0.15, mu=50, num_eig=50):
         &#34;&#34;&#34;Multiclass MBO
         ===================
 
@@ -3326,7 +3352,7 @@ nodes in each class.</dd>
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -3424,6 +3450,7 @@ nodes in each class.</dd>
 <li><code><a title="graphlearning.ssl.ssl.fit_predict" href="#graphlearning.ssl.ssl.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.get_accuracy_filename" href="#graphlearning.ssl.ssl.get_accuracy_filename">get_accuracy_filename</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.predict" href="#graphlearning.ssl.ssl.predict">predict</a></code></li>
+<li><code><a title="graphlearning.ssl.ssl.set_graph" href="#graphlearning.ssl.ssl.set_graph">set_graph</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.ssl_trials" href="#graphlearning.ssl.ssl.ssl_trials">ssl_trials</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.trials_statistics" href="#graphlearning.ssl.ssl.trials_statistics">trials_statistics</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.volume_label_projection" href="#graphlearning.ssl.ssl.volume_label_projection">volume_label_projection</a></code></li>
@@ -3433,14 +3460,14 @@ nodes in each class.</dd>
 </dd>
 <dt id="graphlearning.ssl.peikonal"><code class="flex name class">
 <span>class <span class="ident">peikonal</span></span>
-<span>(</span><span>W, class_priors=None, D=None, p=1, alpha=1, max_num_it=100000.0, tol=0.001, num_bisection_it=30, eps_ball_graph=False)</span>
+<span>(</span><span>W=None, class_priors=None, D=None, p=1, alpha=1, max_num_it=100000.0, tol=0.001, num_bisection_it=30, eps_ball_graph=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="graph-p-eikonal-classifier">Graph p-eikonal classifier</h1>
 <p>Semi-supervised learning by via the solution of the graph <code>graph.peikonal</code> equation.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object (optional)</code>, default=<code>None</code></dt>
 <dd>(n,n) Weight matrix representing the graph.</dd>
 <dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
 <dd>Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -3468,7 +3495,7 @@ will be done with the degree vector, which is a kernel density estimator in this
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class peikonal(ssl):
-    def __init__(self, W, class_priors=None, D=None, p=1, alpha=1, max_num_it=1e5, tol=1e-3, num_bisection_it=30, eps_ball_graph=False):
+    def __init__(self, W=None, class_priors=None, D=None, p=1, alpha=1, max_num_it=1e5, tol=1e-3, num_bisection_it=30, eps_ball_graph=False):
         &#34;&#34;&#34;Graph p-eikonal classifier
         ===================
 
@@ -3476,7 +3503,7 @@ will be done with the degree vector, which is a kernel density estimator in this
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             (n,n) Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -3515,7 +3542,6 @@ will be done with the degree vector, which is a kernel density estimator in this
                 d = self.graph.degree_vector()
                 self.f = (d/np.max(d))**(-alpha)
             else:
-                self.alpha = 0
                 self.f = 1
         else:
             d = D.max(axis=1).toarray().flatten() #distance to furtherest neighbor
@@ -3544,6 +3570,7 @@ will be done with the degree vector, which is a kernel density estimator in this
 <li><code><a title="graphlearning.ssl.ssl.fit_predict" href="#graphlearning.ssl.ssl.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.get_accuracy_filename" href="#graphlearning.ssl.ssl.get_accuracy_filename">get_accuracy_filename</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.predict" href="#graphlearning.ssl.ssl.predict">predict</a></code></li>
+<li><code><a title="graphlearning.ssl.ssl.set_graph" href="#graphlearning.ssl.ssl.set_graph">set_graph</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.ssl_trials" href="#graphlearning.ssl.ssl.ssl_trials">ssl_trials</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.trials_statistics" href="#graphlearning.ssl.ssl.trials_statistics">trials_statistics</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.volume_label_projection" href="#graphlearning.ssl.ssl.volume_label_projection">volume_label_projection</a></code></li>
@@ -3553,14 +3580,14 @@ will be done with the degree vector, which is a kernel density estimator in this
 </dd>
 <dt id="graphlearning.ssl.plaplace"><code class="flex name class">
 <span>class <span class="ident">plaplace</span></span>
-<span>(</span><span>W, class_priors=None, p=10, max_num_it=1000000.0, tol=0.1)</span>
+<span>(</span><span>W=None, class_priors=None, p=10, max_num_it=1000000.0, tol=0.1)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="graph-p-laplace-classifier">Graph p-laplace classifier</h1>
 <p>Semi-supervised learning by via the solution of the game-theoretic p-Laplace equation [1].</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object (optional)</code>, default=<code>None</code></dt>
 <dd>(n,n) Weight matrix representing the graph.</dd>
 <dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
 <dd>Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -3580,7 +3607,7 @@ nodes in each class.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class plaplace(ssl):
-    def __init__(self, W, class_priors=None, p=10, max_num_it=1e6, tol=1e-1):
+    def __init__(self, W=None, class_priors=None, p=10, max_num_it=1e6, tol=1e-1):
         &#34;&#34;&#34;Graph p-laplace classifier
         ===================
 
@@ -3588,7 +3615,7 @@ nodes in each class.</dd>
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             (n,n) Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -3633,6 +3660,7 @@ nodes in each class.</dd>
 <li><code><a title="graphlearning.ssl.ssl.fit_predict" href="#graphlearning.ssl.ssl.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.get_accuracy_filename" href="#graphlearning.ssl.ssl.get_accuracy_filename">get_accuracy_filename</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.predict" href="#graphlearning.ssl.ssl.predict">predict</a></code></li>
+<li><code><a title="graphlearning.ssl.ssl.set_graph" href="#graphlearning.ssl.ssl.set_graph">set_graph</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.ssl_trials" href="#graphlearning.ssl.ssl.ssl_trials">ssl_trials</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.trials_statistics" href="#graphlearning.ssl.ssl.trials_statistics">trials_statistics</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.volume_label_projection" href="#graphlearning.ssl.ssl.volume_label_projection">volume_label_projection</a></code></li>
@@ -3642,7 +3670,7 @@ nodes in each class.</dd>
 </dd>
 <dt id="graphlearning.ssl.poisson"><code class="flex name class">
 <span>class <span class="ident">poisson</span></span>
-<span>(</span><span>W, class_priors=None, solver='conjugate_gradient', p=1, use_cuda=False, min_iter=50, max_iter=1000, tol=0.001, spectral_cutoff=10)</span>
+<span>(</span><span>W=None, class_priors=None, solver='conjugate_gradient', p=1, use_cuda=False, min_iter=50, max_iter=1000, tol=0.001, spectral_cutoff=10)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="poisson-learning">Poisson Learning</h1>
@@ -3656,7 +3684,7 @@ is the average label vector, <span><span class="MathJax_Preview">m</span><script
 GPU acceleration is available for gradient descent. See [1] for details.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object (optional)</code>, default=<code>None</code></dt>
 <dd>Weight matrix representing the graph.</dd>
 <dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
 <dd>Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -3709,7 +3737,7 @@ Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class poisson(ssl):
-    def __init__(self, W, class_priors=None, solver=&#39;conjugate_gradient&#39;, p=1, use_cuda=False, min_iter=50, max_iter=1000, tol=1e-3, spectral_cutoff=10):
+    def __init__(self, W=None, class_priors=None, solver=&#39;conjugate_gradient&#39;, p=1, use_cuda=False, min_iter=50, max_iter=1000, tol=1e-3, spectral_cutoff=10):
         &#34;&#34;&#34;Poisson Learning
         ===================
 
@@ -3725,7 +3753,7 @@ Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -3902,6 +3930,7 @@ Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1
 <li><code><a title="graphlearning.ssl.ssl.fit_predict" href="#graphlearning.ssl.ssl.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.get_accuracy_filename" href="#graphlearning.ssl.ssl.get_accuracy_filename">get_accuracy_filename</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.predict" href="#graphlearning.ssl.ssl.predict">predict</a></code></li>
+<li><code><a title="graphlearning.ssl.ssl.set_graph" href="#graphlearning.ssl.ssl.set_graph">set_graph</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.ssl_trials" href="#graphlearning.ssl.ssl.ssl_trials">ssl_trials</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.trials_statistics" href="#graphlearning.ssl.ssl.trials_statistics">trials_statistics</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.volume_label_projection" href="#graphlearning.ssl.ssl.volume_label_projection">volume_label_projection</a></code></li>
@@ -3911,16 +3940,16 @@ Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1
 </dd>
 <dt id="graphlearning.ssl.poisson_mbo"><code class="flex name class">
 <span>class <span class="ident">poisson_mbo</span></span>
-<span>(</span><span>W, class_priors, solver='conjugate_gradient', use_cuda=False, min_iter=50, max_iter=1000, tol=0.001, spectral_cutoff=10, Ns=40, mu=1, T=20)</span>
+<span>(</span><span>W=None, class_priors=None, solver='conjugate_gradient', use_cuda=False, min_iter=50, max_iter=1000, tol=0.001, spectral_cutoff=10, Ns=40, mu=1, T=20)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="poissonmbo">PoissonMBO</h1>
-<p>Semi-supervised learning via Poisson MBO method [1].</p>
+<p>Semi-supervised learning via Poisson MBO method [1]. class_priors must be provided.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object (optional)</code>, default=<code>None</code></dt>
 <dd>Weight matrix representing the graph.</dd>
-<dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array</code></dt>
+<dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
 <dd>Class priors (fraction of data belonging to each class).</dd>
 <dt><strong><code>solver</code></strong> :&ensp;<code>{'spectral', 'conjugate_gradient', 'gradient_descent'} (optional)</code>, default=<code>'conjugate_gradient'</code></dt>
 <dd>Choice of solver for Poisson learning.</dd>
@@ -3968,17 +3997,17 @@ Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class poisson_mbo(ssl):
-    def __init__(self, W, class_priors, solver=&#39;conjugate_gradient&#39;, use_cuda=False, min_iter=50, max_iter=1000, tol=1e-3, spectral_cutoff=10, Ns=40, mu=1, T=20):
+    def __init__(self, W=None, class_priors=None, solver=&#39;conjugate_gradient&#39;, use_cuda=False, min_iter=50, max_iter=1000, tol=1e-3, spectral_cutoff=10, Ns=40, mu=1, T=20):
         &#34;&#34;&#34;PoissonMBO 
         ===================
 
-        Semi-supervised learning via Poisson MBO method [1].
+        Semi-supervised learning via Poisson MBO method [1]. class_priors must be provided.
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
-        class_priors : numpy array
+        class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). 
         solver : {&#39;spectral&#39;, &#39;conjugate_gradient&#39;, &#39;gradient_descent&#39;} (optional), default=&#39;conjugate_gradient&#39;
             Choice of solver for Poisson learning.
@@ -4125,6 +4154,7 @@ Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1
 <li><code><a title="graphlearning.ssl.ssl.fit_predict" href="#graphlearning.ssl.ssl.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.get_accuracy_filename" href="#graphlearning.ssl.ssl.get_accuracy_filename">get_accuracy_filename</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.predict" href="#graphlearning.ssl.ssl.predict">predict</a></code></li>
+<li><code><a title="graphlearning.ssl.ssl.set_graph" href="#graphlearning.ssl.ssl.set_graph">set_graph</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.ssl_trials" href="#graphlearning.ssl.ssl.ssl_trials">ssl_trials</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.trials_statistics" href="#graphlearning.ssl.ssl.trials_statistics">trials_statistics</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.volume_label_projection" href="#graphlearning.ssl.ssl.volume_label_projection">volume_label_projection</a></code></li>
@@ -4134,7 +4164,7 @@ Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1
 </dd>
 <dt id="graphlearning.ssl.randomwalk"><code class="flex name class">
 <span>class <span class="ident">randomwalk</span></span>
-<span>(</span><span>W, class_priors=None, alpha=0.95)</span>
+<span>(</span><span>W=None, class_priors=None, alpha=0.95)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="lazy-random-walk-classification">Lazy random walk classification</h1>
@@ -4142,7 +4172,7 @@ Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1
 <p>The original method was introduced in [1], and can be interpreted as a lazy random walk. </p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object (optional)</code>, default=<code>None</code></dt>
 <dd>Weight matrix representing the graph.</dd>
 <dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
 <dd>Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -4159,7 +4189,7 @@ Springer, Berlin, Heidelberg, 2004.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class randomwalk(ssl):
-    def __init__(self, W, class_priors=None, alpha=0.95):
+    def __init__(self, W=None, class_priors=None, alpha=0.95):
         &#34;&#34;&#34;Lazy random walk classification
         ===================
 
@@ -4169,7 +4199,7 @@ Springer, Berlin, Heidelberg, 2004.</p></div>
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -4233,6 +4263,7 @@ Springer, Berlin, Heidelberg, 2004.</p></div>
 <li><code><a title="graphlearning.ssl.ssl.fit_predict" href="#graphlearning.ssl.ssl.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.get_accuracy_filename" href="#graphlearning.ssl.ssl.get_accuracy_filename">get_accuracy_filename</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.predict" href="#graphlearning.ssl.ssl.predict">predict</a></code></li>
+<li><code><a title="graphlearning.ssl.ssl.set_graph" href="#graphlearning.ssl.ssl.set_graph">set_graph</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.ssl_trials" href="#graphlearning.ssl.ssl.ssl_trials">ssl_trials</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.trials_statistics" href="#graphlearning.ssl.ssl.trials_statistics">trials_statistics</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.volume_label_projection" href="#graphlearning.ssl.ssl.volume_label_projection">volume_label_projection</a></code></li>
@@ -4242,14 +4273,14 @@ Springer, Berlin, Heidelberg, 2004.</p></div>
 </dd>
 <dt id="graphlearning.ssl.sparse_label_propagation"><code class="flex name class">
 <span>class <span class="ident">sparse_label_propagation</span></span>
-<span>(</span><span>W, class_priors=None, T=100)</span>
+<span>(</span><span>W=None, class_priors=None, T=100)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="sparse-label-propagation">Sparse Label Propagation</h1>
 <p>Semi-supervised learning via the sparse label propagation method of [1].</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object (optional)</code>, default=<code>None</code></dt>
 <dd>Weight matrix representing the graph.</dd>
 <dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
 <dd>Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -4265,7 +4296,7 @@ nodes in each class.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class sparse_label_propagation(ssl):
-    def __init__(self, W, class_priors=None, T=100):
+    def __init__(self, W=None, class_priors=None, T=100):
         &#34;&#34;&#34;Sparse Label Propagation
         ===================
 
@@ -4273,7 +4304,7 @@ nodes in each class.</dd>
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
         class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). If provided, the predict function
@@ -4357,6 +4388,7 @@ nodes in each class.</dd>
 <li><code><a title="graphlearning.ssl.ssl.fit_predict" href="#graphlearning.ssl.ssl.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.get_accuracy_filename" href="#graphlearning.ssl.ssl.get_accuracy_filename">get_accuracy_filename</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.predict" href="#graphlearning.ssl.ssl.predict">predict</a></code></li>
+<li><code><a title="graphlearning.ssl.ssl.set_graph" href="#graphlearning.ssl.ssl.set_graph">set_graph</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.ssl_trials" href="#graphlearning.ssl.ssl.ssl_trials">ssl_trials</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.trials_statistics" href="#graphlearning.ssl.ssl.trials_statistics">trials_statistics</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.volume_label_projection" href="#graphlearning.ssl.ssl.volume_label_projection">volume_label_projection</a></code></li>
@@ -4378,10 +4410,10 @@ nodes in each class.</dd>
     __metaclass__ = ABCMeta
 
     def __init__(self, W, class_priors):
-        if type(W) == graph.graph:
-            self.graph = W
+        if W is None:
+            self.graph = None
         else:
-            self.graph = graph.graph(W)
+            self.set_graph(W)
         self.prob = None
         self.fitted = False
         self.name = &#39;&#39;
@@ -4394,6 +4426,26 @@ nodes in each class.</dd>
             self.class_priors = self.class_priors / np.sum(self.class_priors)
         self.weights = 1
         self.class_priors_error = 1
+
+    def set_graph(self, W):
+        &#34;&#34;&#34;Set Graph
+        ===================
+
+        Sets the graph object for semi-supervised learning.
+
+        Implements 3 different solvers, spectral, gradient_descent, and conjugate_gradient. 
+        GPU acceleration is available for gradient descent. See [1] for details.
+
+        Parameters
+        ----------
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
+            Weight matrix representing the graph.
+        &#34;&#34;&#34;
+
+        if type(W) == graph.graph:
+            self.graph = W
+        else:
+            self.graph = graph.graph(W)
 
     def volume_label_projection(self):
         &#34;&#34;&#34;Volume label projection
@@ -4686,6 +4738,9 @@ nodes in each class.</dd>
             Probabilities computed by graph-based learning for each node and each class.
         &#34;&#34;&#34;
 
+        if self.graph is None:
+            sys.exit(&#39;SSL object has no graph. Use graph.set_graph() to provide a graph for SSL.&#39;)
+
         self.fitted = True
 
         #If a one-vs-rest classifier
@@ -4801,6 +4856,9 @@ at each iteration.</p>
     u : (n,k) numpy array, float
         Probabilities computed by graph-based learning for each node and each class.
     &#34;&#34;&#34;
+
+    if self.graph is None:
+        sys.exit(&#39;SSL object has no graph. Use graph.set_graph() to provide a graph for SSL.&#39;)
 
     self.fitted = True
 
@@ -4962,6 +5020,44 @@ the number of nodes predicted in each class is correct.</p>
         pred_labels = np.argmin(scores*w,axis=1)
 
     return pred_labels </code></pre>
+</details>
+</dd>
+<dt id="graphlearning.ssl.ssl.set_graph"><code class="name flex">
+<span>def <span class="ident">set_graph</span></span>(<span>self, W)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="set-graph">Set Graph</h1>
+<p>Sets the graph object for semi-supervised learning.</p>
+<p>Implements 3 different solvers, spectral, gradient_descent, and conjugate_gradient.
+GPU acceleration is available for gradient descent. See [1] for details.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object (optional)</code>, default=<code>None</code></dt>
+<dd>Weight matrix representing the graph.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_graph(self, W):
+    &#34;&#34;&#34;Set Graph
+    ===================
+
+    Sets the graph object for semi-supervised learning.
+
+    Implements 3 different solvers, spectral, gradient_descent, and conjugate_gradient. 
+    GPU acceleration is available for gradient descent. See [1] for details.
+
+    Parameters
+    ----------
+    W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
+        Weight matrix representing the graph.
+    &#34;&#34;&#34;
+
+    if type(W) == graph.graph:
+        self.graph = W
+    else:
+        self.graph = graph.graph(W)</code></pre>
 </details>
 </dd>
 <dt id="graphlearning.ssl.ssl.ssl_trials"><code class="name flex">
@@ -5232,16 +5328,16 @@ class priors (i.e., class volumes). Does not return anything, just modifies <cod
 </dd>
 <dt id="graphlearning.ssl.volume_mbo"><code class="flex name class">
 <span>class <span class="ident">volume_mbo</span></span>
-<span>(</span><span>W, class_priors, temperature=0.1, volume_constraint=0.5)</span>
+<span>(</span><span>W=None, class_priors=None, temperature=0.1, volume_constraint=0.5)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="volume-mbo">Volume MBO</h1>
-<p>Semi-supervised learning with the VolumeMBO method [1].</p>
+<p>Semi-supervised learning with the VolumeMBO method [1]. class_priors must be provided.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object (optional)</code>, default=<code>None</code></dt>
 <dd>Weight matrix representing the graph.</dd>
-<dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array</code>, default=<code>None</code></dt>
+<dt><strong><code>class_priors</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
 <dd>Class priors (fraction of data belonging to each class).</dd>
 <dt><strong><code>temperature</code></strong> :&ensp;<code>float (optional)</code>, default=<code>0.1</code></dt>
 <dd>Temperature for volume constrained MBO.</dd>
@@ -5258,17 +5354,17 @@ Setting <code>volume_constraint=1</code> yields the tightest constraint.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class volume_mbo(ssl):
-    def __init__(self, W, class_priors, temperature=0.1, volume_constraint=0.5):
+    def __init__(self, W=None, class_priors=None, temperature=0.1, volume_constraint=0.5):
         &#34;&#34;&#34;Volume MBO
         ===================
 
-        Semi-supervised learning with the VolumeMBO method [1].
+        Semi-supervised learning with the VolumeMBO method [1]. class_priors must be provided.
 
         Parameters
         ----------
-        W : numpy array, scipy sparse matrix, or graphlearning graph object
+        W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
-        class_priors : numpy array, default=None
+        class_priors : numpy array (optional), default=None
             Class priors (fraction of data belonging to each class). 
         temperature : float (optional), default=0.1
             Temperature for volume constrained MBO.
@@ -5338,6 +5434,7 @@ Setting <code>volume_constraint=1</code> yields the tightest constraint.</dd>
 <li><code><a title="graphlearning.ssl.ssl.fit_predict" href="#graphlearning.ssl.ssl.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.get_accuracy_filename" href="#graphlearning.ssl.ssl.get_accuracy_filename">get_accuracy_filename</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.predict" href="#graphlearning.ssl.ssl.predict">predict</a></code></li>
+<li><code><a title="graphlearning.ssl.ssl.set_graph" href="#graphlearning.ssl.ssl.set_graph">set_graph</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.ssl_trials" href="#graphlearning.ssl.ssl.ssl_trials">ssl_trials</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.trials_statistics" href="#graphlearning.ssl.ssl.trials_statistics">trials_statistics</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.volume_label_projection" href="#graphlearning.ssl.ssl.volume_label_projection">volume_label_projection</a></code></li>
@@ -5422,6 +5519,7 @@ Setting <code>volume_constraint=1</code> yields the tightest constraint.</dd>
 <li><code><a title="graphlearning.ssl.ssl.fit_predict" href="#graphlearning.ssl.ssl.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.get_accuracy_filename" href="#graphlearning.ssl.ssl.get_accuracy_filename">get_accuracy_filename</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.predict" href="#graphlearning.ssl.ssl.predict">predict</a></code></li>
+<li><code><a title="graphlearning.ssl.ssl.set_graph" href="#graphlearning.ssl.ssl.set_graph">set_graph</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.ssl_trials" href="#graphlearning.ssl.ssl.ssl_trials">ssl_trials</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.trials_statistics" href="#graphlearning.ssl.ssl.trials_statistics">trials_statistics</a></code></li>
 <li><code><a title="graphlearning.ssl.ssl.volume_label_projection" href="#graphlearning.ssl.ssl.volume_label_projection">volume_label_projection</a></code></li>
