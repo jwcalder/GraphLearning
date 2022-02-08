@@ -636,8 +636,8 @@ class graph:
 
         return fiedler_vector
 
-    def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, u0=None, max_num_it=1e5, 
-                                tol=1e-3, num_bisection_it=30, prog=False):
+    def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, u0=None, solver=&#39;fmm&#39;, max_num_it=1e5, 
+                                                     tol=1e-3, num_bisection_it=30, prog=False,):
         &#34;&#34;&#34;p-eikonal equation 
         =====================
 
@@ -657,14 +657,16 @@ class graph:
             is interpreted as a constant vector of the graph.
         p : float (optional), default=1
             Value of exponent p in the p-eikonal equation.
+        solver : {&#39;fmm&#39;, &#39;gauss-seidel&#39;}, default=&#39;fmm&#39;
+            Solver for p-eikonal equation.
         u0 : numpy array (float, optional), default=None
             Initialization of solver. If not provided, then u0=0.
         max_num_it : int (optional), default=1e5
-            Maximum number of iterations.
+            Maximum number of iterations for &#39;gauss-seidel&#39; solver.
         tol : float (optional), default=1e-3
-            Tolerance with which to solve the equation.
+            Tolerance with which to solve the equation for &#39;gauss-seidel&#39; solver.
         num_bisection_it : int (optional), default=30
-            Number of bisection iterations for solver.
+            Number of bisection iterations for solver for &#39;gauss-seidel&#39; solver with \\(p&gt;1\\).
         prog : bool (optional), default=False
             Toggles whether to print progress information.
 
@@ -721,7 +723,10 @@ class graph:
         f = np.ascontiguousarray(f,dtype=np.float64)
         bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
 
-        cextensions.peikonal(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,max_num_it,tol,num_bisection_it,prog)
+        if solver == &#39;fmm&#39;:
+            cextensions.peikonal_fmm(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,num_bisection_it)
+        else:
+            cextensions.peikonal(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,max_num_it,tol,num_bisection_it,prog)
 
         return u
 
@@ -1645,8 +1650,8 @@ eigendecompositions, which are useful in graph learning.</p>
 
         return fiedler_vector
 
-    def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, u0=None, max_num_it=1e5, 
-                                tol=1e-3, num_bisection_it=30, prog=False):
+    def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, u0=None, solver=&#39;fmm&#39;, max_num_it=1e5, 
+                                                     tol=1e-3, num_bisection_it=30, prog=False,):
         &#34;&#34;&#34;p-eikonal equation 
         =====================
 
@@ -1666,14 +1671,16 @@ eigendecompositions, which are useful in graph learning.</p>
             is interpreted as a constant vector of the graph.
         p : float (optional), default=1
             Value of exponent p in the p-eikonal equation.
+        solver : {&#39;fmm&#39;, &#39;gauss-seidel&#39;}, default=&#39;fmm&#39;
+            Solver for p-eikonal equation.
         u0 : numpy array (float, optional), default=None
             Initialization of solver. If not provided, then u0=0.
         max_num_it : int (optional), default=1e5
-            Maximum number of iterations.
+            Maximum number of iterations for &#39;gauss-seidel&#39; solver.
         tol : float (optional), default=1e-3
-            Tolerance with which to solve the equation.
+            Tolerance with which to solve the equation for &#39;gauss-seidel&#39; solver.
         num_bisection_it : int (optional), default=30
-            Number of bisection iterations for solver.
+            Number of bisection iterations for solver for &#39;gauss-seidel&#39; solver with \\(p&gt;1\\).
         prog : bool (optional), default=False
             Toggles whether to print progress information.
 
@@ -1730,7 +1737,10 @@ eigendecompositions, which are useful in graph learning.</p>
         f = np.ascontiguousarray(f,dtype=np.float64)
         bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
 
-        cextensions.peikonal(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,max_num_it,tol,num_bisection_it,prog)
+        if solver == &#39;fmm&#39;:
+            cextensions.peikonal_fmm(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,num_bisection_it)
+        else:
+            cextensions.peikonal(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,max_num_it,tol,num_bisection_it,prog)
 
         return u
 
@@ -3143,7 +3153,7 @@ teleportation paramter. Solution is computed with the power iteration
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.peikonal"><code class="name flex">
-<span>def <span class="ident">peikonal</span></span>(<span>self, bdy_set, bdy_val=0, f=1, p=1, u0=None, max_num_it=100000.0, tol=0.001, num_bisection_it=30, prog=False)</span>
+<span>def <span class="ident">peikonal</span></span>(<span>self, bdy_set, bdy_val=0, f=1, p=1, u0=None, solver='fmm', max_num_it=100000.0, tol=0.001, num_bisection_it=30, prog=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="p-eikonal-equation">p-eikonal equation</h1>
@@ -3162,14 +3172,16 @@ interpreted as a constant over <span><span class="MathJax_Preview">\Gamma</span>
 is interpreted as a constant vector of the graph.</dd>
 <dt><strong><code>p</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1</code></dt>
 <dd>Value of exponent p in the p-eikonal equation.</dd>
+<dt><strong><code>solver</code></strong> :&ensp;<code>{'fmm', 'gauss-seidel'}</code>, default=<code>'fmm'</code></dt>
+<dd>Solver for p-eikonal equation.</dd>
 <dt><strong><code>u0</code></strong> :&ensp;<code>numpy array (float</code>, optional<code>)</code>, default=<code>None</code></dt>
 <dd>Initialization of solver. If not provided, then u0=0.</dd>
 <dt><strong><code>max_num_it</code></strong> :&ensp;<code>int (optional)</code>, default=<code>1e5</code></dt>
-<dd>Maximum number of iterations.</dd>
+<dd>Maximum number of iterations for 'gauss-seidel' solver.</dd>
 <dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1e-3</code></dt>
-<dd>Tolerance with which to solve the equation.</dd>
+<dd>Tolerance with which to solve the equation for 'gauss-seidel' solver.</dd>
 <dt><strong><code>num_bisection_it</code></strong> :&ensp;<code>int (optional)</code>, default=<code>30</code></dt>
-<dd>Number of bisection iterations for solver.</dd>
+<dd>Number of bisection iterations for solver for 'gauss-seidel' solver with <span><span class="MathJax_Preview">p&gt;1</span><script type="math/tex">p>1</script></span>.</dd>
 <dt><strong><code>prog</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
 <dd>Toggles whether to print progress information.</dd>
 </dl>
@@ -3202,8 +3214,8 @@ plt.show()
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, u0=None, max_num_it=1e5, 
-                            tol=1e-3, num_bisection_it=30, prog=False):
+<pre><code class="python">def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, u0=None, solver=&#39;fmm&#39;, max_num_it=1e5, 
+                                                 tol=1e-3, num_bisection_it=30, prog=False,):
     &#34;&#34;&#34;p-eikonal equation 
     =====================
 
@@ -3223,14 +3235,16 @@ plt.show()
         is interpreted as a constant vector of the graph.
     p : float (optional), default=1
         Value of exponent p in the p-eikonal equation.
+    solver : {&#39;fmm&#39;, &#39;gauss-seidel&#39;}, default=&#39;fmm&#39;
+        Solver for p-eikonal equation.
     u0 : numpy array (float, optional), default=None
         Initialization of solver. If not provided, then u0=0.
     max_num_it : int (optional), default=1e5
-        Maximum number of iterations.
+        Maximum number of iterations for &#39;gauss-seidel&#39; solver.
     tol : float (optional), default=1e-3
-        Tolerance with which to solve the equation.
+        Tolerance with which to solve the equation for &#39;gauss-seidel&#39; solver.
     num_bisection_it : int (optional), default=30
-        Number of bisection iterations for solver.
+        Number of bisection iterations for solver for &#39;gauss-seidel&#39; solver with \\(p&gt;1\\).
     prog : bool (optional), default=False
         Toggles whether to print progress information.
 
@@ -3287,7 +3301,10 @@ plt.show()
     f = np.ascontiguousarray(f,dtype=np.float64)
     bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
 
-    cextensions.peikonal(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,max_num_it,tol,num_bisection_it,prog)
+    if solver == &#39;fmm&#39;:
+        cextensions.peikonal_fmm(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,num_bisection_it)
+    else:
+        cextensions.peikonal(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,max_num_it,tol,num_bisection_it,prog)
 
     return u</code></pre>
 </details>

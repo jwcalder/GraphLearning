@@ -212,7 +212,7 @@ double peikonal_solver_fast(NearestNeighbors *neighbors, double f, int n){
 
    //Sort neighbors by values of u
    qsort(neighbors, n, sizeof(NearestNeighbors), NNcompare);
-   neighbors[n].u = neighbors[n-1].u + f/neighbors[0].w;  //Upper bound
+   neighbors[n].u = neighbors[n-1].u + f/neighbors[n-1].w + 1;  //Upper bound
   
    weighted_sum = neighbors[0].u * neighbors[0].w;
    deg = neighbors[0].w;
@@ -282,4 +282,83 @@ void peikonal_main(double *u, int *WI, int *K, double *WV, int *I, double *f,  d
    free(A);
 }
 
+void peikonal_fmm_main(double *u, int *WI, int *K, double *WV, int *I, double *f,  double *g, double p_val, int num_bisection_it, int n, int M, int k){
+
+   //Initialization
+   int i,j,jj,ii,kk;
+   int s = 0;                       //Size of heap
+   int *h = vector_int(n+1,-1);     //Active points heap (indices of active points)
+   bool *A = vector_bool(n,0);      //Active flag
+   int *p = vector_int(n,-1);       //Pointer back to heap
+   bool *V = vector_bool(n,0);      //Finalized flag
+   bool *L = vector_bool(n,1);      //Indicates labeled nodes
+   NearestNeighbors *neighbors = malloc((n+1)*sizeof(NearestNeighbors));
+
+   //Build active points heap and set distance = g for initial points
+   for(i=0; i<k; i++){
+      u[I[i]] = g[i];   //Initialize distance to g
+      A[I[i]] = 1;      //Set active flag to true
+      L[I[i]] = 0;      //Set flag for labeled points
+      PushHeap(u,h,s,p,I[i]);
+      s++;
+   }
+  
+   //Dijkstra's algorithm 
+   while(s > 0){
+      i = PopHeap(u,h,s,p); //Pop smallest element off of heap
+      s--;
+
+      //Finalize this point
+      V[i] = 1;  //Mark as finalized
+      A[i] = 0;  //Set active flag to false
+
+      //Update neighbors
+      for(jj=K[i]; jj < K[i+1]; jj++){
+         j = WI[jj];
+         if(j != i && V[j] == 0 && L[j]){
+            //Grab neighbors
+            int num_nn = 0;
+            double tmp_dist = u[j];
+            for(ii=K[j]; ii < K[j+1]; ii++){
+               kk = WI[ii];
+               if(kk!=j && (A[kk] | V[kk])){
+                  neighbors[num_nn].u = u[kk];
+                  neighbors[num_nn].w = WV[ii];
+                  num_nn++;
+               }
+            }
+            if(num_nn>0){
+               if(p_val == 1)
+                  tmp_dist = peikonal_solver_fast(neighbors,f[j],num_nn);
+               else
+                  tmp_dist = peikonal_solver(neighbors,f[j],num_nn,p_val,num_bisection_it);
+            }else{
+               printf("Warning: Some points have no neighbors!\n");
+            } 
+
+            if(A[j]){  //If j is already active
+               if(tmp_dist < u[j]){ //Need to update heap
+                  u[j] = tmp_dist;
+                  SiftUp(u,h,s,p,p[j]);
+               }
+            }else{ //If j is not active
+
+               //Add to heap and initialize distance, active flag, and label index
+               u[j] = tmp_dist;
+               A[j] = 1;  
+               PushHeap(u,h,s,p,j);
+               s++;
+            }
+         }
+      }
+   }
+
+   //Free memory
+   free(neighbors);
+   free(L);
+   free(h);
+   free(A);
+   free(p);
+   free(V);
+}
 

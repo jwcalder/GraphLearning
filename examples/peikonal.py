@@ -1,8 +1,10 @@
 import graphlearning as gl
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
-X = np.random.rand(int(1e4),2)
+
+X = np.random.rand(int(10000),2)
 x,y = X[:,0],X[:,1]
 
 eps = 0.02
