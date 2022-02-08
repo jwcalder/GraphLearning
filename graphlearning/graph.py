@@ -409,7 +409,7 @@ class graph:
             implemented for gamma > 0.
         k : int (optional), default=10
             Number of eigenvectors to compute.
-        c : int (optional), default=2*number
+        c : int (optional), default=2*k
             Cutoff for randomized SVD.
         gamma : float (optional), default=0
             Parameter for modularity (add more details)

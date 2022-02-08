@@ -443,7 +443,7 @@ class graph:
             implemented for gamma &gt; 0.
         k : int (optional), default=10
             Number of eigenvectors to compute.
-        c : int (optional), default=2*number
+        c : int (optional), default=2*k
             Cutoff for randomized SVD.
         gamma : float (optional), default=0
             Parameter for modularity (add more details)
@@ -1452,7 +1452,7 @@ eigendecompositions, which are useful in graph learning.</p>
             implemented for gamma &gt; 0.
         k : int (optional), default=10
             Number of eigenvectors to compute.
-        c : int (optional), default=2*number
+        c : int (optional), default=2*k
             Cutoff for randomized SVD.
         gamma : float (optional), default=0
             Parameter for modularity (add more details)
@@ -2487,7 +2487,7 @@ randomized SVD. </p>
 implemented for gamma &gt; 0.</dd>
 <dt><strong><code>k</code></strong> :&ensp;<code>int (optional)</code>, default=<code>10</code></dt>
 <dd>Number of eigenvectors to compute.</dd>
-<dt><strong><code>c</code></strong> :&ensp;<code>int (optional)</code>, default=<code>2*number</code></dt>
+<dt><strong><code>c</code></strong> :&ensp;<code>int (optional)</code>, default=<code>2*k</code></dt>
 <dd>Cutoff for randomized SVD.</dd>
 <dt><strong><code>gamma</code></strong> :&ensp;<code>float (optional)</code>, default=<code>0</code></dt>
 <dd>Parameter for modularity (add more details)</dd>
@@ -2562,7 +2562,7 @@ plt.show()
         implemented for gamma &gt; 0.
     k : int (optional), default=10
         Number of eigenvectors to compute.
-    c : int (optional), default=2*number
+    c : int (optional), default=2*k
         Cutoff for randomized SVD.
     gamma : float (optional), default=0
         Parameter for modularity (add more details)
