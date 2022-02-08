@@ -1,4 +1,4 @@
-name: MacOS Build
+name: MacOS-10.15 Build
     
 on:
   push:

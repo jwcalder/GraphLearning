@@ -1,4 +1,4 @@
-name: MacOS Build
+name: MacOS-11 Build
     
 on:
   push:

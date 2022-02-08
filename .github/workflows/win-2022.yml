@@ -1,4 +1,4 @@
-name: Windows Build
+name: Windows2022 Build
     
 on:
   push:
