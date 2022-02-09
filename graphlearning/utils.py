@@ -8,6 +8,7 @@ This module implements several useful functions that are used throughout the pac
 import numpy as np
 from scipy import linalg
 from scipy import sparse
+from scipy import spatial
 import matplotlib.pyplot as plt
 import ssl, os, urllib.request, sys, re, csv
 
