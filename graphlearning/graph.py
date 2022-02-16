@@ -280,7 +280,7 @@ class graph:
             sys.exit('Invalid reweighting method ' + method + '.')
 
 
-    def laplacian(self, normalization="combinatorial"):
+    def laplacian(self, normalization="combinatorial", alpha=1):
         """Graph Laplacian
         ======
 
@@ -292,11 +292,14 @@ class graph:
         \\[L_{\\rm normalized} = I - D^{-1/2}WD^{-1/2},\\]
         where \\(D\\) is the diagonal degree matrix, which is defined as
         \\[D_{ii} = \\sum_{j=1}^n w_{ij}.\\]
+        The Coifman-Lafon Laplacian is also supported. 
 
         Parameters
         ----------
-        normalization : {'combinatorial','randomwalk','normalized'}, default='combinatorial'
+        normalization : {'combinatorial','randomwalk','normalized','coifmanlafon'}, default='combinatorial'
             Type of normalization to apply.
+        alpha : float (optional)
+            Parameter for Coifman-Lafon Laplacian
 
         Returns
         -------
@@ -315,6 +318,9 @@ class graph:
         elif normalization == "normalized":
             Dinv2 = self.degree_matrix(p=-0.5)
             L = I - Dinv2*self.weight_matrix*Dinv2
+        elif normalization == "coifmanlafon":
+            D = self.degree_matrix(p=-alpha)
+            L = graph(D*self.weight_matrix*D).laplacian(normalization='randomwalk')
         else:
             sys.exit("Invalid option for graph Laplacian normalization.")
 

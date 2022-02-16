@@ -314,7 +314,7 @@ class graph:
             sys.exit(&#39;Invalid reweighting method &#39; + method + &#39;.&#39;)
 
 
-    def laplacian(self, normalization=&#34;combinatorial&#34;):
+    def laplacian(self, normalization=&#34;combinatorial&#34;, alpha=1):
         &#34;&#34;&#34;Graph Laplacian
         ======
 
@@ -326,11 +326,14 @@ class graph:
         \\[L_{\\rm normalized} = I - D^{-1/2}WD^{-1/2},\\]
         where \\(D\\) is the diagonal degree matrix, which is defined as
         \\[D_{ii} = \\sum_{j=1}^n w_{ij}.\\]
+        The Coifman-Lafon Laplacian is also supported. 
 
         Parameters
         ----------
-        normalization : {&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;}, default=&#39;combinatorial&#39;
+        normalization : {&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;,&#39;coifmanlafon&#39;}, default=&#39;combinatorial&#39;
             Type of normalization to apply.
+        alpha : float (optional)
+            Parameter for Coifman-Lafon Laplacian
 
         Returns
         -------
@@ -349,6 +352,9 @@ class graph:
         elif normalization == &#34;normalized&#34;:
             Dinv2 = self.degree_matrix(p=-0.5)
             L = I - Dinv2*self.weight_matrix*Dinv2
+        elif normalization == &#34;coifmanlafon&#34;:
+            D = self.degree_matrix(p=-alpha)
+            L = graph(D*self.weight_matrix*D).laplacian(normalization=&#39;randomwalk&#39;)
         else:
             sys.exit(&#34;Invalid option for graph Laplacian normalization.&#34;)
 
@@ -1328,7 +1334,7 @@ eigendecompositions, which are useful in graph learning.</p>
             sys.exit(&#39;Invalid reweighting method &#39; + method + &#39;.&#39;)
 
 
-    def laplacian(self, normalization=&#34;combinatorial&#34;):
+    def laplacian(self, normalization=&#34;combinatorial&#34;, alpha=1):
         &#34;&#34;&#34;Graph Laplacian
         ======
 
@@ -1340,11 +1346,14 @@ eigendecompositions, which are useful in graph learning.</p>
         \\[L_{\\rm normalized} = I - D^{-1/2}WD^{-1/2},\\]
         where \\(D\\) is the diagonal degree matrix, which is defined as
         \\[D_{ii} = \\sum_{j=1}^n w_{ij}.\\]
+        The Coifman-Lafon Laplacian is also supported. 
 
         Parameters
         ----------
-        normalization : {&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;}, default=&#39;combinatorial&#39;
+        normalization : {&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;,&#39;coifmanlafon&#39;}, default=&#39;combinatorial&#39;
             Type of normalization to apply.
+        alpha : float (optional)
+            Parameter for Coifman-Lafon Laplacian
 
         Returns
         -------
@@ -1363,6 +1372,9 @@ eigendecompositions, which are useful in graph learning.</p>
         elif normalization == &#34;normalized&#34;:
             Dinv2 = self.degree_matrix(p=-0.5)
             L = I - Dinv2*self.weight_matrix*Dinv2
+        elif normalization == &#34;coifmanlafon&#34;:
+            D = self.degree_matrix(p=-alpha)
+            L = graph(D*self.weight_matrix*D).laplacian(normalization=&#39;randomwalk&#39;)
         else:
             sys.exit(&#34;Invalid option for graph Laplacian normalization.&#34;)
 
@@ -2926,7 +2938,7 @@ matrix as follows
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.laplacian"><code class="name flex">
-<span>def <span class="ident">laplacian</span></span>(<span>self, normalization='combinatorial')</span>
+<span>def <span class="ident">laplacian</span></span>(<span>self, normalization='combinatorial', alpha=1)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="graph-laplacian">Graph Laplacian</h1>
@@ -2937,11 +2949,14 @@ given weight matrix <span><span class="MathJax_Preview">W</span><script type="ma
 and
 <span><span class="MathJax_Preview">L_{\rm normalized} = I - D^{-1/2}WD^{-1/2},</span><script type="math/tex; mode=display">L_{\rm normalized} = I - D^{-1/2}WD^{-1/2},</script></span>
 where <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span> is the diagonal degree matrix, which is defined as
-<span><span class="MathJax_Preview">D_{ii} = \sum_{j=1}^n w_{ij}.</span><script type="math/tex; mode=display">D_{ii} = \sum_{j=1}^n w_{ij}.</script></span></p>
+<span><span class="MathJax_Preview">D_{ii} = \sum_{j=1}^n w_{ij}.</span><script type="math/tex; mode=display">D_{ii} = \sum_{j=1}^n w_{ij}.</script></span>
+The Coifman-Lafon Laplacian is also supported. </p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>normalization</code></strong> :&ensp;<code>{'combinatorial','randomwalk','normalized'}</code>, default=<code>'combinatorial'</code></dt>
+<dt><strong><code>normalization</code></strong> :&ensp;<code>{'combinatorial','randomwalk','normalized','coifmanlafon'}</code>, default=<code>'combinatorial'</code></dt>
 <dd>Type of normalization to apply.</dd>
+<dt><strong><code>alpha</code></strong> :&ensp;<code>float (optional)</code></dt>
+<dd>Parameter for Coifman-Lafon Laplacian</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -2952,7 +2967,7 @@ where <span><span class="MathJax_Preview">D</span><script type="math/tex">D</scr
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def laplacian(self, normalization=&#34;combinatorial&#34;):
+<pre><code class="python">def laplacian(self, normalization=&#34;combinatorial&#34;, alpha=1):
     &#34;&#34;&#34;Graph Laplacian
     ======
 
@@ -2964,11 +2979,14 @@ where <span><span class="MathJax_Preview">D</span><script type="math/tex">D</scr
     \\[L_{\\rm normalized} = I - D^{-1/2}WD^{-1/2},\\]
     where \\(D\\) is the diagonal degree matrix, which is defined as
     \\[D_{ii} = \\sum_{j=1}^n w_{ij}.\\]
+    The Coifman-Lafon Laplacian is also supported. 
 
     Parameters
     ----------
-    normalization : {&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;}, default=&#39;combinatorial&#39;
+    normalization : {&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;,&#39;coifmanlafon&#39;}, default=&#39;combinatorial&#39;
         Type of normalization to apply.
+    alpha : float (optional)
+        Parameter for Coifman-Lafon Laplacian
 
     Returns
     -------
@@ -2987,6 +3005,9 @@ where <span><span class="MathJax_Preview">D</span><script type="math/tex">D</scr
     elif normalization == &#34;normalized&#34;:
         Dinv2 = self.degree_matrix(p=-0.5)
         L = I - Dinv2*self.weight_matrix*Dinv2
+    elif normalization == &#34;coifmanlafon&#34;:
+        D = self.degree_matrix(p=-alpha)
+        L = graph(D*self.weight_matrix*D).laplacian(normalization=&#39;randomwalk&#39;)
     else:
         sys.exit(&#34;Invalid option for graph Laplacian normalization.&#34;)
 

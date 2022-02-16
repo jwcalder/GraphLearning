@@ -43,6 +43,7 @@ from abc import ABCMeta, abstractmethod
 import scipy.optimize as opt
 #import sklearn.cluster as cluster
 from scipy import sparse
+from scipy import linalg
 import numpy as np
 import sys
 
@@ -226,6 +227,88 @@ class spectral(clustering):
             sys.exit(&#34;Invalid spectral clustering method &#34; + method)
 
         kmeans = cluster.KMeans(n_clusters=num_clusters).fit(vec)
+
+        return kmeans.labels_
+
+class fokker_planck(clustering):
+    def __init__(self, W, num_clusters, beta=0.5, t=1, rho=None):
+        &#34;&#34;&#34;FokkerPlanck clustering
+        ===================
+
+        Implements the Fokker-Planck clustering algorithm from [1].
+
+        Parameters
+        ----------
+        W : numpy array, scipy sparse matrix, or graphlearning graph object
+            Weight matrix representing the graph.
+        num_clusters : int
+            Number of desired clusters.
+        beta : float (optional), default=0.5
+            Interpolation parameter between mean shift and diffusion.
+        t : float (optional), default=1
+            Time to run Fokker-Planck equation
+        rho : numpy array (optional), default=None
+            Density estimator for mean shift. Default is uniform density.
+
+        Examples
+        ----
+        Fokker-Planck clustering on the two-skies dataset: [fokker_planck_clustering.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/fokker_planck_clustering.py).
+        ```py
+        import numpy as np
+        import graphlearning as gl
+        import matplotlib.pyplot as plt
+
+        X,L = gl.datasets.two_skies(1000)
+        W = gl.weightmatrix.knn(X,10)
+
+        knn_ind,knn_dist = gl.weightmatrix.knnsearch(X,50)
+        rho = 1/np.max(knn_dist,axis=1)
+
+        model = gl.clustering.fokker_planck(W,num_clusters=2,t=1000,beta=0.5,rho=rho)
+        labels = model.fit_predict()
+
+        plt.scatter(X[:,0],X[:,1], c=labels)
+        plt.show()
+        ```
+
+        Reference
+        ---------
+        [1] K. Craig, N.G. Trillos, &amp; D. Slepčev. (2021). Clustering dynamics on graphs: from spectral clustering to mean shift through Fokker-Planck interpolation. arXiv:2108.08687.
+        &#34;&#34;&#34;
+        super().__init__(W, num_clusters)
+            
+        self.beta = beta
+        self.t = t
+        if rho is None:
+            self.rho = np.ones(W.shape[0])
+        else:
+            self.rho = rho
+
+    def _fit(self, all_labels=None):
+
+        beta = self.beta
+        t = self.t
+        rhoinv = 1/self.rho
+
+        #Coifman/Lafon
+        Q1 = -self.graph.laplacian(normalization=&#39;coifmanlafon&#39;)
+
+        #Mean shift transition matrix
+        Qms = self.graph.gradient(rhoinv, weighted=True).T
+        Qms[Qms&lt;0] = 0
+        Qms = Qms - graph.graph(Qms).degree_matrix()
+
+        #Interplation
+        Q = beta*Qms + (1-beta)*Q1
+        Q = Q.toarray()
+
+        #Matrix exponential
+        #expQt = sparse.linalg.expm(Q*t)
+        #Y = expQt.toarray()
+        expQt = linalg.expm(Q*t)
+
+        #kmeans
+        kmeans = cluster.KMeans(n_clusters=self.num_clusters).fit(expQt)
 
         return kmeans.labels_
 
@@ -779,6 +862,7 @@ to find the best permutation of cluster labels.</p>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
+<li><a title="graphlearning.clustering.fokker_planck" href="#graphlearning.clustering.fokker_planck">fokker_planck</a></li>
 <li><a title="graphlearning.clustering.incres" href="#graphlearning.clustering.incres">incres</a></li>
 <li><a title="graphlearning.clustering.spectral" href="#graphlearning.clustering.spectral">spectral</a></li>
 </ul>
@@ -903,6 +987,147 @@ to find the best permutation of cluster labels.</p>
 </details>
 </dd>
 </dl>
+</dd>
+<dt id="graphlearning.clustering.fokker_planck"><code class="flex name class">
+<span>class <span class="ident">fokker_planck</span></span>
+<span>(</span><span>W, num_clusters, beta=0.5, t=1, rho=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="fokkerplanck-clustering">FokkerPlanck clustering</h1>
+<p>Implements the Fokker-Planck clustering algorithm from [1].</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, scipy sparse matrix,</code> or <code><a title="graphlearning" href="index.html">graphlearning</a> graph object</code></dt>
+<dd>Weight matrix representing the graph.</dd>
+<dt><strong><code>num_clusters</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of desired clusters.</dd>
+<dt><strong><code>beta</code></strong> :&ensp;<code>float (optional)</code>, default=<code>0.5</code></dt>
+<dd>Interpolation parameter between mean shift and diffusion.</dd>
+<dt><strong><code>t</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1</code></dt>
+<dd>Time to run Fokker-Planck equation</dd>
+<dt><strong><code>rho</code></strong> :&ensp;<code>numpy array (optional)</code>, default=<code>None</code></dt>
+<dd>Density estimator for mean shift. Default is uniform density.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<p>Fokker-Planck clustering on the two-skies dataset: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/fokker_planck_clustering.py">fokker_planck_clustering.py</a>.</p>
+<pre><code class="language-py">import numpy as np
+import graphlearning as gl
+import matplotlib.pyplot as plt
+
+X,L = gl.datasets.two_skies(1000)
+W = gl.weightmatrix.knn(X,10)
+
+knn_ind,knn_dist = gl.weightmatrix.knnsearch(X,50)
+rho = 1/np.max(knn_dist,axis=1)
+
+model = gl.clustering.fokker_planck(W,num_clusters=2,t=1000,beta=0.5,rho=rho)
+labels = model.fit_predict()
+
+plt.scatter(X[:,0],X[:,1], c=labels)
+plt.show()
+</code></pre>
+<h2 id="reference">Reference</h2>
+<p>[1] K. Craig, N.G. Trillos, &amp; D. Slepčev. (2021). Clustering dynamics on graphs: from spectral clustering to mean shift through Fokker-Planck interpolation. arXiv:2108.08687.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class fokker_planck(clustering):
+    def __init__(self, W, num_clusters, beta=0.5, t=1, rho=None):
+        &#34;&#34;&#34;FokkerPlanck clustering
+        ===================
+
+        Implements the Fokker-Planck clustering algorithm from [1].
+
+        Parameters
+        ----------
+        W : numpy array, scipy sparse matrix, or graphlearning graph object
+            Weight matrix representing the graph.
+        num_clusters : int
+            Number of desired clusters.
+        beta : float (optional), default=0.5
+            Interpolation parameter between mean shift and diffusion.
+        t : float (optional), default=1
+            Time to run Fokker-Planck equation
+        rho : numpy array (optional), default=None
+            Density estimator for mean shift. Default is uniform density.
+
+        Examples
+        ----
+        Fokker-Planck clustering on the two-skies dataset: [fokker_planck_clustering.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/fokker_planck_clustering.py).
+        ```py
+        import numpy as np
+        import graphlearning as gl
+        import matplotlib.pyplot as plt
+
+        X,L = gl.datasets.two_skies(1000)
+        W = gl.weightmatrix.knn(X,10)
+
+        knn_ind,knn_dist = gl.weightmatrix.knnsearch(X,50)
+        rho = 1/np.max(knn_dist,axis=1)
+
+        model = gl.clustering.fokker_planck(W,num_clusters=2,t=1000,beta=0.5,rho=rho)
+        labels = model.fit_predict()
+
+        plt.scatter(X[:,0],X[:,1], c=labels)
+        plt.show()
+        ```
+
+        Reference
+        ---------
+        [1] K. Craig, N.G. Trillos, &amp; D. Slepčev. (2021). Clustering dynamics on graphs: from spectral clustering to mean shift through Fokker-Planck interpolation. arXiv:2108.08687.
+        &#34;&#34;&#34;
+        super().__init__(W, num_clusters)
+            
+        self.beta = beta
+        self.t = t
+        if rho is None:
+            self.rho = np.ones(W.shape[0])
+        else:
+            self.rho = rho
+
+    def _fit(self, all_labels=None):
+
+        beta = self.beta
+        t = self.t
+        rhoinv = 1/self.rho
+
+        #Coifman/Lafon
+        Q1 = -self.graph.laplacian(normalization=&#39;coifmanlafon&#39;)
+
+        #Mean shift transition matrix
+        Qms = self.graph.gradient(rhoinv, weighted=True).T
+        Qms[Qms&lt;0] = 0
+        Qms = Qms - graph.graph(Qms).degree_matrix()
+
+        #Interplation
+        Q = beta*Qms + (1-beta)*Q1
+        Q = Q.toarray()
+
+        #Matrix exponential
+        #expQt = sparse.linalg.expm(Q*t)
+        #Y = expQt.toarray()
+        expQt = linalg.expm(Q*t)
+
+        #kmeans
+        kmeans = cluster.KMeans(n_clusters=self.num_clusters).fit(expQt)
+
+        return kmeans.labels_</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="graphlearning.clustering.clustering" href="#graphlearning.clustering.clustering">clustering</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="graphlearning.clustering.clustering" href="#graphlearning.clustering.clustering">clustering</a></b></code>:
+<ul class="hlist">
+<li><code><a title="graphlearning.clustering.clustering.fit" href="#graphlearning.clustering.clustering.fit">fit</a></code></li>
+<li><code><a title="graphlearning.clustering.clustering.fit_predict" href="#graphlearning.clustering.clustering.fit_predict">fit_predict</a></code></li>
+<li><code><a title="graphlearning.clustering.clustering.predict" href="#graphlearning.clustering.clustering.predict">predict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="graphlearning.clustering.incres"><code class="flex name class">
 <span>class <span class="ident">incres</span></span>
@@ -1239,6 +1464,9 @@ print('Clustering Accuracy: %.2f%%'%accuracy)
 <li><code><a title="graphlearning.clustering.clustering.fit_predict" href="#graphlearning.clustering.clustering.fit_predict">fit_predict</a></code></li>
 <li><code><a title="graphlearning.clustering.clustering.predict" href="#graphlearning.clustering.clustering.predict">predict</a></code></li>
 </ul>
+</li>
+<li>
+<h4><code><a title="graphlearning.clustering.fokker_planck" href="#graphlearning.clustering.fokker_planck">fokker_planck</a></code></h4>
 </li>
 <li>
 <h4><code><a title="graphlearning.clustering.incres" href="#graphlearning.clustering.incres">incres</a></code></h4>

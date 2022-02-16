@@ -47,6 +47,41 @@ from . import utils
 #Directory for storing datasets
 data_dir = os.path.abspath(os.path.join(os.getcwd(),&#39;data&#39;))
 
+def two_skies(n,sigma=0.15,sep=0.64):
+    &#34;&#34;&#34;Two skies dataset
+    ======
+
+    Random sample from the two skies dataset.
+
+    Returns
+    -------
+    n : int
+        Number of data points (should be even).
+    sigma : float (optional)
+        Standard deviation of the skies.
+    sep : float (optional)
+        Separation between the two skies.
+        
+
+    Returns
+    -------
+    data : numpy array, float
+        (n,2) numpy array of data.
+    labels : numpy array, int
+        Binary labels indicating two skies.
+
+    &#34;&#34;&#34;
+
+    m = int(n/2)
+    y1 = sigma*np.random.randn(m,1) + sep/2
+    y2 = sigma*np.random.randn(m,1) - sep/2
+    y = np.vstack((y1,y2))
+    x = np.random.rand(2*m,1)
+    labels = np.vstack((np.zeros(m),np.ones(m)))
+    data = np.hstack((x,y))
+    return data,labels
+
+
 def save(data, labels, dataset, metric=&#39;raw&#39;, overwrite=False):
     &#34;&#34;&#34;Save dataset
     ======
@@ -294,6 +329,67 @@ different types of knn data (not case-sensitive).</dd>
         np.savez_compressed(labelsFile_path,labels=labels)</code></pre>
 </details>
 </dd>
+<dt id="graphlearning.datasets.two_skies"><code class="name flex">
+<span>def <span class="ident">two_skies</span></span>(<span>n, sigma=0.15, sep=0.64)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="two-skies-dataset">Two skies dataset</h1>
+<p>Random sample from the two skies dataset.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>n</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of data points (should be even).</dd>
+<dt><strong><code>sigma</code></strong> :&ensp;<code>float (optional)</code></dt>
+<dd>Standard deviation of the skies.</dd>
+<dt><strong><code>sep</code></strong> :&ensp;<code>float (optional)</code></dt>
+<dd>Separation between the two skies.</dd>
+</dl>
+<h2 id="returns_1">Returns</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>numpy array, float</code></dt>
+<dd>(n,2) numpy array of data.</dd>
+<dt><strong><code>labels</code></strong> :&ensp;<code>numpy array, int</code></dt>
+<dd>Binary labels indicating two skies.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def two_skies(n,sigma=0.15,sep=0.64):
+    &#34;&#34;&#34;Two skies dataset
+    ======
+
+    Random sample from the two skies dataset.
+
+    Returns
+    -------
+    n : int
+        Number of data points (should be even).
+    sigma : float (optional)
+        Standard deviation of the skies.
+    sep : float (optional)
+        Separation between the two skies.
+        
+
+    Returns
+    -------
+    data : numpy array, float
+        (n,2) numpy array of data.
+    labels : numpy array, int
+        Binary labels indicating two skies.
+
+    &#34;&#34;&#34;
+
+    m = int(n/2)
+    y1 = sigma*np.random.randn(m,1) + sep/2
+    y2 = sigma*np.random.randn(m,1) - sep/2
+    y = np.vstack((y1,y2))
+    x = np.random.rand(2*m,1)
+    labels = np.vstack((np.zeros(m),np.ones(m)))
+    data = np.hstack((x,y))
+    return data,labels</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -316,6 +412,7 @@ different types of knn data (not case-sensitive).</dd>
 <ul class="">
 <li><code><a title="graphlearning.datasets.load" href="#graphlearning.datasets.load">load</a></code></li>
 <li><code><a title="graphlearning.datasets.save" href="#graphlearning.datasets.save">save</a></code></li>
+<li><code><a title="graphlearning.datasets.two_skies" href="#graphlearning.datasets.two_skies">two_skies</a></code></li>
 </ul>
 </li>
 </ul>

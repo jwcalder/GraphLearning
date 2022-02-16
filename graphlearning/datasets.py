@@ -14,6 +14,41 @@ from . import utils
 #Directory for storing datasets
 data_dir = os.path.abspath(os.path.join(os.getcwd(),'data'))
 
+def two_skies(n,sigma=0.15,sep=0.64):
+    """Two skies dataset
+    ======
+
+    Random sample from the two skies dataset.
+
+    Returns
+    -------
+    n : int
+        Number of data points (should be even).
+    sigma : float (optional)
+        Standard deviation of the skies.
+    sep : float (optional)
+        Separation between the two skies.
+        
+
+    Returns
+    -------
+    data : numpy array, float
+        (n,2) numpy array of data.
+    labels : numpy array, int
+        Binary labels indicating two skies.
+
+    """
+
+    m = int(n/2)
+    y1 = sigma*np.random.randn(m,1) + sep/2
+    y2 = sigma*np.random.randn(m,1) - sep/2
+    y = np.vstack((y1,y2))
+    x = np.random.rand(2*m,1)
+    labels = np.vstack((np.zeros(m),np.ones(m)))
+    data = np.hstack((x,y))
+    return data,labels
+
+
 def save(data, labels, dataset, metric='raw', overwrite=False):
     """Save dataset
     ======

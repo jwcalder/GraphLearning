@@ -10,6 +10,7 @@ from abc import ABCMeta, abstractmethod
 import scipy.optimize as opt
 import sklearn.cluster as cluster
 from scipy import sparse
+from scipy import linalg
 import numpy as np
 import sys
 
@@ -193,6 +194,88 @@ class spectral(clustering):
             sys.exit("Invalid spectral clustering method " + method)
 
         kmeans = cluster.KMeans(n_clusters=num_clusters).fit(vec)
+
+        return kmeans.labels_
+
+class fokker_planck(clustering):
+    def __init__(self, W, num_clusters, beta=0.5, t=1, rho=None):
+        """FokkerPlanck clustering
+        ===================
+
+        Implements the Fokker-Planck clustering algorithm from [1].
+
+        Parameters
+        ----------
+        W : numpy array, scipy sparse matrix, or graphlearning graph object
+            Weight matrix representing the graph.
+        num_clusters : int
+            Number of desired clusters.
+        beta : float (optional), default=0.5
+            Interpolation parameter between mean shift and diffusion.
+        t : float (optional), default=1
+            Time to run Fokker-Planck equation
+        rho : numpy array (optional), default=None
+            Density estimator for mean shift. Default is uniform density.
+
+        Examples
+        ----
+        Fokker-Planck clustering on the two-skies dataset: [fokker_planck_clustering.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/fokker_planck_clustering.py).
+        ```py
+        import numpy as np
+        import graphlearning as gl
+        import matplotlib.pyplot as plt
+
+        X,L = gl.datasets.two_skies(1000)
+        W = gl.weightmatrix.knn(X,10)
+
+        knn_ind,knn_dist = gl.weightmatrix.knnsearch(X,50)
+        rho = 1/np.max(knn_dist,axis=1)
+
+        model = gl.clustering.fokker_planck(W,num_clusters=2,t=1000,beta=0.5,rho=rho)
+        labels = model.fit_predict()
+
+        plt.scatter(X[:,0],X[:,1], c=labels)
+        plt.show()
+        ```
+
+        Reference
+        ---------
+        [1] K. Craig, N.G. Trillos, & D. Slepčev. (2021). Clustering dynamics on graphs: from spectral clustering to mean shift through Fokker-Planck interpolation. arXiv:2108.08687.
+        """
+        super().__init__(W, num_clusters)
+            
+        self.beta = beta
+        self.t = t
+        if rho is None:
+            self.rho = np.ones(W.shape[0])
+        else:
+            self.rho = rho
+
+    def _fit(self, all_labels=None):
+
+        beta = self.beta
+        t = self.t
+        rhoinv = 1/self.rho
+
+        #Coifman/Lafon
+        Q1 = -self.graph.laplacian(normalization='coifmanlafon')
+
+        #Mean shift transition matrix
+        Qms = self.graph.gradient(rhoinv, weighted=True).T
+        Qms[Qms<0] = 0
+        Qms = Qms - graph.graph(Qms).degree_matrix()
+
+        #Interplation
+        Q = beta*Qms + (1-beta)*Q1
+        Q = Q.toarray()
+
+        #Matrix exponential
+        #expQt = sparse.linalg.expm(Q*t)
+        #Y = expQt.toarray()
+        expQt = linalg.expm(Q*t)
+
+        #kmeans
+        kmeans = cluster.KMeans(n_clusters=self.num_clusters).fit(expQt)
 
         return kmeans.labels_
 
