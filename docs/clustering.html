@@ -554,7 +554,7 @@ def clustering_accuracy(pred_labels,true_labels):
 </dl>
 <h2 id="example">Example</h2>
 <p>RP1D clustering on MNIST: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/RP1D_mnist.py">RP1D_mnist.py</a>.</p>
-<pre><code class="language-py">import graphlearning as gl
+<pre><code class="py">import graphlearning as gl
 
 data, labels = gl.datasets.load('mnist')
 
@@ -1010,7 +1010,7 @@ to find the best permutation of cluster labels.</p>
 </dl>
 <h2 id="examples">Examples</h2>
 <p>Fokker-Planck clustering on the two-skies dataset: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/fokker_planck_clustering.py">fokker_planck_clustering.py</a>.</p>
-<pre><code class="language-py">import numpy as np
+<pre><code class="py">import numpy as np
 import graphlearning as gl
 import matplotlib.pyplot as plt
 
@@ -1149,7 +1149,7 @@ plt.show()
 </dl>
 <h2 id="example">Example</h2>
 <p>INCRES clustering on MNIST: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/incres_mnist.py">incres_mnist.py</a>.</p>
-<pre><code class="language-py">import graphlearning as gl
+<pre><code class="py">import graphlearning as gl
 
 W = gl.weightmatrix.knn('mnist', 10, metric='vae')
 labels = gl.datasets.load('mnist', labels_only=True)
@@ -1293,7 +1293,7 @@ the tutorial paper [1] for details.</p>
 </dl>
 <h2 id="examples">Examples</h2>
 <p>Spectral clustering on the two-moons dataset: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/spectral_twomoons.py">spectral_twomoons.py</a>.</p>
-<pre><code class="language-py">import numpy as np
+<pre><code class="py">import numpy as np
 import graphlearning as gl
 import matplotlib.pyplot as plt
 import sklearn.datasets as datasets
@@ -1312,7 +1312,7 @@ plt.axis('off')
 plt.show()
 </code></pre>
 <p>Spectral clustering on MNIST: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/spectral_mnist.py">spectral_mnist.py</a>.</p>
-<pre><code class="language-py">import graphlearning as gl
+<pre><code class="py">import graphlearning as gl
 
 W = gl.weightmatrix.knn('mnist', 10, metric='vae')
 labels = gl.datasets.load('mnist', labels_only=True)
