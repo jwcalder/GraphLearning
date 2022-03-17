@@ -1,7 +1,19 @@
 #!/bin/bash
-sed -i 's/import sklearn.cluster as cluster/#import sklearn.cluster as cluster/' graphlearning/clustering.py
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	sed -i '' 's/import sklearn.cluster as cluster/#import sklearn.cluster as cluster/' graphlearning/clustering.py
+else
+	sed -i 's/import sklearn.cluster as cluster/#import sklearn.cluster as cluster/' graphlearning/clustering.py
+fi
+
 pdoc --template-dir ./pdoc/templates --html --force -o docs/ ./graphlearning > /dev/null
-sed -i 's/#import sklearn.cluster as cluster/import sklearn.cluster as cluster/' graphlearning/clustering.py
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	sed -i '' 's/#import sklearn.cluster as cluster/import sklearn.cluster as cluster/' graphlearning/clustering.py
+else
+	sed -i 's/#import sklearn.cluster as cluster/import sklearn.cluster as cluster/' graphlearning/clustering.py
+fi
+
 mv docs/graphlearning/* docs/
 rmdir docs/graphlearning/
 ls -1 docs/ | sed 's/^/docs\//'

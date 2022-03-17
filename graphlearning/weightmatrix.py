@@ -15,7 +15,7 @@ from . import utils
 #Directory to store knn data
 knn_dir = os.path.abspath(os.path.join(os.getcwd(),'knn_data'))
 
-def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', knn_data=None):
+def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', similarity='euclidean', knn_data=None):
     """knn weight matrix
     ======
 
@@ -49,6 +49,8 @@ def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', knn
         is True, unless the kernel is 'singular', in which case it is False.
     metric : string (optional), default='raw'
         Metric identifier if data is a string (i.e., a dataset).
+    similarity : {'euclidean','angular','manhattan','hamming','dot'} (optional), default='euclidean'
+        Smilarity for nearest neighbor search.
     knn_data : tuple (optional), default=None
         If desired, the user can provide knn_data = (knn_ind, knn_dist), the output of a knnsearch,
         in order to bypass the knnsearch step, which can be slow for large datasets.
@@ -69,7 +71,7 @@ def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', knn
 
     #Else we have to run a knnsearch
     else:
-        knn_ind, knn_dist = knnsearch(data, k)
+        knn_ind, knn_dist = knnsearch(data, k, similarity=similarity)
 
     #Restrict to k nearest neighbors
     n = knn_ind.shape[0]

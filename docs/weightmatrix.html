@@ -48,7 +48,7 @@ from . import utils
 #Directory to store knn data
 knn_dir = os.path.abspath(os.path.join(os.getcwd(),&#39;knn_data&#39;))
 
-def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#39;raw&#39;, knn_data=None):
+def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#39;raw&#39;, similarity=&#39;euclidean&#39;, knn_data=None):
     &#34;&#34;&#34;knn weight matrix
     ======
 
@@ -82,6 +82,8 @@ def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#
         is True, unless the kernel is &#39;singular&#39;, in which case it is False.
     metric : string (optional), default=&#39;raw&#39;
         Metric identifier if data is a string (i.e., a dataset).
+    similarity : {&#39;euclidean&#39;,&#39;angular&#39;,&#39;manhattan&#39;,&#39;hamming&#39;,&#39;dot&#39;} (optional), default=&#39;euclidean&#39;
+        Smilarity for nearest neighbor search.
     knn_data : tuple (optional), default=None
         If desired, the user can provide knn_data = (knn_ind, knn_dist), the output of a knnsearch,
         in order to bypass the knnsearch step, which can be slow for large datasets.
@@ -102,7 +104,7 @@ def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#
 
     #Else we have to run a knnsearch
     else:
-        knn_ind, knn_dist = knnsearch(data, k)
+        knn_ind, knn_dist = knnsearch(data, k, similarity=similarity)
 
     #Restrict to k nearest neighbors
     n = knn_ind.shape[0]
@@ -693,7 +695,7 @@ when <span><span class="MathJax_Preview">i\neq j</span><script type="math/tex">i
 </details>
 </dd>
 <dt id="graphlearning.weightmatrix.knn"><code class="name flex">
-<span>def <span class="ident">knn</span></span>(<span>data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', knn_data=None)</span>
+<span>def <span class="ident">knn</span></span>(<span>data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', similarity='euclidean', knn_data=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="knn-weight-matrix">knn weight matrix</h1>
@@ -726,6 +728,8 @@ which case the symmetrized edge weights are the true distances. Default for symm
 is True, unless the kernel is 'singular', in which case it is False.</dd>
 <dt><strong><code>metric</code></strong> :&ensp;<code>string (optional)</code>, default=<code>'raw'</code></dt>
 <dd>Metric identifier if data is a string (i.e., a dataset).</dd>
+<dt><strong><code>similarity</code></strong> :&ensp;<code>{'euclidean','angular','manhattan','hamming','dot'} (optional)</code>, default=<code>'euclidean'</code></dt>
+<dd>Smilarity for nearest neighbor search.</dd>
 <dt><strong><code>knn_data</code></strong> :&ensp;<code>tuple (optional)</code>, default=<code>None</code></dt>
 <dd>If desired, the user can provide knn_data = (knn_ind, knn_dist), the output of a knnsearch,
 in order to bypass the knnsearch step, which can be slow for large datasets.</dd>
@@ -739,7 +743,7 @@ in order to bypass the knnsearch step, which can be slow for large datasets.</dd
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#39;raw&#39;, knn_data=None):
+<pre><code class="python">def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#39;raw&#39;, similarity=&#39;euclidean&#39;, knn_data=None):
     &#34;&#34;&#34;knn weight matrix
     ======
 
@@ -773,6 +777,8 @@ in order to bypass the knnsearch step, which can be slow for large datasets.</dd
         is True, unless the kernel is &#39;singular&#39;, in which case it is False.
     metric : string (optional), default=&#39;raw&#39;
         Metric identifier if data is a string (i.e., a dataset).
+    similarity : {&#39;euclidean&#39;,&#39;angular&#39;,&#39;manhattan&#39;,&#39;hamming&#39;,&#39;dot&#39;} (optional), default=&#39;euclidean&#39;
+        Smilarity for nearest neighbor search.
     knn_data : tuple (optional), default=None
         If desired, the user can provide knn_data = (knn_ind, knn_dist), the output of a knnsearch,
         in order to bypass the knnsearch step, which can be slow for large datasets.
@@ -793,7 +799,7 @@ in order to bypass the knnsearch step, which can be slow for large datasets.</dd
 
     #Else we have to run a knnsearch
     else:
-        knn_ind, knn_dist = knnsearch(data, k)
+        knn_ind, knn_dist = knnsearch(data, k, similarity=similarity)
 
     #Restrict to k nearest neighbors
     n = knn_ind.shape[0]
@@ -1085,7 +1091,7 @@ of the latent space.</dd>
 <h2 id="example">Example</h2>
 <p>Using a VAE embedding to construct a similarity weight matrix on MNIST and running Poisson learning
 at 1 label per class: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/vae_mnist.py">vae_mnist.py</a>.</p>
-<pre><code class="py">import graphlearning as gl
+<pre><code class="language-py">import graphlearning as gl
 
 data, labels = gl.datasets.load('mnist')
 data_vae = gl.weightmatrix.vae(data)
