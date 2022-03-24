@@ -107,13 +107,51 @@ class graph:
         return D.tocsr()
 
 
+    def rand(self):
+        """Uniform random matrix with same sparsity structure
+        ======
+
+        Given a weight matrix \\(W\\), returns a random matrix \\(A\\),
+        where the entry \\(A_{ij}\\) is a uniform random variable on \\([0,1]\\)
+        whenever \\(w_{ij}>0\\), and \\(A_{ij}=0\\) otherwise.
+
+        Returns
+        -------
+        A : (n,n) scipy sparse matrix, float
+            Sparse rand_like matrix.
+        """
+
+        n = self.num_nodes
+        vals = np.random.rand(len(self.I),1).flatten()
+        A = sparse.coo_matrix((vals,(self.I,self.J)),shape=(n,n)).tocsr() 
+        return A
+
+    def randn(self):
+        """Gaussian random matrix with same sparsity structure
+        ======
+
+        Given a weight matrix \\(W\\), returns a random matrix \\(A\\),
+        where the entry \\(A_{ij}\\) is a uniform random variable on \\([0,1]\\)
+        whenever \\(w_{ij}>0\\), and \\(A_{ij}=0\\) otherwise.
+
+        Returns
+        -------
+        A : (n,n) scipy sparse matrix, float
+            Sparse rand_like matrix.
+        """
+
+        n = self.num_nodes
+        vals = np.random.randn(len(self.I),1).flatten()
+        A = sparse.coo_matrix((vals,(self.I,self.J)),shape=(n,n)).tocsr() 
+        return A
+
     def adjacency(self):
         """Adjacency matrix
         ======
 
         Given a weight matrix \\(W\\), returns the adjacency matrix \\(A\\),
         which satisfies \\(A_{ij}=1\\) whenever \\(w_{ij}>0\\), and  \\(A_{ij}=0\\)
-        otherwise
+        otherwise.
 
         Returns
         -------

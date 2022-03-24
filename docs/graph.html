@@ -141,13 +141,51 @@ class graph:
         return D.tocsr()
 
 
+    def rand(self):
+        &#34;&#34;&#34;Uniform random matrix with same sparsity structure
+        ======
+
+        Given a weight matrix \\(W\\), returns a random matrix \\(A\\),
+        where the entry \\(A_{ij}\\) is a uniform random variable on \\([0,1]\\)
+        whenever \\(w_{ij}&gt;0\\), and \\(A_{ij}=0\\) otherwise.
+
+        Returns
+        -------
+        A : (n,n) scipy sparse matrix, float
+            Sparse rand_like matrix.
+        &#34;&#34;&#34;
+
+        n = self.num_nodes
+        vals = np.random.rand(len(self.I),1).flatten()
+        A = sparse.coo_matrix((vals,(self.I,self.J)),shape=(n,n)).tocsr() 
+        return A
+
+    def randn(self):
+        &#34;&#34;&#34;Gaussian random matrix with same sparsity structure
+        ======
+
+        Given a weight matrix \\(W\\), returns a random matrix \\(A\\),
+        where the entry \\(A_{ij}\\) is a uniform random variable on \\([0,1]\\)
+        whenever \\(w_{ij}&gt;0\\), and \\(A_{ij}=0\\) otherwise.
+
+        Returns
+        -------
+        A : (n,n) scipy sparse matrix, float
+            Sparse rand_like matrix.
+        &#34;&#34;&#34;
+
+        n = self.num_nodes
+        vals = np.random.randn(len(self.I),1).flatten()
+        A = sparse.coo_matrix((vals,(self.I,self.J)),shape=(n,n)).tocsr() 
+        return A
+
     def adjacency(self):
         &#34;&#34;&#34;Adjacency matrix
         ======
 
         Given a weight matrix \\(W\\), returns the adjacency matrix \\(A\\),
         which satisfies \\(A_{ij}=1\\) whenever \\(w_{ij}&gt;0\\), and  \\(A_{ij}=0\\)
-        otherwise
+        otherwise.
 
         Returns
         -------
@@ -1161,13 +1199,51 @@ eigendecompositions, which are useful in graph learning.</p>
         return D.tocsr()
 
 
+    def rand(self):
+        &#34;&#34;&#34;Uniform random matrix with same sparsity structure
+        ======
+
+        Given a weight matrix \\(W\\), returns a random matrix \\(A\\),
+        where the entry \\(A_{ij}\\) is a uniform random variable on \\([0,1]\\)
+        whenever \\(w_{ij}&gt;0\\), and \\(A_{ij}=0\\) otherwise.
+
+        Returns
+        -------
+        A : (n,n) scipy sparse matrix, float
+            Sparse rand_like matrix.
+        &#34;&#34;&#34;
+
+        n = self.num_nodes
+        vals = np.random.rand(len(self.I),1).flatten()
+        A = sparse.coo_matrix((vals,(self.I,self.J)),shape=(n,n)).tocsr() 
+        return A
+
+    def randn(self):
+        &#34;&#34;&#34;Gaussian random matrix with same sparsity structure
+        ======
+
+        Given a weight matrix \\(W\\), returns a random matrix \\(A\\),
+        where the entry \\(A_{ij}\\) is a uniform random variable on \\([0,1]\\)
+        whenever \\(w_{ij}&gt;0\\), and \\(A_{ij}=0\\) otherwise.
+
+        Returns
+        -------
+        A : (n,n) scipy sparse matrix, float
+            Sparse rand_like matrix.
+        &#34;&#34;&#34;
+
+        n = self.num_nodes
+        vals = np.random.randn(len(self.I),1).flatten()
+        A = sparse.coo_matrix((vals,(self.I,self.J)),shape=(n,n)).tocsr() 
+        return A
+
     def adjacency(self):
         &#34;&#34;&#34;Adjacency matrix
         ======
 
         Given a weight matrix \\(W\\), returns the adjacency matrix \\(A\\),
         which satisfies \\(A_{ij}=1\\) whenever \\(w_{ij}&gt;0\\), and  \\(A_{ij}=0\\)
-        otherwise
+        otherwise.
 
         Returns
         -------
@@ -2075,7 +2151,7 @@ eigendecompositions, which are useful in graph learning.</p>
 <p>Given a weight matrix <span><span class="MathJax_Preview">W</span><script type="math/tex">W</script></span>, returns the adjacency matrix <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span>,
 which satisfies <span><span class="MathJax_Preview">A_{ij}=1</span><script type="math/tex">A_{ij}=1</script></span> whenever <span><span class="MathJax_Preview">w_{ij}&gt;0</span><script type="math/tex">w_{ij}>0</script></span>, and
 <span><span class="MathJax_Preview">A_{ij}=0</span><script type="math/tex">A_{ij}=0</script></span>
-otherwise</p>
+otherwise.</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>A</code></strong> :&ensp;<code>(n,n) scipy sparse matrix, float</code></dt>
@@ -2091,7 +2167,7 @@ otherwise</p>
 
     Given a weight matrix \\(W\\), returns the adjacency matrix \\(A\\),
     which satisfies \\(A_{ij}=1\\) whenever \\(w_{ij}&gt;0\\), and  \\(A_{ij}=0\\)
-    otherwise
+    otherwise.
 
     Returns
     -------
@@ -2315,7 +2391,7 @@ contain <code>-1</code> for closest point index.</dd>
 <h2 id="example">Example</h2>
 <p>This example uses Dijkstra's algorithm to compute the distance function to a single point,
 and compares the result to a cone: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/dijkstra.py">dijkstra.py</a>.</p>
-<pre><code class="language-py">import graphlearning as gl
+<pre><code class="py">import graphlearning as gl
 import numpy as np
 
 for n in [int(10**i) for i in range(3,6)]:
@@ -2527,7 +2603,7 @@ implemented for gamma &gt; 0.</dd>
 </dl>
 <h2 id="example">Example</h2>
 <p>This example compares the exact and lowrank (ranomized svd) methods for computing the spectrum: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/randomized_svd.py">randomized_svd.py</a>.</p>
-<pre><code class="language-py">import numpy as np
+<pre><code class="py">import numpy as np
 import matplotlib.pyplot as plt
 import sklearn.datasets as datasets
 import graphlearning as gl
@@ -3213,7 +3289,7 @@ is interpreted as a constant vector of the graph.</dd>
 </dl>
 <h2 id="example">Example</h2>
 <p>This example uses the peikonal equation to compute a data depth: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/peikonal.py">peikonal.py</a>.</p>
-<pre><code class="language-py">import graphlearning as gl
+<pre><code class="py">import graphlearning as gl
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -3365,7 +3441,7 @@ interpreted as a constant over <span><span class="MathJax_Preview">\Gamma</span>
 </dl>
 <h2 id="example">Example</h2>
 <p>This example uses the p-Laplace equation to interpolate boundary values: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/plaplace.py">plaplace.py</a>.</p>
-<pre><code class="language-py">import graphlearning as gl
+<pre><code class="py">import graphlearning as gl
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -3473,6 +3549,80 @@ plt.show()
     u = (uu+ul)/2
 
     return u</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.rand"><code class="name flex">
+<span>def <span class="ident">rand</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="uniform-random-matrix-with-same-sparsity-structure">Uniform random matrix with same sparsity structure</h1>
+<p>Given a weight matrix <span><span class="MathJax_Preview">W</span><script type="math/tex">W</script></span>, returns a random matrix <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span>,
+where the entry <span><span class="MathJax_Preview">A_{ij}</span><script type="math/tex">A_{ij}</script></span> is a uniform random variable on <span><span class="MathJax_Preview">[0,1]</span><script type="math/tex">[0,1]</script></span>
+whenever <span><span class="MathJax_Preview">w_{ij}&gt;0</span><script type="math/tex">w_{ij}>0</script></span>, and <span><span class="MathJax_Preview">A_{ij}=0</span><script type="math/tex">A_{ij}=0</script></span> otherwise.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>A</code></strong> :&ensp;<code>(n,n) scipy sparse matrix, float</code></dt>
+<dd>Sparse rand_like matrix.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rand(self):
+    &#34;&#34;&#34;Uniform random matrix with same sparsity structure
+    ======
+
+    Given a weight matrix \\(W\\), returns a random matrix \\(A\\),
+    where the entry \\(A_{ij}\\) is a uniform random variable on \\([0,1]\\)
+    whenever \\(w_{ij}&gt;0\\), and \\(A_{ij}=0\\) otherwise.
+
+    Returns
+    -------
+    A : (n,n) scipy sparse matrix, float
+        Sparse rand_like matrix.
+    &#34;&#34;&#34;
+
+    n = self.num_nodes
+    vals = np.random.rand(len(self.I),1).flatten()
+    A = sparse.coo_matrix((vals,(self.I,self.J)),shape=(n,n)).tocsr() 
+    return A</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.randn"><code class="name flex">
+<span>def <span class="ident">randn</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="gaussian-random-matrix-with-same-sparsity-structure">Gaussian random matrix with same sparsity structure</h1>
+<p>Given a weight matrix <span><span class="MathJax_Preview">W</span><script type="math/tex">W</script></span>, returns a random matrix <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span>,
+where the entry <span><span class="MathJax_Preview">A_{ij}</span><script type="math/tex">A_{ij}</script></span> is a uniform random variable on <span><span class="MathJax_Preview">[0,1]</span><script type="math/tex">[0,1]</script></span>
+whenever <span><span class="MathJax_Preview">w_{ij}&gt;0</span><script type="math/tex">w_{ij}>0</script></span>, and <span><span class="MathJax_Preview">A_{ij}=0</span><script type="math/tex">A_{ij}=0</script></span> otherwise.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>A</code></strong> :&ensp;<code>(n,n) scipy sparse matrix, float</code></dt>
+<dd>Sparse rand_like matrix.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def randn(self):
+    &#34;&#34;&#34;Gaussian random matrix with same sparsity structure
+    ======
+
+    Given a weight matrix \\(W\\), returns a random matrix \\(A\\),
+    where the entry \\(A_{ij}\\) is a uniform random variable on \\([0,1]\\)
+    whenever \\(w_{ij}&gt;0\\), and \\(A_{ij}=0\\) otherwise.
+
+    Returns
+    -------
+    A : (n,n) scipy sparse matrix, float
+        Sparse rand_like matrix.
+    &#34;&#34;&#34;
+
+    n = self.num_nodes
+    vals = np.random.randn(len(self.I),1).flatten()
+    A = sparse.coo_matrix((vals,(self.I,self.J)),shape=(n,n)).tocsr() 
+    return A</code></pre>
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.reweight"><code class="name flex">
@@ -3673,6 +3823,8 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 <li><code><a title="graphlearning.graph.graph.page_rank" href="#graphlearning.graph.graph.page_rank">page_rank</a></code></li>
 <li><code><a title="graphlearning.graph.graph.peikonal" href="#graphlearning.graph.graph.peikonal">peikonal</a></code></li>
 <li><code><a title="graphlearning.graph.graph.plaplace" href="#graphlearning.graph.graph.plaplace">plaplace</a></code></li>
+<li><code><a title="graphlearning.graph.graph.rand" href="#graphlearning.graph.graph.rand">rand</a></code></li>
+<li><code><a title="graphlearning.graph.graph.randn" href="#graphlearning.graph.graph.randn">randn</a></code></li>
 <li><code><a title="graphlearning.graph.graph.reweight" href="#graphlearning.graph.graph.reweight">reweight</a></code></li>
 <li><code><a title="graphlearning.graph.graph.save" href="#graphlearning.graph.graph.save">save</a></code></li>
 </ul>
