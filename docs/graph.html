@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.2" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>graphlearning.graph API documentation</title>
 <meta name="description" content="Graph Class
 …" />
@@ -197,7 +197,7 @@ class graph:
         A = sparse.coo_matrix((np.ones(len(self.V),),(self.I,self.J)),shape=(n,n)).tocsr() 
         return A
 
-    def gradient(self, u, weighted=False):
+    def gradient(self, u, weighted=False, p=0.0):
         &#34;&#34;&#34;Graph Gradient
         ======
 
@@ -207,14 +207,16 @@ class graph:
         whenever \\(w_{ij}&gt;0\\), and \\(\\nabla u_{ij}=0\\) otherwise.
         If `weighted=True` is chosen, then the gradient is weighted by the graph weight 
         matrix as follows
-        \\[\\nabla u_{ij} = w_{ij}(u_j - u_i).\\]
+        \\[\\nabla u_{ij} = w_{ij}^p(u_j - u_i).\\]
 
         Parameters
         ----------
         u : numpy array, float
             Vector (graph function) to take gradient of
-        weighted : bool (optional), default=False
-            Whether to weight the gradient by the graph weight matrix.
+        weighted : bool (optional), default=False,True
+            Whether to weight the gradient by the graph weight matrix. Default is False when p=0 and True when \\(p\\neq 0\\).
+        p : float (optional), default=0,1
+            Power for weights on weighted gradient. Default is 0 when unweighted and 1 when weighted.
 
         Returns
         -------
@@ -224,8 +226,14 @@ class graph:
 
         n = self.num_nodes
 
+        if p != 0.0:
+            weighted = True
+
+        if weighted == True and p==0.0:
+            p = 1.0
+
         if weighted:
-            G = sparse.coo_matrix((self.V*(u[self.J]-u[self.I]), (self.I,self.J)),shape=(n,n)).tocsr()
+            G = sparse.coo_matrix(((self.V**p)*(u[self.J]-u[self.I]), (self.I,self.J)),shape=(n,n)).tocsr()
         else:
             G = sparse.coo_matrix((u[self.J]-u[self.I], (self.I,self.J)),shape=(n,n)).tocsr()
 
@@ -773,6 +781,89 @@ class graph:
             cextensions.peikonal(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,max_num_it,tol,num_bisection_it,prog)
 
         return u
+
+    def dijkstra_hl(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False):
+        &#34;&#34;&#34;Dijkstra&#39;s algorithm (Hopf-Lax Version)
+        ======
+
+        Solves the graph Hamilton-Jacobi equation
+        \\[ \\max_j w_{ji}^{-1} (u(x_i)^2 - u(x_j)^2) = u(x_i)f_i\\]
+        subject to \\(u=g\\) on \\(\\Gamma\\).
+
+        Parameters
+        ----------
+        bdy_set : numpy array (int) 
+            Indices or boolean mask identifying the boundary nodes \\(\\Gamma\\).
+        bdy_val : numpy array (float), optional
+            Boundary values \\(g\\) on \\(\\Gamma\\). A single float is
+            interpreted as a constant over \\(\\Gamma\\).
+        f : numpy array or scalar float, default=1
+            Right hand side of eikonal equation. If a scalar, it is extended to a vector 
+            over the graph.
+        max_dist : float or np.inf (optional), default = np.inf
+            Distance at which to terminate Dijkstra&#39;s algorithm. Nodes with distance
+            greater than `max_dist` will contain the value `np.inf`.
+        return_cp : bool (optional), default=False
+            Whether to return closest point. Nodes with distance greater than max_dist 
+            contain `-1` for closest point index.
+
+        Returns
+        -------
+        dist_func : numpy array, float 
+            Distance function computed via Dijkstra&#39;s algorithm.
+        cp : numpy array, int 
+            Closest point indices. Only returned if `return_cp=True`
+
+        Example
+        -------
+        This example uses Dijkstra&#39;s algorithm to compute the distance function to a single point,
+        and compares the result to a cone: [dijkstra.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/dijkstra.py).
+        ```py
+        import graphlearning as gl
+        import numpy as np
+
+        for n in [int(10**i) for i in range(3,6)]:
+
+            X = np.random.rand(n,2)
+            X[0,:]=[0.5,0.5]
+            W = gl.weightmatrix.knn(X,50,kernel=&#39;distance&#39;)
+            G = gl.graph(W)
+            u = G.dijkstra([0])
+
+            u_true = np.linalg.norm(X - [0.5,0.5],axis=1)
+            error = np.linalg.norm(u-u_true, ord=np.inf)
+            print(&#39;n = %d, Error = %f&#39;%(n,error))
+        ```
+        &#34;&#34;&#34;
+
+        #Import c extensions
+        from . import cextensions
+
+        #Convert boundary data to standard format
+        bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+
+        #Variables
+        n = self.num_nodes
+        dist_func = np.ones((n,))*np.inf        
+        cp = -np.ones((n,),dtype=int)
+
+        #Right hand side
+        if type(f) != np.ndarray:
+            f = np.ones((n,))*f
+
+        #Type casting and memory blocking
+        dist_func = np.ascontiguousarray(dist_func,dtype=np.float64)
+        cp = np.ascontiguousarray(cp,dtype=np.int32)
+        bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+        bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+        f = np.ascontiguousarray(f,dtype=np.float64)
+
+        cextensions.dijkstra_hl(dist_func,cp,self.I,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
+
+        if return_cp:
+            return dist_func, cp
+        else:
+            return dist_func
 
 
     def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False):
@@ -1255,7 +1346,7 @@ eigendecompositions, which are useful in graph learning.</p>
         A = sparse.coo_matrix((np.ones(len(self.V),),(self.I,self.J)),shape=(n,n)).tocsr() 
         return A
 
-    def gradient(self, u, weighted=False):
+    def gradient(self, u, weighted=False, p=0.0):
         &#34;&#34;&#34;Graph Gradient
         ======
 
@@ -1265,14 +1356,16 @@ eigendecompositions, which are useful in graph learning.</p>
         whenever \\(w_{ij}&gt;0\\), and \\(\\nabla u_{ij}=0\\) otherwise.
         If `weighted=True` is chosen, then the gradient is weighted by the graph weight 
         matrix as follows
-        \\[\\nabla u_{ij} = w_{ij}(u_j - u_i).\\]
+        \\[\\nabla u_{ij} = w_{ij}^p(u_j - u_i).\\]
 
         Parameters
         ----------
         u : numpy array, float
             Vector (graph function) to take gradient of
-        weighted : bool (optional), default=False
-            Whether to weight the gradient by the graph weight matrix.
+        weighted : bool (optional), default=False,True
+            Whether to weight the gradient by the graph weight matrix. Default is False when p=0 and True when \\(p\\neq 0\\).
+        p : float (optional), default=0,1
+            Power for weights on weighted gradient. Default is 0 when unweighted and 1 when weighted.
 
         Returns
         -------
@@ -1282,8 +1375,14 @@ eigendecompositions, which are useful in graph learning.</p>
 
         n = self.num_nodes
 
+        if p != 0.0:
+            weighted = True
+
+        if weighted == True and p==0.0:
+            p = 1.0
+
         if weighted:
-            G = sparse.coo_matrix((self.V*(u[self.J]-u[self.I]), (self.I,self.J)),shape=(n,n)).tocsr()
+            G = sparse.coo_matrix(((self.V**p)*(u[self.J]-u[self.I]), (self.I,self.J)),shape=(n,n)).tocsr()
         else:
             G = sparse.coo_matrix((u[self.J]-u[self.I], (self.I,self.J)),shape=(n,n)).tocsr()
 
@@ -1831,6 +1930,89 @@ eigendecompositions, which are useful in graph learning.</p>
             cextensions.peikonal(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,max_num_it,tol,num_bisection_it,prog)
 
         return u
+
+    def dijkstra_hl(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False):
+        &#34;&#34;&#34;Dijkstra&#39;s algorithm (Hopf-Lax Version)
+        ======
+
+        Solves the graph Hamilton-Jacobi equation
+        \\[ \\max_j w_{ji}^{-1} (u(x_i)^2 - u(x_j)^2) = u(x_i)f_i\\]
+        subject to \\(u=g\\) on \\(\\Gamma\\).
+
+        Parameters
+        ----------
+        bdy_set : numpy array (int) 
+            Indices or boolean mask identifying the boundary nodes \\(\\Gamma\\).
+        bdy_val : numpy array (float), optional
+            Boundary values \\(g\\) on \\(\\Gamma\\). A single float is
+            interpreted as a constant over \\(\\Gamma\\).
+        f : numpy array or scalar float, default=1
+            Right hand side of eikonal equation. If a scalar, it is extended to a vector 
+            over the graph.
+        max_dist : float or np.inf (optional), default = np.inf
+            Distance at which to terminate Dijkstra&#39;s algorithm. Nodes with distance
+            greater than `max_dist` will contain the value `np.inf`.
+        return_cp : bool (optional), default=False
+            Whether to return closest point. Nodes with distance greater than max_dist 
+            contain `-1` for closest point index.
+
+        Returns
+        -------
+        dist_func : numpy array, float 
+            Distance function computed via Dijkstra&#39;s algorithm.
+        cp : numpy array, int 
+            Closest point indices. Only returned if `return_cp=True`
+
+        Example
+        -------
+        This example uses Dijkstra&#39;s algorithm to compute the distance function to a single point,
+        and compares the result to a cone: [dijkstra.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/dijkstra.py).
+        ```py
+        import graphlearning as gl
+        import numpy as np
+
+        for n in [int(10**i) for i in range(3,6)]:
+
+            X = np.random.rand(n,2)
+            X[0,:]=[0.5,0.5]
+            W = gl.weightmatrix.knn(X,50,kernel=&#39;distance&#39;)
+            G = gl.graph(W)
+            u = G.dijkstra([0])
+
+            u_true = np.linalg.norm(X - [0.5,0.5],axis=1)
+            error = np.linalg.norm(u-u_true, ord=np.inf)
+            print(&#39;n = %d, Error = %f&#39;%(n,error))
+        ```
+        &#34;&#34;&#34;
+
+        #Import c extensions
+        from . import cextensions
+
+        #Convert boundary data to standard format
+        bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+
+        #Variables
+        n = self.num_nodes
+        dist_func = np.ones((n,))*np.inf        
+        cp = -np.ones((n,),dtype=int)
+
+        #Right hand side
+        if type(f) != np.ndarray:
+            f = np.ones((n,))*f
+
+        #Type casting and memory blocking
+        dist_func = np.ascontiguousarray(dist_func,dtype=np.float64)
+        cp = np.ascontiguousarray(cp,dtype=np.int32)
+        bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+        bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+        f = np.ascontiguousarray(f,dtype=np.float64)
+
+        cextensions.dijkstra_hl(dist_func,cp,self.I,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
+
+        if return_cp:
+            return dist_func, cp
+        else:
+            return dist_func
 
 
     def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False):
@@ -2391,7 +2573,7 @@ contain <code>-1</code> for closest point index.</dd>
 <h2 id="example">Example</h2>
 <p>This example uses Dijkstra's algorithm to compute the distance function to a single point,
 and compares the result to a cone: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/dijkstra.py">dijkstra.py</a>.</p>
-<pre><code class="py">import graphlearning as gl
+<pre><code class="language-py">import graphlearning as gl
 import numpy as np
 
 for n in [int(10**i) for i in range(3,6)]:
@@ -2505,6 +2687,144 @@ for n in [int(10**i) for i in range(3,6)]:
         return dist_func</code></pre>
 </details>
 </dd>
+<dt id="graphlearning.graph.graph.dijkstra_hl"><code class="name flex">
+<span>def <span class="ident">dijkstra_hl</span></span>(<span>self, bdy_set, bdy_val=0, f=1, max_dist=inf, return_cp=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="dijkstras-algorithm-hopf-lax-version">Dijkstra's algorithm (Hopf-Lax Version)</h1>
+<p>Solves the graph Hamilton-Jacobi equation
+<span><span class="MathJax_Preview"> \max_j w_{ji}^{-1} (u(x_i)^2 - u(x_j)^2) = u(x_i)f_i</span><script type="math/tex; mode=display"> \max_j w_{ji}^{-1} (u(x_i)^2 - u(x_j)^2) = u(x_i)f_i</script></span>
+subject to <span><span class="MathJax_Preview">u=g</span><script type="math/tex">u=g</script></span> on <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>bdy_set</code></strong> :&ensp;<code>numpy array (int) </code></dt>
+<dd>Indices or boolean mask identifying the boundary nodes <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>.</dd>
+<dt><strong><code>bdy_val</code></strong> :&ensp;<code>numpy array (float)</code>, optional</dt>
+<dd>Boundary values <span><span class="MathJax_Preview">g</span><script type="math/tex">g</script></span> on <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>. A single float is
+interpreted as a constant over <span><span class="MathJax_Preview">\Gamma</span><script type="math/tex">\Gamma</script></span>.</dd>
+<dt><strong><code>f</code></strong> :&ensp;<code>numpy array</code> or <code>scalar float</code>, default=<code>1</code></dt>
+<dd>Right hand side of eikonal equation. If a scalar, it is extended to a vector
+over the graph.</dd>
+<dt><strong><code>max_dist</code></strong> :&ensp;<code>float</code> or <code>np.inf (optional)</code>, default <code>= np.inf</code></dt>
+<dd>Distance at which to terminate Dijkstra's algorithm. Nodes with distance
+greater than <code>max_dist</code> will contain the value <code>np.inf</code>.</dd>
+<dt><strong><code>return_cp</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Whether to return closest point. Nodes with distance greater than max_dist
+contain <code>-1</code> for closest point index.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>dist_func</code></strong> :&ensp;<code>numpy array, float </code></dt>
+<dd>Distance function computed via Dijkstra's algorithm.</dd>
+<dt><strong><code>cp</code></strong> :&ensp;<code>numpy array, int </code></dt>
+<dd>Closest point indices. Only returned if <code>return_cp=True</code></dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>This example uses Dijkstra's algorithm to compute the distance function to a single point,
+and compares the result to a cone: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/dijkstra.py">dijkstra.py</a>.</p>
+<pre><code class="language-py">import graphlearning as gl
+import numpy as np
+
+for n in [int(10**i) for i in range(3,6)]:
+
+    X = np.random.rand(n,2)
+    X[0,:]=[0.5,0.5]
+    W = gl.weightmatrix.knn(X,50,kernel='distance')
+    G = gl.graph(W)
+    u = G.dijkstra([0])
+
+    u_true = np.linalg.norm(X - [0.5,0.5],axis=1)
+    error = np.linalg.norm(u-u_true, ord=np.inf)
+    print('n = %d, Error = %f'%(n,error))
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dijkstra_hl(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False):
+    &#34;&#34;&#34;Dijkstra&#39;s algorithm (Hopf-Lax Version)
+    ======
+
+    Solves the graph Hamilton-Jacobi equation
+    \\[ \\max_j w_{ji}^{-1} (u(x_i)^2 - u(x_j)^2) = u(x_i)f_i\\]
+    subject to \\(u=g\\) on \\(\\Gamma\\).
+
+    Parameters
+    ----------
+    bdy_set : numpy array (int) 
+        Indices or boolean mask identifying the boundary nodes \\(\\Gamma\\).
+    bdy_val : numpy array (float), optional
+        Boundary values \\(g\\) on \\(\\Gamma\\). A single float is
+        interpreted as a constant over \\(\\Gamma\\).
+    f : numpy array or scalar float, default=1
+        Right hand side of eikonal equation. If a scalar, it is extended to a vector 
+        over the graph.
+    max_dist : float or np.inf (optional), default = np.inf
+        Distance at which to terminate Dijkstra&#39;s algorithm. Nodes with distance
+        greater than `max_dist` will contain the value `np.inf`.
+    return_cp : bool (optional), default=False
+        Whether to return closest point. Nodes with distance greater than max_dist 
+        contain `-1` for closest point index.
+
+    Returns
+    -------
+    dist_func : numpy array, float 
+        Distance function computed via Dijkstra&#39;s algorithm.
+    cp : numpy array, int 
+        Closest point indices. Only returned if `return_cp=True`
+
+    Example
+    -------
+    This example uses Dijkstra&#39;s algorithm to compute the distance function to a single point,
+    and compares the result to a cone: [dijkstra.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/dijkstra.py).
+    ```py
+    import graphlearning as gl
+    import numpy as np
+
+    for n in [int(10**i) for i in range(3,6)]:
+
+        X = np.random.rand(n,2)
+        X[0,:]=[0.5,0.5]
+        W = gl.weightmatrix.knn(X,50,kernel=&#39;distance&#39;)
+        G = gl.graph(W)
+        u = G.dijkstra([0])
+
+        u_true = np.linalg.norm(X - [0.5,0.5],axis=1)
+        error = np.linalg.norm(u-u_true, ord=np.inf)
+        print(&#39;n = %d, Error = %f&#39;%(n,error))
+    ```
+    &#34;&#34;&#34;
+
+    #Import c extensions
+    from . import cextensions
+
+    #Convert boundary data to standard format
+    bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+
+    #Variables
+    n = self.num_nodes
+    dist_func = np.ones((n,))*np.inf        
+    cp = -np.ones((n,),dtype=int)
+
+    #Right hand side
+    if type(f) != np.ndarray:
+        f = np.ones((n,))*f
+
+    #Type casting and memory blocking
+    dist_func = np.ascontiguousarray(dist_func,dtype=np.float64)
+    cp = np.ascontiguousarray(cp,dtype=np.int32)
+    bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+    bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+    f = np.ascontiguousarray(f,dtype=np.float64)
+
+    cextensions.dijkstra_hl(dist_func,cp,self.I,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
+
+    if return_cp:
+        return dist_func, cp
+    else:
+        return dist_func</code></pre>
+</details>
+</dd>
 <dt id="graphlearning.graph.graph.divergence"><code class="name flex">
 <span>def <span class="ident">divergence</span></span>(<span>self, V, weighted=True)</span>
 </code></dt>
@@ -2603,7 +2923,7 @@ implemented for gamma &gt; 0.</dd>
 </dl>
 <h2 id="example">Example</h2>
 <p>This example compares the exact and lowrank (ranomized svd) methods for computing the spectrum: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/randomized_svd.py">randomized_svd.py</a>.</p>
-<pre><code class="py">import numpy as np
+<pre><code class="language-py">import numpy as np
 import matplotlib.pyplot as plt
 import sklearn.datasets as datasets
 import graphlearning as gl
@@ -2880,7 +3200,7 @@ combinatorial graph Laplacian <span><span class="MathJax_Preview">L = D-W</span>
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.gradient"><code class="name flex">
-<span>def <span class="ident">gradient</span></span>(<span>self, u, weighted=False)</span>
+<span>def <span class="ident">gradient</span></span>(<span>self, u, weighted=False, p=0.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="graph-gradient">Graph Gradient</h1>
@@ -2890,13 +3210,15 @@ the sparse matrix with the form
 whenever <span><span class="MathJax_Preview">w_{ij}&gt;0</span><script type="math/tex">w_{ij}>0</script></span>, and <span><span class="MathJax_Preview">\nabla u_{ij}=0</span><script type="math/tex">\nabla u_{ij}=0</script></span> otherwise.
 If <code>weighted=True</code> is chosen, then the gradient is weighted by the graph weight
 matrix as follows
-<span><span class="MathJax_Preview">\nabla u_{ij} = w_{ij}(u_j - u_i).</span><script type="math/tex; mode=display">\nabla u_{ij} = w_{ij}(u_j - u_i).</script></span></p>
+<span><span class="MathJax_Preview">\nabla u_{ij} = w_{ij}^p(u_j - u_i).</span><script type="math/tex; mode=display">\nabla u_{ij} = w_{ij}^p(u_j - u_i).</script></span></p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>u</code></strong> :&ensp;<code>numpy array, float</code></dt>
 <dd>Vector (graph function) to take gradient of</dd>
-<dt><strong><code>weighted</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
-<dd>Whether to weight the gradient by the graph weight matrix.</dd>
+<dt><strong><code>weighted</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False,True</code></dt>
+<dd>Whether to weight the gradient by the graph weight matrix. Default is False when p=0 and True when <span><span class="MathJax_Preview">p\neq 0</span><script type="math/tex">p\neq 0</script></span>.</dd>
+<dt><strong><code>p</code></strong> :&ensp;<code>float (optional)</code>, default=<code>0,1</code></dt>
+<dd>Power for weights on weighted gradient. Default is 0 when unweighted and 1 when weighted.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -2907,7 +3229,7 @@ matrix as follows
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def gradient(self, u, weighted=False):
+<pre><code class="python">def gradient(self, u, weighted=False, p=0.0):
     &#34;&#34;&#34;Graph Gradient
     ======
 
@@ -2917,14 +3239,16 @@ matrix as follows
     whenever \\(w_{ij}&gt;0\\), and \\(\\nabla u_{ij}=0\\) otherwise.
     If `weighted=True` is chosen, then the gradient is weighted by the graph weight 
     matrix as follows
-    \\[\\nabla u_{ij} = w_{ij}(u_j - u_i).\\]
+    \\[\\nabla u_{ij} = w_{ij}^p(u_j - u_i).\\]
 
     Parameters
     ----------
     u : numpy array, float
         Vector (graph function) to take gradient of
-    weighted : bool (optional), default=False
-        Whether to weight the gradient by the graph weight matrix.
+    weighted : bool (optional), default=False,True
+        Whether to weight the gradient by the graph weight matrix. Default is False when p=0 and True when \\(p\\neq 0\\).
+    p : float (optional), default=0,1
+        Power for weights on weighted gradient. Default is 0 when unweighted and 1 when weighted.
 
     Returns
     -------
@@ -2934,8 +3258,14 @@ matrix as follows
 
     n = self.num_nodes
 
+    if p != 0.0:
+        weighted = True
+
+    if weighted == True and p==0.0:
+        p = 1.0
+
     if weighted:
-        G = sparse.coo_matrix((self.V*(u[self.J]-u[self.I]), (self.I,self.J)),shape=(n,n)).tocsr()
+        G = sparse.coo_matrix(((self.V**p)*(u[self.J]-u[self.I]), (self.I,self.J)),shape=(n,n)).tocsr()
     else:
         G = sparse.coo_matrix((u[self.J]-u[self.I], (self.I,self.J)),shape=(n,n)).tocsr()
 
@@ -3289,7 +3619,7 @@ is interpreted as a constant vector of the graph.</dd>
 </dl>
 <h2 id="example">Example</h2>
 <p>This example uses the peikonal equation to compute a data depth: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/peikonal.py">peikonal.py</a>.</p>
-<pre><code class="py">import graphlearning as gl
+<pre><code class="language-py">import graphlearning as gl
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -3441,7 +3771,7 @@ interpreted as a constant over <span><span class="MathJax_Preview">\Gamma</span>
 </dl>
 <h2 id="example">Example</h2>
 <p>This example uses the p-Laplace equation to interpolate boundary values: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/plaplace.py">plaplace.py</a>.</p>
-<pre><code class="py">import graphlearning as gl
+<pre><code class="language-py">import graphlearning as gl
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -3811,6 +4141,7 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 <li><code><a title="graphlearning.graph.graph.degree_matrix" href="#graphlearning.graph.graph.degree_matrix">degree_matrix</a></code></li>
 <li><code><a title="graphlearning.graph.graph.degree_vector" href="#graphlearning.graph.graph.degree_vector">degree_vector</a></code></li>
 <li><code><a title="graphlearning.graph.graph.dijkstra" href="#graphlearning.graph.graph.dijkstra">dijkstra</a></code></li>
+<li><code><a title="graphlearning.graph.graph.dijkstra_hl" href="#graphlearning.graph.graph.dijkstra_hl">dijkstra_hl</a></code></li>
 <li><code><a title="graphlearning.graph.graph.divergence" href="#graphlearning.graph.graph.divergence">divergence</a></code></li>
 <li><code><a title="graphlearning.graph.graph.eigen_decomp" href="#graphlearning.graph.graph.eigen_decomp">eigen_decomp</a></code></li>
 <li><code><a title="graphlearning.graph.graph.fiedler_vector" href="#graphlearning.graph.graph.fiedler_vector">fiedler_vector</a></code></li>
@@ -3835,7 +4166,7 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.9.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
 </body>
 </html>

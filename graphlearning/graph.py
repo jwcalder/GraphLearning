@@ -163,7 +163,7 @@ class graph:
         A = sparse.coo_matrix((np.ones(len(self.V),),(self.I,self.J)),shape=(n,n)).tocsr() 
         return A
 
-    def gradient(self, u, weighted=False):
+    def gradient(self, u, weighted=False, p=0.0):
         """Graph Gradient
         ======
 
@@ -173,14 +173,16 @@ class graph:
         whenever \\(w_{ij}>0\\), and \\(\\nabla u_{ij}=0\\) otherwise.
         If `weighted=True` is chosen, then the gradient is weighted by the graph weight 
         matrix as follows
-        \\[\\nabla u_{ij} = w_{ij}(u_j - u_i).\\]
+        \\[\\nabla u_{ij} = w_{ij}^p(u_j - u_i).\\]
 
         Parameters
         ----------
         u : numpy array, float
             Vector (graph function) to take gradient of
-        weighted : bool (optional), default=False
-            Whether to weight the gradient by the graph weight matrix.
+        weighted : bool (optional), default=False,True
+            Whether to weight the gradient by the graph weight matrix. Default is False when p=0 and True when \\(p\\neq 0\\).
+        p : float (optional), default=0,1
+            Power for weights on weighted gradient. Default is 0 when unweighted and 1 when weighted.
 
         Returns
         -------
@@ -190,8 +192,14 @@ class graph:
 
         n = self.num_nodes
 
+        if p != 0.0:
+            weighted = True
+
+        if weighted == True and p==0.0:
+            p = 1.0
+
         if weighted:
-            G = sparse.coo_matrix((self.V*(u[self.J]-u[self.I]), (self.I,self.J)),shape=(n,n)).tocsr()
+            G = sparse.coo_matrix(((self.V**p)*(u[self.J]-u[self.I]), (self.I,self.J)),shape=(n,n)).tocsr()
         else:
             G = sparse.coo_matrix((u[self.J]-u[self.I], (self.I,self.J)),shape=(n,n)).tocsr()
 
@@ -739,6 +747,89 @@ class graph:
             cextensions.peikonal(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,max_num_it,tol,num_bisection_it,prog)
 
         return u
+
+    def dijkstra_hl(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False):
+        """Dijkstra's algorithm (Hopf-Lax Version)
+        ======
+
+        Solves the graph Hamilton-Jacobi equation
+        \\[ \\max_j w_{ji}^{-1} (u(x_i)^2 - u(x_j)^2) = u(x_i)f_i\\]
+        subject to \\(u=g\\) on \\(\\Gamma\\).
+
+        Parameters
+        ----------
+        bdy_set : numpy array (int) 
+            Indices or boolean mask identifying the boundary nodes \\(\\Gamma\\).
+        bdy_val : numpy array (float), optional
+            Boundary values \\(g\\) on \\(\\Gamma\\). A single float is
+            interpreted as a constant over \\(\\Gamma\\).
+        f : numpy array or scalar float, default=1
+            Right hand side of eikonal equation. If a scalar, it is extended to a vector 
+            over the graph.
+        max_dist : float or np.inf (optional), default = np.inf
+            Distance at which to terminate Dijkstra's algorithm. Nodes with distance
+            greater than `max_dist` will contain the value `np.inf`.
+        return_cp : bool (optional), default=False
+            Whether to return closest point. Nodes with distance greater than max_dist 
+            contain `-1` for closest point index.
+
+        Returns
+        -------
+        dist_func : numpy array, float 
+            Distance function computed via Dijkstra's algorithm.
+        cp : numpy array, int 
+            Closest point indices. Only returned if `return_cp=True`
+
+        Example
+        -------
+        This example uses Dijkstra's algorithm to compute the distance function to a single point,
+        and compares the result to a cone: [dijkstra.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/dijkstra.py).
+        ```py
+        import graphlearning as gl
+        import numpy as np
+
+        for n in [int(10**i) for i in range(3,6)]:
+
+            X = np.random.rand(n,2)
+            X[0,:]=[0.5,0.5]
+            W = gl.weightmatrix.knn(X,50,kernel='distance')
+            G = gl.graph(W)
+            u = G.dijkstra([0])
+
+            u_true = np.linalg.norm(X - [0.5,0.5],axis=1)
+            error = np.linalg.norm(u-u_true, ord=np.inf)
+            print('n = %d, Error = %f'%(n,error))
+        ```
+        """
+
+        #Import c extensions
+        from . import cextensions
+
+        #Convert boundary data to standard format
+        bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+
+        #Variables
+        n = self.num_nodes
+        dist_func = np.ones((n,))*np.inf        
+        cp = -np.ones((n,),dtype=int)
+
+        #Right hand side
+        if type(f) != np.ndarray:
+            f = np.ones((n,))*f
+
+        #Type casting and memory blocking
+        dist_func = np.ascontiguousarray(dist_func,dtype=np.float64)
+        cp = np.ascontiguousarray(cp,dtype=np.int32)
+        bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+        bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+        f = np.ascontiguousarray(f,dtype=np.float64)
+
+        cextensions.dijkstra_hl(dist_func,cp,self.I,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
+
+        if return_cp:
+            return dist_func, cp
+        else:
+            return dist_func
 
 
     def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False):

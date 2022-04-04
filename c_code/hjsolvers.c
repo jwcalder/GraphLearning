@@ -114,6 +114,62 @@ void PushHeap(double *d, int *h, int s, int *p, int i){
 
 }
 
+void dijkstra_hl_main(double *d, int *l, int *WI, int *K, double *WV, int *I, double *g, double *f, bool prog, int n, int M, int k, double max_dist){
+
+
+   //Initialization
+   int i,j,jj;
+   int s = 0;                       //Size of heap
+   int *h = vector_int(n+1,-1);     //Active points heap (indices of active points)
+   bool *A = vector_bool(n,0);      //Active flag
+   int *p = vector_int(n,-1);       //Pointer back to heap
+   bool *V = vector_bool(n,0);      //Finalized flag
+
+   //Build active points heap and set distance = 0 for initial points
+   for(i=0; i<k; i++){
+      d[I[i]] = g[i];   //Initialize distance to g
+      A[I[i]] = 1;      //Set active flag to true
+      l[I[i]] = I[i];   //Set index of closest label
+      PushHeap(d,h,s,p,I[i]);
+      s++;
+   }
+   
+   //Dijkstra's algorithm 
+   while(s > 0){
+      i = PopHeap(d,h,s,p); //Pop smallest element off of heap
+      s--;
+
+      //Finalize this point
+      V[i] = 1;  //Mark as finalized
+      A[i] = 0;  //Set active flag to false
+      if(d[i] > max_dist)
+         break;
+
+      //Update neighbors
+      for(jj=K[i]; jj < K[i+1]; jj++){
+         j = WI[jj];
+         if(j != i && V[j] == 0){
+            //double tmp_dist = d[i] + WV[jj]*f[i];
+            double fwij = f[i]*WV[jj];
+            double tmp_dist = ( fwij + sqrt(fwij*fwij + 4*d[i]*d[i]) )/2.0;
+            if(A[j]){  //If j is already active
+               if(tmp_dist < d[j]){ //Need to update heap
+                  d[j] = tmp_dist;
+                  SiftUp(d,h,s,p,p[j]);
+                  l[j] = l[i];
+               }
+            }else{ //If j is not active
+               //Add to heap and initialize distance, active flag, and label index
+               d[j] = tmp_dist;
+               A[j] = 1;  
+               l[j] = l[i];
+               PushHeap(d,h,s,p,j);
+               s++;
+            }
+         }
+      }
+   }
+}
 void dijkstra_main(double *d, int *l, int *WI, int *K, double *WV, int *I, double *g, double *f, bool prog, int n, int M, int k, double max_dist){
 
 

@@ -146,6 +146,46 @@ static PyObject* volume_mbo(PyObject* self, PyObject* args)
    return Py_None;
 }
 
+static PyObject* dijkstra_hl(PyObject* self, PyObject* args)
+{
+
+   double progd, max_radius;
+   PyArrayObject *d_array;
+   PyArrayObject *l_array;
+   PyArrayObject *WI_array;
+   PyArrayObject *K_array;
+   PyArrayObject *WV_array;
+   PyArrayObject *I_array;
+   PyArrayObject *g_array;
+   PyArrayObject *f_array;
+
+   /*  parse arguments */
+   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!O!dd", &PyArray_Type, &d_array, &PyArray_Type, &l_array, &PyArray_Type, &WI_array, &PyArray_Type, &K_array, &PyArray_Type, &WV_array, &PyArray_Type, &I_array, &PyArray_Type, &g_array,  &PyArray_Type, &f_array, &progd, &max_radius))
+      return NULL;
+
+   npy_intp *dim =  PyArray_DIMS(d_array);
+   int n = dim[0]; //Number of vertices
+   dim =  PyArray_DIMS(WI_array);
+   int M = dim[0]; //Number nonzero entries in weight matrix
+   dim =  PyArray_DIMS(I_array);
+   int k = dim[0]; //Number labeled points
+
+   double *d = (double *) PyArray_DATA(d_array);
+   int *l = (int *) PyArray_DATA(l_array);
+   int *WI = (int *) PyArray_DATA(WI_array);
+   int *K = (int *) PyArray_DATA(K_array);
+   double *WV = (double *) PyArray_DATA(WV_array);
+   int *I = (int *) PyArray_DATA(I_array);
+   double *g = (double *) PyArray_DATA(g_array);
+   double *f = (double *) PyArray_DATA(f_array);
+   bool prog = (bool)progd;
+
+   //Call main function from C code
+   dijkstra_hl_main(d,l,WI,K,WV,I,g,f,prog,n,M,k,max_radius);
+
+   Py_INCREF(Py_None);
+   return Py_None;
+}
 static PyObject* dijkstra(PyObject* self, PyObject* args)
 {
 
@@ -276,6 +316,7 @@ static PyMethodDef CExtensionsMethods[] =
    {"lip_iterate", lip_iterate, METH_VARARGS, "C Code acceleration for unweighted Lipschitz learning"},
    {"volume_mbo", volume_mbo, METH_VARARGS, "Volume Constrained MBO"},
    {"dijkstra", dijkstra, METH_VARARGS, "Dijkstra's algorithm"},
+   {"dijkstra_hl", dijkstra_hl, METH_VARARGS, "Dijkstra's algorithm in Hopf-Lax formula"},
    {"peikonal", peikonal, METH_VARARGS, "C code version of p-eikonal solver via Gauss-Seidel"},
    {"peikonal_fmm", peikonal_fmm, METH_VARARGS, "C code version of p-eikonal solver via Fast Marching"},
    {NULL, NULL, 0, NULL}

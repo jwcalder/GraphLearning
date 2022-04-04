@@ -717,7 +717,7 @@ class poisson_mbo(ssl):
             Tolerance for conjugate gradient solver.
         spectral_cutoff : int (optional), default=10
             Number of eigenvectors to use for spectral solver.
-        Ns : int (opitional), default=40
+        Ns : int (optional), default=40
             Number of inner iterations in PoissonMBO.
         mu : float (optional), default=1
             Fidelity parameter.
