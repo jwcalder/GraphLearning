@@ -370,9 +370,9 @@ def constrained_solve(L,I,g,f=None,x0=None,tol=1e-10):
     M = sparse.spdiags(1/(M+1e-10),0,m,m).tocsr()
 
     if x0 is None:
-        v,i = splinalg.cg(A,b,tol=tol,M=M)
+        v,i = sparse.linalg.cg(A,b,tol=tol,M=M)
     else:
-        v,i = splinalg.cg(A,b,x0=x0[idx],tol=tol,M=M)
+        v,i = sparse.linalg.cg(A,b,x0=x0[idx],tol=tol,M=M)
 
     #Add labels back into array
     u = np.ones((n,))
