@@ -239,7 +239,7 @@ class graph:
         return divV
 
      
-    def reweight(self, idx, method='poisson', X=None, alpha=2, zeta=1e7, r=0.1):
+    def reweight(self, idx, method='poisson', normalization='combinatorial', tau=0, X=None, alpha=2, zeta=1e7, r=0.1):
         """Reweight a weight matrix
         ======
 
@@ -253,6 +253,10 @@ class graph:
         method : {'poisson','wnll','properly'}, default='poisson'
             Reweighting method. 'poisson' is described in [1], 'wnll' is described in [2], and 'properly'
             is described in [3]. If 'properly' is selected, the user must supply the data features `X`.
+        normalization : {'combinatorial','normalized'}, default='combinatorial'
+            Type of normalization to apply for the graph Laplacian when method='poisson'.
+        tau : float or numpy array (optional), default=0
+            Zeroth order term in Laplace equation. Can be a scalar or vector.
         X : numpy array (optional)
             Data features, used to construct the graph. This is required for the `properly` weighted 
             graph Laplacian method.
@@ -284,11 +288,21 @@ class graph:
             n = self.num_nodes
             f = np.zeros(n)
             f[idx] = 1
-            f -= np.mean(f)
 
-            L = self.laplacian()
+            if normalization == 'combinatorial':
+                f -= np.mean(f)
+                L = self.laplacian()
+            elif normalization == 'normalized':
+                d = self.degree_vector()**(0.5)
+                c = np.sum(d*f)/np.sum(d)
+                f -= c
+                L = self.laplacian(normalization=normalization)
+            else:
+                sys.exit('Unsupported normalization '+normalization+' for graph.reweight.')
+
             w = utils.conjgrad(L, f, tol=1e-5)
             w -= np.min(w)
+            w += 1e-5
             D = sparse.spdiags(w,0,n,n).tocsr()
 
             return D*self.weight_matrix*D

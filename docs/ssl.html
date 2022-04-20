@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.10.0" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>graphlearning.ssl API documentation</title>
 <meta name="description" content="Semi-Supervised Learning
 …" />
@@ -31,7 +31,7 @@ Below, we give some high-level examples of how to use this module. There are als
 individual functions, given in the documentation below.</p>
 <h2 id="two-moons-example">Two Moons Example</h2>
 <p>Semi-supervised learning on the two-moons dataset: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/ssl_twomoons.py">ssl_twomoons.py</a>.</p>
-<pre><code class="language-py">import numpy as np
+<pre><code class="py">import numpy as np
 import graphlearning as gl
 import matplotlib.pyplot as plt
 import sklearn.datasets as datasets
@@ -54,7 +54,7 @@ plt.show()
 </code></pre>
 <h2 id="handwritten-digit-classification">Handwritten Digit Classification</h2>
 <p>Laplace and Poisson learning on MNIST at 1 label per class: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/ssl_mnist.py">ssl_mnist.py</a>.</p>
-<pre><code class="language-py">import graphlearning as gl
+<pre><code class="py">import graphlearning as gl
 
 labels = gl.datasets.load('mnist', labels_only=True)
 W = gl.weightmatrix.knn('mnist', 10, metric='vae')
@@ -76,7 +76,7 @@ to compare many different semi-supervised learning algorithms at different label
 and with different, randomly chosen, training data. The package includes functions to automatically
 create LaTeX tables and plots comparing accuracy or test error. This example compares several methods over 100
 randomized trials: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/ssl_trials.py">ssl_trials.py</a>.</p>
-<pre><code class="language-py">import graphlearning as gl
+<pre><code class="py">import graphlearning as gl
 
 dataset = 'mnist'
 metric = 'vae' 
@@ -103,7 +103,7 @@ gl.ssl.accuracy_plot(model_list, tag=tag, title='SSL')
 </code></pre>
 <h2 id="class-priors">Class Priors</h2>
 <p>Prior information about relative class sizes can be used to improve performance: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/ssl_classpriors.py">ssl_classpriors.py</a>.</p>
-<pre><code class="language-py">import graphlearning as gl
+<pre><code class="py">import graphlearning as gl
 
 labels = gl.datasets.load('mnist', labels_only=True)
 W = gl.weightmatrix.knn('mnist', 10, metric='vae')
@@ -1233,12 +1233,12 @@ class modularity_mbo(ssl):
 
 class laplace(ssl):
     def __init__(self, W=None, class_priors=None, X=None, reweighting=&#39;none&#39;, normalization=&#39;combinatorial&#39;, 
-                 mean_shift=False, tol=1e-5, alpha=2, zeta=1e7, r=0.1):
+                 tau=0, mean_shift=False, tol=1e-5, alpha=2, zeta=1e7, r=0.1):
         &#34;&#34;&#34;Laplace Learning
         ===================
 
         Semi-supervised learning via the solution of the Laplace equation
-        \\[L u_j = 0, \\ \\ j \\geq m+1,\\]
+        \\[\\tau u_j + L u_j = 0, \\ \\ j \\geq m+1,\\]
         subject to \\(u_j = y_j\\) for \\(j=1,\\dots,m\\), where \\(L=D-W\\) is the 
         combinatorial graph Laplacian and \\(y_j\\) for \\(j=1,\\dots,m\\) are the 
         label vectors. 
@@ -1263,6 +1263,8 @@ class laplace(ssl):
         reweighting : {&#39;none&#39;, &#39;wnll&#39;, &#39;poisson&#39;, &#39;properly&#39;} (optional), default=&#39;none&#39;
             Reweighting scheme for low label rate problems. If &#39;properly&#39; is selected, the user
             must supply the data features `X`.
+        tau : float or numpy array (optional), default=0
+            Zeroth order term in Laplace equation. Can be a scalar or vector.
         mean_shift : bool (optional), default=False
             Whether to shift output to mean zero.
         tol : float (optional), default=1e-5
@@ -1297,6 +1299,12 @@ class laplace(ssl):
         self.tol = tol
         self.X = X
 
+        #Set up tau
+        if type(tau) in [float,int]:
+            self.tau = np.ones(self.graph.num_nodes)*tau
+        elif type(tau) is np.ndarray:
+            self.tau = tau
+
         #Setup accuracy filename
         fname = &#39;_laplace&#39; 
         self.name = &#39;Laplace Learning&#39;
@@ -1305,9 +1313,13 @@ class laplace(ssl):
             self.name += &#39;: &#39; + self.reweighting + &#39; reweighted&#39;
         if self.normalization != &#39;combinatorial&#39;:
             fname += &#39;_&#39; + self.normalization
+            self.name += &#39; &#39; + self.normalization
         if self.mean_shift:
             fname += &#39;_meanshift&#39;
             self.name += &#39; with meanshift&#39;
+        if np.max(self.tau) &gt; 0:
+            fname += &#39;_tau_%.3f&#39;%np.max(self.tau)
+            self.name += &#39; tau=%.3f&#39;%np.max(self.tau)
 
         self.accuracy_filename = fname
 
@@ -1318,7 +1330,8 @@ class laplace(ssl):
         if self.reweighting == &#39;none&#39;:
             G = self.graph
         else:
-            W = self.graph.reweight(train_ind, method=self.reweighting, X=self.X)
+            W = self.graph.reweight(train_ind, method=self.reweighting, normalization=self.normalization, X=self.X)
+            #W = self.graph.reweight(train_ind, method=self.reweighting, X=self.X)
             G = graph.graph(W)
 
         #Get some attributes
@@ -1326,8 +1339,8 @@ class laplace(ssl):
         unique_labels = np.unique(train_labels)
         k = len(unique_labels)
         
-        #Graph Laplacian and one-hot labels
-        L = G.laplacian(normalization=self.normalization)
+        #tau + Graph Laplacian and one-hot labels
+        L = sparse.spdiags(self.tau, 0, G.num_nodes, G.num_nodes) + G.laplacian(normalization=self.normalization)
         F = utils.labels_to_onehot(train_labels)
 
         #Locations of unlabeled points
@@ -2957,12 +2970,12 @@ this is used to construct a knn density estimator for reweighting the eikonal eq
 </dd>
 <dt id="graphlearning.ssl.laplace"><code class="flex name class">
 <span>class <span class="ident">laplace</span></span>
-<span>(</span><span>W=None, class_priors=None, X=None, reweighting='none', normalization='combinatorial', mean_shift=False, tol=1e-05, alpha=2, zeta=10000000.0, r=0.1)</span>
+<span>(</span><span>W=None, class_priors=None, X=None, reweighting='none', normalization='combinatorial', tau=0, mean_shift=False, tol=1e-05, alpha=2, zeta=10000000.0, r=0.1)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="laplace-learning">Laplace Learning</h1>
 <p>Semi-supervised learning via the solution of the Laplace equation
-<span><span class="MathJax_Preview">L u_j = 0, \ \ j \geq m+1,</span><script type="math/tex; mode=display">L u_j = 0, \ \ j \geq m+1,</script></span>
+<span><span class="MathJax_Preview">\tau u_j + L u_j = 0, \ \ j \geq m+1,</span><script type="math/tex; mode=display">\tau u_j + L u_j = 0, \ \ j \geq m+1,</script></span>
 subject to <span><span class="MathJax_Preview">u_j = y_j</span><script type="math/tex">u_j = y_j</script></span> for <span><span class="MathJax_Preview">j=1,\dots,m</span><script type="math/tex">j=1,\dots,m</script></span>, where <span><span class="MathJax_Preview">L=D-W</span><script type="math/tex">L=D-W</script></span> is the
 combinatorial graph Laplacian and <span><span class="MathJax_Preview">y_j</span><script type="math/tex">y_j</script></span> for <span><span class="MathJax_Preview">j=1,\dots,m</span><script type="math/tex">j=1,\dots,m</script></span> are the
 label vectors. </p>
@@ -2985,6 +2998,8 @@ graph Laplacian method.</dd>
 <dt><strong><code>reweighting</code></strong> :&ensp;<code>{'none', 'wnll', 'poisson', 'properly'} (optional)</code>, default=<code>'none'</code></dt>
 <dd>Reweighting scheme for low label rate problems. If 'properly' is selected, the user
 must supply the data features <code>X</code>.</dd>
+<dt><strong><code>tau</code></strong> :&ensp;<code>float</code> or <code>numpy array (optional)</code>, default=<code>0</code></dt>
+<dd>Zeroth order term in Laplace equation. Can be a scalar or vector.</dd>
 <dt><strong><code>mean_shift</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
 <dd>Whether to shift output to mean zero.</dd>
 <dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1e-5</code></dt>
@@ -3012,12 +3027,12 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 </summary>
 <pre><code class="python">class laplace(ssl):
     def __init__(self, W=None, class_priors=None, X=None, reweighting=&#39;none&#39;, normalization=&#39;combinatorial&#39;, 
-                 mean_shift=False, tol=1e-5, alpha=2, zeta=1e7, r=0.1):
+                 tau=0, mean_shift=False, tol=1e-5, alpha=2, zeta=1e7, r=0.1):
         &#34;&#34;&#34;Laplace Learning
         ===================
 
         Semi-supervised learning via the solution of the Laplace equation
-        \\[L u_j = 0, \\ \\ j \\geq m+1,\\]
+        \\[\\tau u_j + L u_j = 0, \\ \\ j \\geq m+1,\\]
         subject to \\(u_j = y_j\\) for \\(j=1,\\dots,m\\), where \\(L=D-W\\) is the 
         combinatorial graph Laplacian and \\(y_j\\) for \\(j=1,\\dots,m\\) are the 
         label vectors. 
@@ -3042,6 +3057,8 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
         reweighting : {&#39;none&#39;, &#39;wnll&#39;, &#39;poisson&#39;, &#39;properly&#39;} (optional), default=&#39;none&#39;
             Reweighting scheme for low label rate problems. If &#39;properly&#39; is selected, the user
             must supply the data features `X`.
+        tau : float or numpy array (optional), default=0
+            Zeroth order term in Laplace equation. Can be a scalar or vector.
         mean_shift : bool (optional), default=False
             Whether to shift output to mean zero.
         tol : float (optional), default=1e-5
@@ -3076,6 +3093,12 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
         self.tol = tol
         self.X = X
 
+        #Set up tau
+        if type(tau) in [float,int]:
+            self.tau = np.ones(self.graph.num_nodes)*tau
+        elif type(tau) is np.ndarray:
+            self.tau = tau
+
         #Setup accuracy filename
         fname = &#39;_laplace&#39; 
         self.name = &#39;Laplace Learning&#39;
@@ -3084,9 +3107,13 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
             self.name += &#39;: &#39; + self.reweighting + &#39; reweighted&#39;
         if self.normalization != &#39;combinatorial&#39;:
             fname += &#39;_&#39; + self.normalization
+            self.name += &#39; &#39; + self.normalization
         if self.mean_shift:
             fname += &#39;_meanshift&#39;
             self.name += &#39; with meanshift&#39;
+        if np.max(self.tau) &gt; 0:
+            fname += &#39;_tau_%.3f&#39;%np.max(self.tau)
+            self.name += &#39; tau=%.3f&#39;%np.max(self.tau)
 
         self.accuracy_filename = fname
 
@@ -3097,7 +3124,8 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
         if self.reweighting == &#39;none&#39;:
             G = self.graph
         else:
-            W = self.graph.reweight(train_ind, method=self.reweighting, X=self.X)
+            W = self.graph.reweight(train_ind, method=self.reweighting, normalization=self.normalization, X=self.X)
+            #W = self.graph.reweight(train_ind, method=self.reweighting, X=self.X)
             G = graph.graph(W)
 
         #Get some attributes
@@ -3105,8 +3133,8 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
         unique_labels = np.unique(train_labels)
         k = len(unique_labels)
         
-        #Graph Laplacian and one-hot labels
-        L = G.laplacian(normalization=self.normalization)
+        #tau + Graph Laplacian and one-hot labels
+        L = sparse.spdiags(self.tau, 0, G.num_nodes, G.num_nodes) + G.laplacian(normalization=self.normalization)
         F = utils.labels_to_onehot(train_labels)
 
         #Locations of unlabeled points
@@ -3707,7 +3735,7 @@ nodes in each class.</dd>
 </dl>
 <h2 id="examples">Examples</h2>
 <p>Poisson learning works on directed (i.e., nonsymmetric) graphs with the gradient descent solver: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/poisson_directed.py">poisson_directed.py</a>.</p>
-<pre><code class="language-py">import numpy as np
+<pre><code class="py">import numpy as np
 import graphlearning as gl
 import matplotlib.pyplot as plt
 import sklearn.datasets as datasets
@@ -3972,7 +4000,7 @@ Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1
 </dl>
 <h2 id="example">Example</h2>
 <p>Running PoissonMBO on MNIST at 1 label per class: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/poisson_mbo.py">poisson_mbo.py</a>.</p>
-<pre><code class="language-py">import graphlearning as gl
+<pre><code class="py">import graphlearning as gl
 
 labels = gl.datasets.load('mnist', labels_only=True)
 W = gl.weightmatrix.knn('mnist', 10, metric='vae')
@@ -5534,7 +5562,7 @@ Setting <code>volume_constraint=1</code> yields the tightest constraint.</dd>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

@@ -849,7 +849,7 @@ class volume_mbo(ssl):
         ----------
         W : numpy array, scipy sparse matrix, or graphlearning graph object (optional), default=None
             Weight matrix representing the graph.
-        class_priors : numpy array (optional), default=None
+        class_priors : numpy array
             Class priors (fraction of data belonging to each class). 
         temperature : float (optional), default=0.1
             Temperature for volume constrained MBO.
@@ -865,6 +865,8 @@ class volume_mbo(ssl):
         """
         super().__init__(W, None)
 
+        if class_priors is None:
+            sys.exit("Class priors must be provided for Volume MBO.")
         self.class_counts = (self.graph.num_nodes*class_priors).astype(int)
         self.temperature = temperature
         self.volume_constraint = volume_constraint
@@ -1103,12 +1105,12 @@ class modularity_mbo(ssl):
 
 class laplace(ssl):
     def __init__(self, W=None, class_priors=None, X=None, reweighting='none', normalization='combinatorial', 
-                 mean_shift=False, tol=1e-5, alpha=2, zeta=1e7, r=0.1):
+                 tau=0, mean_shift=False, tol=1e-5, alpha=2, zeta=1e7, r=0.1):
         """Laplace Learning
         ===================
 
         Semi-supervised learning via the solution of the Laplace equation
-        \\[L u_j = 0, \\ \\ j \\geq m+1,\\]
+        \\[\\tau u_j + L u_j = 0, \\ \\ j \\geq m+1,\\]
         subject to \\(u_j = y_j\\) for \\(j=1,\\dots,m\\), where \\(L=D-W\\) is the 
         combinatorial graph Laplacian and \\(y_j\\) for \\(j=1,\\dots,m\\) are the 
         label vectors. 
@@ -1133,6 +1135,8 @@ class laplace(ssl):
         reweighting : {'none', 'wnll', 'poisson', 'properly'} (optional), default='none'
             Reweighting scheme for low label rate problems. If 'properly' is selected, the user
             must supply the data features `X`.
+        tau : float or numpy array (optional), default=0
+            Zeroth order term in Laplace equation. Can be a scalar or vector.
         mean_shift : bool (optional), default=False
             Whether to shift output to mean zero.
         tol : float (optional), default=1e-5
@@ -1167,6 +1171,12 @@ class laplace(ssl):
         self.tol = tol
         self.X = X
 
+        #Set up tau
+        if type(tau) in [float,int]:
+            self.tau = np.ones(self.graph.num_nodes)*tau
+        elif type(tau) is np.ndarray:
+            self.tau = tau
+
         #Setup accuracy filename
         fname = '_laplace' 
         self.name = 'Laplace Learning'
@@ -1175,9 +1185,13 @@ class laplace(ssl):
             self.name += ': ' + self.reweighting + ' reweighted'
         if self.normalization != 'combinatorial':
             fname += '_' + self.normalization
+            self.name += ' ' + self.normalization
         if self.mean_shift:
             fname += '_meanshift'
             self.name += ' with meanshift'
+        if np.max(self.tau) > 0:
+            fname += '_tau_%.3f'%np.max(self.tau)
+            self.name += ' tau=%.3f'%np.max(self.tau)
 
         self.accuracy_filename = fname
 
@@ -1188,7 +1202,8 @@ class laplace(ssl):
         if self.reweighting == 'none':
             G = self.graph
         else:
-            W = self.graph.reweight(train_ind, method=self.reweighting, X=self.X)
+            W = self.graph.reweight(train_ind, method=self.reweighting, normalization=self.normalization, X=self.X)
+            #W = self.graph.reweight(train_ind, method=self.reweighting, X=self.X)
             G = graph.graph(W)
 
         #Get some attributes
@@ -1196,8 +1211,8 @@ class laplace(ssl):
         unique_labels = np.unique(train_labels)
         k = len(unique_labels)
         
-        #Graph Laplacian and one-hot labels
-        L = G.laplacian(normalization=self.normalization)
+        #tau + Graph Laplacian and one-hot labels
+        L = sparse.spdiags(self.tau, 0, G.num_nodes, G.num_nodes) + G.laplacian(normalization=self.normalization)
         F = utils.labels_to_onehot(train_labels)
 
         #Locations of unlabeled points
