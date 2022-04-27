@@ -110,6 +110,13 @@ def load(dataset, metric='raw', labels_only=False):
     labels_only : bool (optional), default=False
         Whether to return only the labels. Useful if the dataset is very large and knndata is already 
         precomputed, so the raw features are not needed.
+    
+    Returns
+    -------
+    data : numpy array, float
+        (n,d) numpy array of n datapoints in dimension d. Not returned if `labels_only=True`.
+    labels : numpy array, int
+        Integer-valued labels in range 0 through k-1, where k is the number of classes.
     """
 
     #Dataset filename

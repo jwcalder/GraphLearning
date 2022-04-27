@@ -143,6 +143,13 @@ def load(dataset, metric=&#39;raw&#39;, labels_only=False):
     labels_only : bool (optional), default=False
         Whether to return only the labels. Useful if the dataset is very large and knndata is already 
         precomputed, so the raw features are not needed.
+    
+    Returns
+    -------
+    data : numpy array, float
+        (n,d) numpy array of n datapoints in dimension d. Not returned if `labels_only=True`.
+    labels : numpy array, int
+        Integer-valued labels in range 0 through k-1, where k is the number of classes.
     &#34;&#34;&#34;
 
     #Dataset filename
@@ -205,6 +212,13 @@ metric='vae' loads the latent features from a variational autoencoder trained on
 <dt><strong><code>labels_only</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
 <dd>Whether to return only the labels. Useful if the dataset is very large and knndata is already
 precomputed, so the raw features are not needed.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>numpy array, float</code></dt>
+<dd>(n,d) numpy array of n datapoints in dimension d. Not returned if <code>labels_only=True</code>.</dd>
+<dt><strong><code>labels</code></strong> :&ensp;<code>numpy array, int</code></dt>
+<dd>Integer-valued labels in range 0 through k-1, where k is the number of classes.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -230,6 +244,13 @@ precomputed, so the raw features are not needed.</dd>
     labels_only : bool (optional), default=False
         Whether to return only the labels. Useful if the dataset is very large and knndata is already 
         precomputed, so the raw features are not needed.
+    
+    Returns
+    -------
+    data : numpy array, float
+        (n,d) numpy array of n datapoints in dimension d. Not returned if `labels_only=True`.
+    labels : numpy array, int
+        Integer-valued labels in range 0 through k-1, where k is the number of classes.
     &#34;&#34;&#34;
 
     #Dataset filename
