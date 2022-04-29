@@ -70,4 +70,5 @@ Several people have contributed to the development of this software:
 2. Brendan Cook (PhD Candidate in Mathematics, University of Minnesota)
 3. Matt Jacobs (Postdoc, UCLA)
 4. Mahmood Ettehad (Postdoc, IMA)
+5. Jason Setiadi
 
