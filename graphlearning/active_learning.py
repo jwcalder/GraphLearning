@@ -36,7 +36,7 @@ class active_learning:
             self.gamma = gamma
             self.evals, self.evecs = self.graph.eigen_decomp(normalization='normalized', k=eval_cutoff)
             self.cov_matrix = np.linalg.inv(np.diag(self.evals) + self.evecs[current_labeled_set,:].T @ self.evecs[current_labeled_set,:] / gamma**2.)
-            self.init_cov_matrix = self.cov_matrix
+            self.init_cov_matrix = self.cov_matrix.copy()
 
     def reset_labeled_data(self):
         """Reset Labeled Data
@@ -48,7 +48,7 @@ class active_learning:
         self.current_labeled_set = self.initial_labeled_set
         self.current_labels = self.initial_labels
         if self.eval_cutoff is not None:
-            self.cov_matrix = self.init_cov_matrix
+            self.cov_matrix = self.init_cov_matrix.copy()
 
     def select_query_points(self, acquisition, u, batch_size=1, oracle=None, candidate_method='full', fraction_points=0.1):
         """Select query points

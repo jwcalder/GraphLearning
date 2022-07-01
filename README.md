@@ -71,4 +71,5 @@ Several people have contributed to the development of this software:
 3. Matt Jacobs (Postdoc, UCLA)
 4. Mahmood Ettehad (Postdoc, IMA)
 5. Jason Setiadi
+6. Kevin Miller (Postdoc, Oden Institute)
 
