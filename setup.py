@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="graphlearning", 
-    version="1.1.8",
+    version="1.1.9",
     author="Jeff Calder",
     author_email="jwcalder@umn.edu",
     description="Python package for graph-based clustering and semi-supervised learning",

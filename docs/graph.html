@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.10.0" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>graphlearning.graph API documentation</title>
 <meta name="description" content="Graph Class
 …" />
@@ -97,6 +97,28 @@ class graph:
             self.eigendata[norm][&#39;gamma&#39;] = None
             self.eigendata[norm][&#39;tol&#39;] = None
             self.eigendata[norm][&#39;q&#39;] = None
+
+    def subgraph(self,ind):
+        &#34;&#34;&#34;Sub-Graph
+        ======
+
+        Returns the subgraph corresponding to the supplied indices.
+
+        Parameters
+        ----------
+        ind : numpy array, int
+            Indices for subgraph.
+
+        Returns
+        ----------
+        G : graph object
+            Subgraph corresponding to the indices contained in `ind`.
+
+        &#34;&#34;&#34;
+
+        W = self.weight_matrix 
+        return graph(W[ind,:][:,ind])
+
 
     def degree_vector(self):
         &#34;&#34;&#34;Degree Vector
@@ -1260,6 +1282,28 @@ eigendecompositions, which are useful in graph learning.</p>
             self.eigendata[norm][&#39;gamma&#39;] = None
             self.eigendata[norm][&#39;tol&#39;] = None
             self.eigendata[norm][&#39;q&#39;] = None
+
+    def subgraph(self,ind):
+        &#34;&#34;&#34;Sub-Graph
+        ======
+
+        Returns the subgraph corresponding to the supplied indices.
+
+        Parameters
+        ----------
+        ind : numpy array, int
+            Indices for subgraph.
+
+        Returns
+        ----------
+        G : graph object
+            Subgraph corresponding to the indices contained in `ind`.
+
+        &#34;&#34;&#34;
+
+        W = self.weight_matrix 
+        return graph(W[ind,:][:,ind])
+
 
     def degree_vector(self):
         &#34;&#34;&#34;Degree Vector
@@ -2601,7 +2645,7 @@ contain <code>-1</code> for closest point index.</dd>
 <h2 id="example">Example</h2>
 <p>This example uses Dijkstra's algorithm to compute the distance function to a single point,
 and compares the result to a cone: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/dijkstra.py">dijkstra.py</a>.</p>
-<pre><code class="language-py">import graphlearning as gl
+<pre><code class="py">import graphlearning as gl
 import numpy as np
 
 for n in [int(10**i) for i in range(3,6)]:
@@ -2750,7 +2794,7 @@ contain <code>-1</code> for closest point index.</dd>
 <h2 id="example">Example</h2>
 <p>This example uses Dijkstra's algorithm to compute the distance function to a single point,
 and compares the result to a cone: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/dijkstra.py">dijkstra.py</a>.</p>
-<pre><code class="language-py">import graphlearning as gl
+<pre><code class="py">import graphlearning as gl
 import numpy as np
 
 for n in [int(10**i) for i in range(3,6)]:
@@ -2951,7 +2995,7 @@ implemented for gamma &gt; 0.</dd>
 </dl>
 <h2 id="example">Example</h2>
 <p>This example compares the exact and lowrank (ranomized svd) methods for computing the spectrum: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/randomized_svd.py">randomized_svd.py</a>.</p>
-<pre><code class="language-py">import numpy as np
+<pre><code class="py">import numpy as np
 import matplotlib.pyplot as plt
 import sklearn.datasets as datasets
 import graphlearning as gl
@@ -3647,7 +3691,7 @@ is interpreted as a constant vector of the graph.</dd>
 </dl>
 <h2 id="example">Example</h2>
 <p>This example uses the peikonal equation to compute a data depth: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/peikonal.py">peikonal.py</a>.</p>
-<pre><code class="language-py">import graphlearning as gl
+<pre><code class="py">import graphlearning as gl
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -3799,7 +3843,7 @@ interpreted as a constant over <span><span class="MathJax_Preview">\Gamma</span>
 </dl>
 <h2 id="example">Example</h2>
 <p>This example uses the p-Laplace equation to interpolate boundary values: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/plaplace.py">plaplace.py</a>.</p>
-<pre><code class="language-py">import graphlearning as gl
+<pre><code class="py">import graphlearning as gl
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -4159,6 +4203,48 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
         pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)</code></pre>
 </details>
 </dd>
+<dt id="graphlearning.graph.graph.subgraph"><code class="name flex">
+<span>def <span class="ident">subgraph</span></span>(<span>self, ind)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="sub-graph">Sub-Graph</h1>
+<p>Returns the subgraph corresponding to the supplied indices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>ind</code></strong> :&ensp;<code>numpy array, int</code></dt>
+<dd>Indices for subgraph.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>G</code></strong> :&ensp;<code><a title="graphlearning.graph.graph" href="#graphlearning.graph.graph">graph</a> object</code></dt>
+<dd>Subgraph corresponding to the indices contained in <code>ind</code>.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def subgraph(self,ind):
+    &#34;&#34;&#34;Sub-Graph
+    ======
+
+    Returns the subgraph corresponding to the supplied indices.
+
+    Parameters
+    ----------
+    ind : numpy array, int
+        Indices for subgraph.
+
+    Returns
+    ----------
+    G : graph object
+        Subgraph corresponding to the indices contained in `ind`.
+
+    &#34;&#34;&#34;
+
+    W = self.weight_matrix 
+    return graph(W[ind,:][:,ind])</code></pre>
+</details>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -4204,6 +4290,7 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 <li><code><a title="graphlearning.graph.graph.randn" href="#graphlearning.graph.graph.randn">randn</a></code></li>
 <li><code><a title="graphlearning.graph.graph.reweight" href="#graphlearning.graph.graph.reweight">reweight</a></code></li>
 <li><code><a title="graphlearning.graph.graph.save" href="#graphlearning.graph.graph.save">save</a></code></li>
+<li><code><a title="graphlearning.graph.graph.subgraph" href="#graphlearning.graph.graph.subgraph">subgraph</a></code></li>
 </ul>
 </li>
 </ul>
@@ -4212,7 +4299,7 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

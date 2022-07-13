@@ -64,6 +64,28 @@ class graph:
             self.eigendata[norm]['tol'] = None
             self.eigendata[norm]['q'] = None
 
+    def subgraph(self,ind):
+        """Sub-Graph
+        ======
+
+        Returns the subgraph corresponding to the supplied indices.
+
+        Parameters
+        ----------
+        ind : numpy array, int
+            Indices for subgraph.
+
+        Returns
+        ----------
+        G : graph object
+            Subgraph corresponding to the indices contained in `ind`.
+
+        """
+
+        W = self.weight_matrix 
+        return graph(W[ind,:][:,ind])
+
+
     def degree_vector(self):
         """Degree Vector
         ======
