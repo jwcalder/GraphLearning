@@ -1091,7 +1091,7 @@ of the latent space.</dd>
 <h2 id="example">Example</h2>
 <p>Using a VAE embedding to construct a similarity weight matrix on MNIST and running Poisson learning
 at 1 label per class: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/vae_mnist.py">vae_mnist.py</a>.</p>
-<pre><code class="py">import graphlearning as gl
+<pre><code class="language-py">import graphlearning as gl
 
 data, labels = gl.datasets.load('mnist')
 data_vae = gl.weightmatrix.vae(data)

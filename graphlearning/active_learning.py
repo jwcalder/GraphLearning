@@ -30,7 +30,7 @@ class active_learning:
             self.training_set = np.arange(self.graph.num_nodes)
         else:
             self.training_set = training_set
-        self.candidate_inds = np.setdiff1d(training_set, current_labeled_set)
+        self.candidate_inds = np.setdiff1d(self.training_set, current_labeled_set)
         self.eval_cutoff = eval_cutoff
         if self.eval_cutoff is not None:
             self.gamma = gamma
