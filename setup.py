@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="graphlearning", 
-    version="1.2.2",
+    version="1.2.3",
     author="Jeff Calder",
     author_email="jwcalder@umn.edu",
     description="Python package for graph-based clustering and semi-supervised learning",
@@ -29,8 +29,8 @@ setuptools.setup(
                 "License :: OSI Approved :: MIT License",
                 "Operating System :: OS Independent"],
     install_requires=[  'numpy', 
+                        'scipy', 
                         'scikit-learn', 
-                        'sklearn', 
                         'matplotlib'],
     python_requires='>=3.6',
 )
