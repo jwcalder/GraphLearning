@@ -99,6 +99,7 @@ def load(dataset, metric='raw', labels_only=False):
     1. [mnist](http://yann.lecun.com/exdb/mnist/): metrics are 'raw' and 'vae' (variational autoencoder)
     2. [fashionmnist](https://github.com/zalandoresearch/fashion-mnist): metrics are 'raw' and 'vae' 
     3. [cifar](https://www.cs.toronto.edu/~kriz/cifar.html): metrics are 'raw' and 'aet' (autoencoding transformations). Loads CIFAR-10.
+    4. [yalefaces](https://paperswithcode.com/dataset/extended-yale-b-1): Only metric is 'raw'.
    
     Parameters
     ----------

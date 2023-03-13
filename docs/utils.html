@@ -872,16 +872,16 @@ def mesh(X, boundary_improvement=False):
         #Add padding data around
         pad = 10/np.sqrt(n)
         m = int(pad*n)
-        Y = rand(m,2)
+        Y = np.random.rand(m,2)
         Y[:,0] = Y[:,0]*pad - pad
         Z = np.vstack((X,Y))
-        Y = rand(m,2)
+        Y = np.random.rand(m,2)
         Y[:,0] = Y[:,0]*pad + 1
         Z = np.vstack((Z,Y))
-        Y = rand(m,2)
+        Y = np.random.rand(m,2)
         Y[:,1] = Y[:,1]*pad - pad
         Z = np.vstack((Z,Y))
-        Y = rand(m,2)
+        Y = np.random.rand(m,2)
         Y[:,1] = Y[:,1]*pad + 1
         Z = np.vstack((Z,Y))
 
@@ -1917,16 +1917,16 @@ boundary triangles with very large side lengths.</dd>
         #Add padding data around
         pad = 10/np.sqrt(n)
         m = int(pad*n)
-        Y = rand(m,2)
+        Y = np.random.rand(m,2)
         Y[:,0] = Y[:,0]*pad - pad
         Z = np.vstack((X,Y))
-        Y = rand(m,2)
+        Y = np.random.rand(m,2)
         Y[:,0] = Y[:,0]*pad + 1
         Z = np.vstack((Z,Y))
-        Y = rand(m,2)
+        Y = np.random.rand(m,2)
         Y[:,1] = Y[:,1]*pad - pad
         Z = np.vstack((Z,Y))
-        Y = rand(m,2)
+        Y = np.random.rand(m,2)
         Y[:,1] = Y[:,1]*pad + 1
         Z = np.vstack((Z,Y))
 
