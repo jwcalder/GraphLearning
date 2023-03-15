@@ -9,6 +9,7 @@ and saving new datasets by name locally.
 import numpy as np
 import ssl
 import os
+import matplotlib.pyplot as plt
 from . import utils
 
 #Directory for storing datasets
@@ -150,5 +151,44 @@ def load(dataset, metric='raw', labels_only=False):
 
         data = utils.numpy_load(dataFile_path, 'data')
         return data, labels
+
+def load_image(name):
+    """Load image 
+    ======
+
+    Load an image. 
+
+    Parameters
+    ----------
+    name : string
+        Name of image, choices are {'cameraman', 'cow', 'house', 'jetplane', 'lake', 'mandril_color', 'mandril_gray', 'peppers_color', 'peppers_gray', 'pirate', 'walkbridge'}
+    Returns
+    -------
+    image : numpy array, float
+        (m,n) or (m,n,3) numpy array containing image.
+    """
+
+
+    #Dataset filename
+    dataFile = name.lower()+'.png'
+
+    #Full path to file
+    dataFile_path = os.path.join(data_dir, dataFile)
+
+    #Check if Data directory exists
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
+    #Download image file if needed
+    if not os.path.exists(dataFile_path):
+        urlpath = 'http://www-users.math.umn.edu/~jwcalder/TestImages/'+dataFile
+        utils.download_file(urlpath, dataFile_path)
+
+    #Load image
+    image = plt.imread(dataFile_path)
+
+    return image
+
+
 
 

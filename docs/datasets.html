@@ -42,6 +42,7 @@ and saving new datasets by name locally.
 import numpy as np
 import ssl
 import os
+import matplotlib.pyplot as plt
 from . import utils
 
 #Directory for storing datasets
@@ -182,7 +183,44 @@ def load(dataset, metric=&#39;raw&#39;, labels_only=False):
             utils.download_file(urlpath, dataFile_path)
 
         data = utils.numpy_load(dataFile_path, &#39;data&#39;)
-        return data, labels</code></pre>
+        return data, labels
+
+def load_image(name):
+    &#34;&#34;&#34;Load image 
+    ======
+
+    Load an image. 
+
+    Parameters
+    ----------
+    name : string
+        Name of image, choices are {&#39;cameraman&#39;, &#39;cow&#39;, &#39;house&#39;, &#39;jetplane&#39;, &#39;lake&#39;, &#39;mandril_color&#39;, &#39;mandril_gray&#39;, &#39;peppers_color&#39;, &#39;peppers_gray&#39;, &#39;pirate&#39;, &#39;walkbridge&#39;}
+    Returns
+    -------
+    image : numpy array, float
+        (m,n) or (m,n,3) numpy array containing image.
+    &#34;&#34;&#34;
+
+
+    #Dataset filename
+    dataFile = name.lower()+&#39;.png&#39;
+
+    #Full path to file
+    dataFile_path = os.path.join(data_dir, dataFile)
+
+    #Check if Data directory exists
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
+    #Download image file if needed
+    if not os.path.exists(dataFile_path):
+        urlpath = &#39;http://www-users.math.umn.edu/~jwcalder/TestImages/&#39;+dataFile
+        utils.download_file(urlpath, dataFile_path)
+
+    #Load image
+    image = plt.imread(dataFile_path)
+
+    return image</code></pre>
 </details>
 </section>
 <section>
@@ -286,6 +324,64 @@ precomputed, so the raw features are not needed.</dd>
 
         data = utils.numpy_load(dataFile_path, &#39;data&#39;)
         return data, labels</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.datasets.load_image"><code class="name flex">
+<span>def <span class="ident">load_image</span></span>(<span>name)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="load-image">Load image</h1>
+<p>Load an image. </p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>string</code></dt>
+<dd>Name of image, choices are {'cameraman', 'cow', 'house', 'jetplane', 'lake', 'mandril_color', 'mandril_gray', 'peppers_color', 'peppers_gray', 'pirate', 'walkbridge'}</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>image</code></strong> :&ensp;<code>numpy array, float</code></dt>
+<dd>(m,n) or (m,n,3) numpy array containing image.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_image(name):
+    &#34;&#34;&#34;Load image 
+    ======
+
+    Load an image. 
+
+    Parameters
+    ----------
+    name : string
+        Name of image, choices are {&#39;cameraman&#39;, &#39;cow&#39;, &#39;house&#39;, &#39;jetplane&#39;, &#39;lake&#39;, &#39;mandril_color&#39;, &#39;mandril_gray&#39;, &#39;peppers_color&#39;, &#39;peppers_gray&#39;, &#39;pirate&#39;, &#39;walkbridge&#39;}
+    Returns
+    -------
+    image : numpy array, float
+        (m,n) or (m,n,3) numpy array containing image.
+    &#34;&#34;&#34;
+
+
+    #Dataset filename
+    dataFile = name.lower()+&#39;.png&#39;
+
+    #Full path to file
+    dataFile_path = os.path.join(data_dir, dataFile)
+
+    #Check if Data directory exists
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
+    #Download image file if needed
+    if not os.path.exists(dataFile_path):
+        urlpath = &#39;http://www-users.math.umn.edu/~jwcalder/TestImages/&#39;+dataFile
+        utils.download_file(urlpath, dataFile_path)
+
+    #Load image
+    image = plt.imread(dataFile_path)
+
+    return image</code></pre>
 </details>
 </dd>
 <dt id="graphlearning.datasets.save"><code class="name flex">
@@ -435,6 +531,7 @@ different types of knn data (not case-sensitive).</dd>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="graphlearning.datasets.load" href="#graphlearning.datasets.load">load</a></code></li>
+<li><code><a title="graphlearning.datasets.load_image" href="#graphlearning.datasets.load_image">load_image</a></code></li>
 <li><code><a title="graphlearning.datasets.save" href="#graphlearning.datasets.save">save</a></code></li>
 <li><code><a title="graphlearning.datasets.two_skies" href="#graphlearning.datasets.two_skies">two_skies</a></code></li>
 </ul>
