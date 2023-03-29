@@ -529,7 +529,41 @@ def clustering_accuracy(pred_labels,true_labels):
             C[i][j] = np.sum((pred_labels == i) &amp; (true_labels != j))
     row_ind, col_ind = opt.linear_sum_assignment(C)
 
-    return 100*(1-C[row_ind,col_ind].sum()/len(pred_labels))</code></pre>
+    return 100*(1-C[row_ind,col_ind].sum()/len(pred_labels))
+
+
+def purity(cluster_labels,true_labels):
+    &#34;&#34;&#34;Clustering purity
+    ======
+
+    Computes clustering purity, which is the fraction of nodes
+    that belong to the largest class in each cluster.
+
+    Parameters
+    ----------
+    cluster_labels : numpy array, int
+        Cluster labels
+    true_labels : numpy array, int
+        True labels
+
+    Returns
+    -------
+    purity : float
+        Purity as a number in [0,100].
+    &#34;&#34;&#34;
+
+    classes = np.unique(true_labels)
+    num_classes = len(classes)
+    clusters = np.unique(cluster_labels)
+    num_clusters = len(clusters)
+
+    purity = 0
+    for c in clusters:
+        labels = true_labels[cluster_labels == c]
+        purity += np.max(np.bincount(labels))
+    purity /= len(true_labels)
+
+    return 100*purity</code></pre>
 </details>
 </section>
 <section>
@@ -688,6 +722,63 @@ to find the best permutation of cluster labels.</p>
     row_ind, col_ind = opt.linear_sum_assignment(C)
 
     return 100*(1-C[row_ind,col_ind].sum()/len(pred_labels))</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.clustering.purity"><code class="name flex">
+<span>def <span class="ident">purity</span></span>(<span>cluster_labels, true_labels)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="clustering-purity">Clustering purity</h1>
+<p>Computes clustering purity, which is the fraction of nodes
+that belong to the largest class in each cluster.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>cluster_labels</code></strong> :&ensp;<code>numpy array, int</code></dt>
+<dd>Cluster labels</dd>
+<dt><strong><code>true_labels</code></strong> :&ensp;<code>numpy array, int</code></dt>
+<dd>True labels</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>purity</code></strong> :&ensp;<code>float</code></dt>
+<dd>Purity as a number in [0,100].</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def purity(cluster_labels,true_labels):
+    &#34;&#34;&#34;Clustering purity
+    ======
+
+    Computes clustering purity, which is the fraction of nodes
+    that belong to the largest class in each cluster.
+
+    Parameters
+    ----------
+    cluster_labels : numpy array, int
+        Cluster labels
+    true_labels : numpy array, int
+        True labels
+
+    Returns
+    -------
+    purity : float
+        Purity as a number in [0,100].
+    &#34;&#34;&#34;
+
+    classes = np.unique(true_labels)
+    num_classes = len(classes)
+    clusters = np.unique(cluster_labels)
+    num_clusters = len(clusters)
+
+    purity = 0
+    for c in clusters:
+        labels = true_labels[cluster_labels == c]
+        purity += np.max(np.bincount(labels))
+    purity /= len(true_labels)
+
+    return 100*purity</code></pre>
 </details>
 </dd>
 <dt id="graphlearning.clustering.withinss"><code class="name flex">
@@ -1452,6 +1543,7 @@ print('Clustering Accuracy: %.2f%%'%accuracy)
 <ul class="">
 <li><code><a title="graphlearning.clustering.RP1D" href="#graphlearning.clustering.RP1D">RP1D</a></code></li>
 <li><code><a title="graphlearning.clustering.clustering_accuracy" href="#graphlearning.clustering.clustering_accuracy">clustering_accuracy</a></code></li>
+<li><code><a title="graphlearning.clustering.purity" href="#graphlearning.clustering.purity">purity</a></code></li>
 <li><code><a title="graphlearning.clustering.withinss" href="#graphlearning.clustering.withinss">withinss</a></code></li>
 </ul>
 </li>

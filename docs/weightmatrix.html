@@ -156,7 +156,7 @@ def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#
 
     return W
 
-def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, eta=None):
+def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, features=None, epsilon_f=1, eta=None, zero_diagonal=False):
     &#34;&#34;&#34;Epsilon ball weight matrix
     ======
 
@@ -181,9 +181,21 @@ def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, eta=None):
         and &#39;singular&#39; corresponds to 
         \\[ w_{i,j} = \\frac{1}{\\|x_i - x_j\\|}, \\]
         when \\(i\\neq j\\) and \\(w_{i,i}=1\\).
+    features : (n,k) numpy array (optional)
+        If provided, then the weights are additionally multiplied by the similarity in features, so that
+        \\[ w_{i,j} =  \\eta\\left(\\frac{\\|y_i - y_j\\|^2}{\\varepsilon_F^2} \\right)\\eta\\left(\\frac{\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right), \\]
+        when \\(\\|x_i - x_j\\|\\leq \\varepsilon\\), and \\(w_{i,j}=0\\) otherwise. The 
+        vector \\(y_i\\) is the feature vector associated with datapoint i. The features
+        are useful for building a similarity graph over an image for image segmentation, and 
+        here the \\(y_i\\) are either the pixel values at pixel i, or some other image feature
+        such as a texture indicator.
+    epsilon_f : float (optional).
+        Connectivity radius for features \\(\\varepsilon_F\\). Default is \\(\\varepsilon_F=1\\).
     eta : python function handle (optional)
         If provided, this overrides the kernel option and instead uses the weights
         \\[ w_{i,j} = \\eta\\left(\\frac{\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right). \\]
+    zero_diagonal : bool (optional)
+        Whether to put zero on the diagonal, instead of \\(\\eta(0)\\). Default is False.
 
     Returns
     -------
@@ -200,6 +212,32 @@ def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, eta=None):
     #Differences between points and neighbors
     V = data[M[:,0],:] - data[M[:,1],:]
     dists = np.sum(V*V,axis=1)
+    weights, fzero = __weights__(dists,epsilon,kernel,eta)
+
+    #Add differences in features
+    if features is not None:
+        VF = features[M[:,0],:] - features[M[:,1],:]
+        Fdists = np.sum(VF*VF,axis=1)
+        feature_weights, _ = __weights__(Fdists,epsilon_f,kernel,eta)
+        weights = weights*feature_weights
+        fzero = fzero**2
+
+    #Symmetrize weights and add diagonal entries if they are not zero
+    if zero_diagonal:
+        weights = np.concatenate((weights,weights))
+        M1 = np.concatenate((M[:,0],M[:,1]))
+        M2 = np.concatenate((M[:,1],M[:,0]))
+    else:
+        weights = np.concatenate((weights,weights,fzero*np.ones(n,)))
+        M1 = np.concatenate((M[:,0],M[:,1],np.arange(0,n)))
+        M2 = np.concatenate((M[:,1],M[:,0],np.arange(0,n)))
+
+    #Construct sparse matrix and convert to Compressed Sparse Row (CSR) format
+    W = sparse.coo_matrix((weights, (M1,M2)),shape=(n,n))
+
+    return W.tocsr()
+
+def __weights__(dists,epsilon,kernel,eta):
 
     #If eta is None, use kernel keyword
     if eta is None:
@@ -220,23 +258,12 @@ def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, eta=None):
             fzero = 1
         else:
             sys.exit(&#39;Invalid choice of kernel: &#39; + kernel)
-
     #Else use user-defined eta
     else:
         weights = eta(dists/(epsilon*epsilon))
         fzero = eta(0)
 
-    #Weights
-
-    #Symmetrize weights and add diagonal entries
-    weights = np.concatenate((weights,weights,fzero*np.ones(n,)))
-    M1 = np.concatenate((M[:,0],M[:,1],np.arange(0,n)))
-    M2 = np.concatenate((M[:,1],M[:,0],np.arange(0,n)))
-
-    #Construct sparse matrix and convert to Compressed Sparse Row (CSR) format
-    W = sparse.coo_matrix((weights, (M1,M2)),shape=(n,n))
-
-    return W.tocsr()
+    return weights, fzero
 
 
 def knnsearch(X, k, method=None, similarity=&#39;euclidean&#39;, dataset=None, metric=&#39;raw&#39;):
@@ -574,7 +601,7 @@ def vae(data, layer_widths=[400,20], no_cuda=False, batch_size=128, epochs=100, 
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="graphlearning.weightmatrix.epsilon_ball"><code class="name flex">
-<span>def <span class="ident">epsilon_ball</span></span>(<span>data, epsilon, kernel='gaussian', eta=None)</span>
+<span>def <span class="ident">epsilon_ball</span></span>(<span>data, epsilon, kernel='gaussian', features=None, epsilon_f=1, eta=None, zero_diagonal=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="epsilon-ball-weight-matrix">Epsilon ball weight matrix</h1>
@@ -598,9 +625,23 @@ and constitutes an unweighted graph, 'gaussian' corresponds to
 and 'singular' corresponds to
 <span><span class="MathJax_Preview"> w_{i,j} = \frac{1}{\|x_i - x_j\|}, </span><script type="math/tex; mode=display"> w_{i,j} = \frac{1}{\|x_i - x_j\|}, </script></span>
 when <span><span class="MathJax_Preview">i\neq j</span><script type="math/tex">i\neq j</script></span> and <span><span class="MathJax_Preview">w_{i,i}=1</span><script type="math/tex">w_{i,i}=1</script></span>.</dd>
+<dt><strong><code>features</code></strong> :&ensp;<code>(n,k) numpy array (optional)</code></dt>
+<dd>If provided, then the weights are additionally multiplied by the similarity in features, so that
+<span><span class="MathJax_Preview"> w_{i,j} =
+\eta\left(\frac{\|y_i - y_j\|^2}{\varepsilon_F^2} \right)\eta\left(\frac{\|x_i - x_j\|^2}{\varepsilon^2} \right), </span><script type="math/tex; mode=display"> w_{i,j} =
+\eta\left(\frac{\|y_i - y_j\|^2}{\varepsilon_F^2} \right)\eta\left(\frac{\|x_i - x_j\|^2}{\varepsilon^2} \right), </script></span>
+when <span><span class="MathJax_Preview">\|x_i - x_j\|\leq \varepsilon</span><script type="math/tex">\|x_i - x_j\|\leq \varepsilon</script></span>, and <span><span class="MathJax_Preview">w_{i,j}=0</span><script type="math/tex">w_{i,j}=0</script></span> otherwise. The
+vector <span><span class="MathJax_Preview">y_i</span><script type="math/tex">y_i</script></span> is the feature vector associated with datapoint i. The features
+are useful for building a similarity graph over an image for image segmentation, and
+here the <span><span class="MathJax_Preview">y_i</span><script type="math/tex">y_i</script></span> are either the pixel values at pixel i, or some other image feature
+such as a texture indicator.</dd>
+<dt>epsilon_f : float (optional).</dt>
+<dt>Connectivity radius for features <span><span class="MathJax_Preview">\varepsilon_F</span><script type="math/tex">\varepsilon_F</script></span>. Default is <span><span class="MathJax_Preview">\varepsilon_F=1</span><script type="math/tex">\varepsilon_F=1</script></span>.</dt>
 <dt><strong><code>eta</code></strong> :&ensp;<code>python function handle (optional)</code></dt>
 <dd>If provided, this overrides the kernel option and instead uses the weights
 <span><span class="MathJax_Preview"> w_{i,j} = \eta\left(\frac{\|x_i - x_j\|^2}{\varepsilon^2} \right). </span><script type="math/tex; mode=display"> w_{i,j} = \eta\left(\frac{\|x_i - x_j\|^2}{\varepsilon^2} \right). </script></span></dd>
+<dt><strong><code>zero_diagonal</code></strong> :&ensp;<code>bool (optional)</code></dt>
+<dd>Whether to put zero on the diagonal, instead of <span><span class="MathJax_Preview">\eta(0)</span><script type="math/tex">\eta(0)</script></span>. Default is False.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -611,7 +652,7 @@ when <span><span class="MathJax_Preview">i\neq j</span><script type="math/tex">i
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, eta=None):
+<pre><code class="python">def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, features=None, epsilon_f=1, eta=None, zero_diagonal=False):
     &#34;&#34;&#34;Epsilon ball weight matrix
     ======
 
@@ -636,9 +677,21 @@ when <span><span class="MathJax_Preview">i\neq j</span><script type="math/tex">i
         and &#39;singular&#39; corresponds to 
         \\[ w_{i,j} = \\frac{1}{\\|x_i - x_j\\|}, \\]
         when \\(i\\neq j\\) and \\(w_{i,i}=1\\).
+    features : (n,k) numpy array (optional)
+        If provided, then the weights are additionally multiplied by the similarity in features, so that
+        \\[ w_{i,j} =  \\eta\\left(\\frac{\\|y_i - y_j\\|^2}{\\varepsilon_F^2} \\right)\\eta\\left(\\frac{\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right), \\]
+        when \\(\\|x_i - x_j\\|\\leq \\varepsilon\\), and \\(w_{i,j}=0\\) otherwise. The 
+        vector \\(y_i\\) is the feature vector associated with datapoint i. The features
+        are useful for building a similarity graph over an image for image segmentation, and 
+        here the \\(y_i\\) are either the pixel values at pixel i, or some other image feature
+        such as a texture indicator.
+    epsilon_f : float (optional).
+        Connectivity radius for features \\(\\varepsilon_F\\). Default is \\(\\varepsilon_F=1\\).
     eta : python function handle (optional)
         If provided, this overrides the kernel option and instead uses the weights
         \\[ w_{i,j} = \\eta\\left(\\frac{\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right). \\]
+    zero_diagonal : bool (optional)
+        Whether to put zero on the diagonal, instead of \\(\\eta(0)\\). Default is False.
 
     Returns
     -------
@@ -655,38 +708,25 @@ when <span><span class="MathJax_Preview">i\neq j</span><script type="math/tex">i
     #Differences between points and neighbors
     V = data[M[:,0],:] - data[M[:,1],:]
     dists = np.sum(V*V,axis=1)
+    weights, fzero = __weights__(dists,epsilon,kernel,eta)
 
-    #If eta is None, use kernel keyword
-    if eta is None:
+    #Add differences in features
+    if features is not None:
+        VF = features[M[:,0],:] - features[M[:,1],:]
+        Fdists = np.sum(VF*VF,axis=1)
+        feature_weights, _ = __weights__(Fdists,epsilon_f,kernel,eta)
+        weights = weights*feature_weights
+        fzero = fzero**2
 
-        if kernel == &#39;uniform&#39;:
-            weights = np.ones_like(dists)
-            fzero = 1
-        elif kernel == &#39;gaussian&#39;:
-            weights = np.exp(-4*dists/(epsilon*epsilon))
-            fzero = 1
-        elif kernel == &#39;distance&#39;:
-            weights = np.sqrt(dists)
-            fzero = 0
-        elif kernel == &#39;singular&#39;:
-            weights = np.sqrt(dists)
-            weights[dists==0] = 1
-            weights = 1/weights
-            fzero = 1
-        else:
-            sys.exit(&#39;Invalid choice of kernel: &#39; + kernel)
-
-    #Else use user-defined eta
+    #Symmetrize weights and add diagonal entries if they are not zero
+    if zero_diagonal:
+        weights = np.concatenate((weights,weights))
+        M1 = np.concatenate((M[:,0],M[:,1]))
+        M2 = np.concatenate((M[:,1],M[:,0]))
     else:
-        weights = eta(dists/(epsilon*epsilon))
-        fzero = eta(0)
-
-    #Weights
-
-    #Symmetrize weights and add diagonal entries
-    weights = np.concatenate((weights,weights,fzero*np.ones(n,)))
-    M1 = np.concatenate((M[:,0],M[:,1],np.arange(0,n)))
-    M2 = np.concatenate((M[:,1],M[:,0],np.arange(0,n)))
+        weights = np.concatenate((weights,weights,fzero*np.ones(n,)))
+        M1 = np.concatenate((M[:,0],M[:,1],np.arange(0,n)))
+        M2 = np.concatenate((M[:,1],M[:,0],np.arange(0,n)))
 
     #Construct sparse matrix and convert to Compressed Sparse Row (CSR) format
     W = sparse.coo_matrix((weights, (M1,M2)),shape=(n,n))

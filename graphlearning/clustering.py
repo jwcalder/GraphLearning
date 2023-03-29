@@ -499,4 +499,38 @@ def clustering_accuracy(pred_labels,true_labels):
     return 100*(1-C[row_ind,col_ind].sum()/len(pred_labels))
 
 
+def purity(cluster_labels,true_labels):
+    """Clustering purity
+    ======
+
+    Computes clustering purity, which is the fraction of nodes
+    that belong to the largest class in each cluster.
+
+    Parameters
+    ----------
+    cluster_labels : numpy array, int
+        Cluster labels
+    true_labels : numpy array, int
+        True labels
+
+    Returns
+    -------
+    purity : float
+        Purity as a number in [0,100].
+    """
+
+    classes = np.unique(true_labels)
+    num_classes = len(classes)
+    clusters = np.unique(cluster_labels)
+    num_clusters = len(clusters)
+
+    purity = 0
+    for c in clusters:
+        labels = true_labels[cluster_labels == c]
+        purity += np.max(np.bincount(labels))
+    purity /= len(true_labels)
+
+    return 100*purity
+
+
 
