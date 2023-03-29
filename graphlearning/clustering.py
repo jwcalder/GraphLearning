@@ -524,13 +524,16 @@ def purity(cluster_labels,true_labels):
     clusters = np.unique(cluster_labels)
     num_clusters = len(clusters)
 
-    purity = 0
+    purity = []
+    size = []
     for c in clusters:
         labels = true_labels[cluster_labels == c]
-        purity += np.max(np.bincount(labels))
-    purity /= len(true_labels)
+        purity += [np.max(np.bincount(labels))]
+        size += [len(labels)]
+    purity = np.array(purity)
+    size = np.array(size)
 
-    return 100*purity
+    return 100*np.sum(purity)/np.sum(size), purity/size
 
 
 
