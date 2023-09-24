@@ -38,11 +38,10 @@ class graph:
 
         #Coordinates of sparse matrix for passing to C code
         I,J,V = sparse.find(W)
-        self.I = I
-        self.J = J
-        self.V = V
-        K = np.array((J[1:] - J[:-1]).nonzero()) + 1
-        self.K = np.append(0,np.append(K,len(J)))
+        ind = np.argsort(I)
+        self.I,self.J,self.V = I[ind], J[ind], V[ind]
+        self.K = np.array((self.I[1:] - self.I[:-1]).nonzero()) + 1
+        self.K = np.append(0,np.append(self.K,len(self.I)))
 
         #For passing to C code
         self.I = np.ascontiguousarray(self.I, dtype=np.int32)
@@ -690,8 +689,8 @@ class graph:
 
         return fiedler_vector
 
-    def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, u0=None, solver='fmm', max_num_it=1e5, 
-                                                     tol=1e-3, num_bisection_it=30, prog=False,):
+    def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, nl_bdy=False, u0=None, solver='fmm',
+                              max_num_it=1e5, tol=1e-3, num_bisection_it=30, prog=False,):
         """p-eikonal equation 
         =====================
 
@@ -711,6 +710,8 @@ class graph:
             is interpreted as a constant vector of the graph.
         p : float (optional), default=1
             Value of exponent p in the p-eikonal equation.
+        nl_bdy : bool (optional), default = False
+            Whether to extend the boundary conditions to non-local ones (to graph neighbors).
         solver : {'fmm', 'gauss-seidel'}, default='fmm'
             Solver for p-eikonal equation.
         u0 : numpy array (float, optional), default=None
@@ -770,6 +771,18 @@ class graph:
 
         #Convert boundary data to standard format
         bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+        
+        #Extend boundary data if nl_bdy=True
+        if nl_bdy:
+            D = self.degree_matrix(p=-1)
+            bdy_mask = np.zeros(n)
+            bdy_mask[bdy_set] = 1
+            bdy_dilate = (D*self.weight_matrix*bdy_mask) > 0
+            bdy_set = bdy_set = np.where(bdy_dilate)[0]
+            bdy_val_all = np.zeros(n)
+            bdy_val_all[bdy_mask==1] = bdy_val
+            bdy_val = D*self.weight_matrix*bdy_val_all
+            bdy_val = bdy_val[bdy_set]
 
         #Type casting and memory blocking
         u = np.ascontiguousarray(u,dtype=np.float64)
@@ -778,9 +791,9 @@ class graph:
         bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
 
         if solver == 'fmm':
-            cextensions.peikonal_fmm(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,num_bisection_it)
+            cextensions.peikonal_fmm(u,self.J,self.K,self.V,bdy_set,f,bdy_val,p,num_bisection_it)
         else:
-            cextensions.peikonal(u,self.I,self.K,self.V,bdy_set,f,bdy_val,p,max_num_it,tol,num_bisection_it,prog)
+            cextensions.peikonal(u,self.J,self.K,self.V,bdy_set,f,bdy_val,p,max_num_it,tol,num_bisection_it,prog)
 
         return u
 
@@ -860,7 +873,7 @@ class graph:
         bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
         f = np.ascontiguousarray(f,dtype=np.float64)
 
-        cextensions.dijkstra_hl(dist_func,cp,self.I,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
+        cextensions.dijkstra_hl(dist_func,cp,self.J,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
 
         if return_cp:
             return dist_func, cp
@@ -955,7 +968,7 @@ class graph:
         bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
         f = np.ascontiguousarray(f,dtype=np.float64)
 
-        cextensions.dijkstra(dist_func,cp,self.I,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
+        cextensions.dijkstra(dist_func,cp,self.J,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
 
         if return_cp:
             return dist_func, cp
@@ -1042,7 +1055,7 @@ class graph:
         bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
         bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
 
-        cextensions.lp_iterate(uu,ul,self.I,self.J,self.V,bdy_set,bdy_val,p,float(max_num_it),float(tol),float(prog))
+        cextensions.lp_iterate(uu,ul,self.J,self.I,self.V,bdy_set,bdy_val,p,float(max_num_it),float(tol),float(prog))
         u = (uu+ul)/2
 
         return u
@@ -1092,7 +1105,7 @@ class graph:
         bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
         bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
 
-        cextensions.lip_iterate(u,self.I,self.J,self.V,bdy_set,bdy_val,max_num_it,tol,float(prog),float(weighted))
+        cextensions.lip_iterate(u,self.J,self.I,self.V,bdy_set,bdy_val,max_num_it,tol,float(prog),float(weighted))
 
         return u
 

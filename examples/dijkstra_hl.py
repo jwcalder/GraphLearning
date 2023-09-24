@@ -1,7 +1,7 @@
 import graphlearning as gl
 import matplotlib.pyplot as plt
 import numpy as np
-from mayavi import mlab
+#from mayavi import mlab
 
 
 n = 10000
@@ -18,9 +18,10 @@ print('Residual=%f'%np.max(np.absolute(H-u)))
 
 x,y = X[:,0],X[:,1]
 plt.scatter(x,y,c=u)
-Tri = gl.utils.mesh(X)
-mlab.figure(size=(1000,1000),bgcolor=(1,1,1))
-mlab.triangular_mesh(x,y,3*(np.max(u)-u),Tri)
-mlab.savefig('cone.png')
-mlab.show()
 plt.show()
+#Tri = gl.utils.mesh(X)
+#mlab.figure(size=(1000,1000),bgcolor=(1,1,1))
+#mlab.triangular_mesh(x,y,3*(np.max(u)-u),Tri)
+#mlab.savefig('cone.png')
+#mlab.show()
+#plt.show()

@@ -189,7 +189,8 @@ void dijkstra_main(double *d, int *l, int *WI, int *K, double *WV, int *I, doubl
       PushHeap(d,h,s,p,I[i]);
       s++;
    }
-   
+
+  
    //Dijkstra's algorithm 
    while(s > 0){
       i = PopHeap(d,h,s,p); //Pop smallest element off of heap

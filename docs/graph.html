@@ -724,8 +724,8 @@ class graph:
 
         return fiedler_vector
 
-    def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, u0=None, solver=&#39;fmm&#39;, max_num_it=1e5, 
-                                                     tol=1e-3, num_bisection_it=30, prog=False,):
+    def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, nl_bdy=False, u0=None, solver=&#39;fmm&#39;,
+                              max_num_it=1e5, tol=1e-3, num_bisection_it=30, prog=False,):
         &#34;&#34;&#34;p-eikonal equation 
         =====================
 
@@ -745,6 +745,8 @@ class graph:
             is interpreted as a constant vector of the graph.
         p : float (optional), default=1
             Value of exponent p in the p-eikonal equation.
+        nl_bdy : bool (optional), default = False
+            Whether to extend the boundary conditions to non-local ones (to graph neighbors).
         solver : {&#39;fmm&#39;, &#39;gauss-seidel&#39;}, default=&#39;fmm&#39;
             Solver for p-eikonal equation.
         u0 : numpy array (float, optional), default=None
@@ -804,6 +806,18 @@ class graph:
 
         #Convert boundary data to standard format
         bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+        
+        #Extend boundary data if nl_bdy=True
+        if nl_bdy:
+            D = self.degree_matrix(p=-1)
+            bdy_mask = np.zeros(n)
+            bdy_mask[bdy_set] = 1
+            bdy_dilate = (D*self.weight_matrix*bdy_mask) &gt; 0
+            bdy_set = bdy_set = np.where(bdy_dilate)[0]
+            bdy_val_all = np.zeros(n)
+            bdy_val_all[bdy_mask==1] = bdy_val
+            bdy_val = D*self.weight_matrix*bdy_val_all
+            bdy_val = bdy_val[bdy_set]
 
         #Type casting and memory blocking
         u = np.ascontiguousarray(u,dtype=np.float64)
@@ -1909,8 +1923,8 @@ eigendecompositions, which are useful in graph learning.</p>
 
         return fiedler_vector
 
-    def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, u0=None, solver=&#39;fmm&#39;, max_num_it=1e5, 
-                                                     tol=1e-3, num_bisection_it=30, prog=False,):
+    def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, nl_bdy=False, u0=None, solver=&#39;fmm&#39;,
+                              max_num_it=1e5, tol=1e-3, num_bisection_it=30, prog=False,):
         &#34;&#34;&#34;p-eikonal equation 
         =====================
 
@@ -1930,6 +1944,8 @@ eigendecompositions, which are useful in graph learning.</p>
             is interpreted as a constant vector of the graph.
         p : float (optional), default=1
             Value of exponent p in the p-eikonal equation.
+        nl_bdy : bool (optional), default = False
+            Whether to extend the boundary conditions to non-local ones (to graph neighbors).
         solver : {&#39;fmm&#39;, &#39;gauss-seidel&#39;}, default=&#39;fmm&#39;
             Solver for p-eikonal equation.
         u0 : numpy array (float, optional), default=None
@@ -1989,6 +2005,18 @@ eigendecompositions, which are useful in graph learning.</p>
 
         #Convert boundary data to standard format
         bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+        
+        #Extend boundary data if nl_bdy=True
+        if nl_bdy:
+            D = self.degree_matrix(p=-1)
+            bdy_mask = np.zeros(n)
+            bdy_mask[bdy_set] = 1
+            bdy_dilate = (D*self.weight_matrix*bdy_mask) &gt; 0
+            bdy_set = bdy_set = np.where(bdy_dilate)[0]
+            bdy_val_all = np.zeros(n)
+            bdy_val_all[bdy_mask==1] = bdy_val
+            bdy_val = D*self.weight_matrix*bdy_val_all
+            bdy_val = bdy_val[bdy_set]
 
         #Type casting and memory blocking
         u = np.ascontiguousarray(u,dtype=np.float64)
@@ -3652,7 +3680,7 @@ teleportation paramter. Solution is computed with the power iteration
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.peikonal"><code class="name flex">
-<span>def <span class="ident">peikonal</span></span>(<span>self, bdy_set, bdy_val=0, f=1, p=1, u0=None, solver='fmm', max_num_it=100000.0, tol=0.001, num_bisection_it=30, prog=False)</span>
+<span>def <span class="ident">peikonal</span></span>(<span>self, bdy_set, bdy_val=0, f=1, p=1, nl_bdy=False, u0=None, solver='fmm', max_num_it=100000.0, tol=0.001, num_bisection_it=30, prog=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="p-eikonal-equation">p-eikonal equation</h1>
@@ -3671,6 +3699,8 @@ interpreted as a constant over <span><span class="MathJax_Preview">\Gamma</span>
 is interpreted as a constant vector of the graph.</dd>
 <dt><strong><code>p</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1</code></dt>
 <dd>Value of exponent p in the p-eikonal equation.</dd>
+<dt><strong><code>nl_bdy</code></strong> :&ensp;<code>bool (optional)</code>, default <code>= False</code></dt>
+<dd>Whether to extend the boundary conditions to non-local ones (to graph neighbors).</dd>
 <dt><strong><code>solver</code></strong> :&ensp;<code>{'fmm', 'gauss-seidel'}</code>, default=<code>'fmm'</code></dt>
 <dd>Solver for p-eikonal equation.</dd>
 <dt><strong><code>u0</code></strong> :&ensp;<code>numpy array (float</code>, optional<code>)</code>, default=<code>None</code></dt>
@@ -3713,8 +3743,8 @@ plt.show()
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, u0=None, solver=&#39;fmm&#39;, max_num_it=1e5, 
-                                                 tol=1e-3, num_bisection_it=30, prog=False,):
+<pre><code class="python">def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, nl_bdy=False, u0=None, solver=&#39;fmm&#39;,
+                          max_num_it=1e5, tol=1e-3, num_bisection_it=30, prog=False,):
     &#34;&#34;&#34;p-eikonal equation 
     =====================
 
@@ -3734,6 +3764,8 @@ plt.show()
         is interpreted as a constant vector of the graph.
     p : float (optional), default=1
         Value of exponent p in the p-eikonal equation.
+    nl_bdy : bool (optional), default = False
+        Whether to extend the boundary conditions to non-local ones (to graph neighbors).
     solver : {&#39;fmm&#39;, &#39;gauss-seidel&#39;}, default=&#39;fmm&#39;
         Solver for p-eikonal equation.
     u0 : numpy array (float, optional), default=None
@@ -3793,6 +3825,18 @@ plt.show()
 
     #Convert boundary data to standard format
     bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
+    
+    #Extend boundary data if nl_bdy=True
+    if nl_bdy:
+        D = self.degree_matrix(p=-1)
+        bdy_mask = np.zeros(n)
+        bdy_mask[bdy_set] = 1
+        bdy_dilate = (D*self.weight_matrix*bdy_mask) &gt; 0
+        bdy_set = bdy_set = np.where(bdy_dilate)[0]
+        bdy_val_all = np.zeros(n)
+        bdy_val_all[bdy_mask==1] = bdy_val
+        bdy_val = D*self.weight_matrix*bdy_val_all
+        bdy_val = bdy_val[bdy_set]
 
     #Type casting and memory blocking
     u = np.ascontiguousarray(u,dtype=np.float64)

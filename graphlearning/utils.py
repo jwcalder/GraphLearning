@@ -157,8 +157,10 @@ def _boundary_handling(bdy_set,bdy_val):
 
     Returns
     -------
-    X : numpy array 
-        Contents of csv file
+    bdy_set : numpy array 
+        Indices of boundary points.
+    bdy_val : numpy array
+        Array of boundary values.
     """
     if type(bdy_set) == list:
         bdy_set = np.array(bdy_set)
