@@ -24,7 +24,7 @@ To install the most recent version of GraphLearning from the github source, whic
 ```sh
 git clone https://github.com/jwcalder/GraphLearning
 cd GraphLearning
-python setup.py install --user
+pip install .
 ```
 If you prefer to use ssh swap the first line with
 ```sh
