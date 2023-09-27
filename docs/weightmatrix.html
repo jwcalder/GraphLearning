@@ -60,12 +60,14 @@ def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#
         If numpy array, n data points, each of dimension m, if string, then &#39;mnist&#39;, &#39;fashionmnist&#39;, or &#39;cifar&#39;
     k : int
         Number of nearest neighbors to use.
-    kernel : string (optional), {&#39;uniform&#39;,&#39;gaussian&#39;,&#39;singular&#39;,&#39;distance&#39;}, default=&#39;gaussian&#39;
+    kernel : string (optional), {&#39;uniform&#39;,&#39;gaussian&#39;,&#39;symgaussian&#39;,&#39;singular&#39;,&#39;distance&#39;}, default=&#39;gaussian&#39;
         The choice of kernel in computing the weights between \\(x_i\\) and each of its k 
         nearest neighbors. We let \\(d_k(x_i)\\) denote the distance from \\(x_i\\) to its kth 
         nearest neighbor. The choice &#39;uniform&#39; corresponds to \\(w_{i,j}=1\\) and constitutes
         an unweighted k nearest neighbor graph, &#39;gaussian&#39; corresponds to
         \\[ w_{i,j} = \\exp\\left(\\frac{-4\\|x_i - x_j\\|^2}{d_k(x_i)^2} \\right), \\]
+        &#39;symgaussian&#39; corresponds to
+        \\[ w_{i,j} = \\exp\\left(\\frac{-4\\|x_i - x_j\\|^2}{d_k(x_i)d_k(x_j)} \\right), \\]
         &#39;distance&#39; corresponds to
         \\[ w_{i,j} = \\|x_i - x_j\\|, \\]
         and &#39;singular&#39; corresponds to 
@@ -78,8 +80,10 @@ def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#
     symmetrize : bool (optional), default=True, except when kernel=&#39;singular&#39;
         Whether or not to symmetrize the weight matrix before returning. Symmetrization is 
         performed by returning \\( (W + W^T)/2 \\), except for when kernel=&#39;distance, in 
-        which case the symmetrized edge weights are the true distances. Default for symmetrization
-        is True, unless the kernel is &#39;singular&#39;, in which case it is False.
+        which case the symmetrized edge weights are the true distances, kernel=&#39;uniform&#39;, 
+        where the weights are all 0/1, or kernel=&#39;symgaussian&#39;, where the same formula 
+        is used for symmetry. Default for symmetrization is True, unless the kernel is
+        &#39;singular&#39;, in which case it is False.
     metric : string (optional), default=&#39;raw&#39;
         Metric identifier if data is a string (i.e., a dataset).
     similarity : {&#39;euclidean&#39;,&#39;angular&#39;,&#39;manhattan&#39;,&#39;hamming&#39;,&#39;dot&#39;} (optional), default=&#39;euclidean&#39;
@@ -121,6 +125,9 @@ def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#
             D = knn_dist*knn_dist
             eps = D[:,k-1]
             weights = np.exp(-4*D/eps[:,None])
+        elif kernel == &#39;symgaussian&#39;:
+            eps = knn_dist[:,k-1]
+            weights = np.exp(-4 * knn_dist * knn_dist / eps[:,None] / eps[knn_ind])
         elif kernel == &#39;distance&#39;:
             weights = knn_dist
         elif kernel == &#39;singular&#39;:
@@ -151,8 +158,11 @@ def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#
     if symmetrize:
         if kernel in [&#39;distance&#39;,&#39;uniform&#39;]:
             W = utils.sparse_max(W, W.transpose())
+        elif kernel == &#39;symgaussian&#39;:
+            W = W + W.T.multiply(W.T &gt; W) - W.multiply(W.T &gt; W)
         else:
             W = (W + W.transpose())/2;
+
 
     return W
 
@@ -746,12 +756,14 @@ such as a texture indicator.</dd>
 <dd>If numpy array, n data points, each of dimension m, if string, then 'mnist', 'fashionmnist', or 'cifar'</dd>
 <dt><strong><code>k</code></strong> :&ensp;<code>int</code></dt>
 <dd>Number of nearest neighbors to use.</dd>
-<dt><strong><code>kernel</code></strong> :&ensp;<code>string (optional), {'uniform','gaussian','singular','distance'}</code>, default=<code>'gaussian'</code></dt>
+<dt><strong><code>kernel</code></strong> :&ensp;<code>string (optional), {'uniform','gaussian','symgaussian','singular','distance'}</code>, default=<code>'gaussian'</code></dt>
 <dd>The choice of kernel in computing the weights between <span><span class="MathJax_Preview">x_i</span><script type="math/tex">x_i</script></span> and each of its k
 nearest neighbors. We let <span><span class="MathJax_Preview">d_k(x_i)</span><script type="math/tex">d_k(x_i)</script></span> denote the distance from <span><span class="MathJax_Preview">x_i</span><script type="math/tex">x_i</script></span> to its kth
 nearest neighbor. The choice 'uniform' corresponds to <span><span class="MathJax_Preview">w_{i,j}=1</span><script type="math/tex">w_{i,j}=1</script></span> and constitutes
 an unweighted k nearest neighbor graph, 'gaussian' corresponds to
 <span><span class="MathJax_Preview"> w_{i,j} = \exp\left(\frac{-4\|x_i - x_j\|^2}{d_k(x_i)^2} \right), </span><script type="math/tex; mode=display"> w_{i,j} = \exp\left(\frac{-4\|x_i - x_j\|^2}{d_k(x_i)^2} \right), </script></span>
+'symgaussian' corresponds to
+<span><span class="MathJax_Preview"> w_{i,j} = \exp\left(\frac{-4\|x_i - x_j\|^2}{d_k(x_i)d_k(x_j)} \right), </span><script type="math/tex; mode=display"> w_{i,j} = \exp\left(\frac{-4\|x_i - x_j\|^2}{d_k(x_i)d_k(x_j)} \right), </script></span>
 'distance' corresponds to
 <span><span class="MathJax_Preview"> w_{i,j} = \|x_i - x_j\|, </span><script type="math/tex; mode=display"> w_{i,j} = \|x_i - x_j\|, </script></span>
 and 'singular' corresponds to
@@ -764,8 +776,10 @@ where <span><span class="MathJax_Preview">d_k(x_i)</span><script type="math/tex"
 <dt><strong><code>symmetrize</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>True, except when kernel='singular'</code></dt>
 <dd>Whether or not to symmetrize the weight matrix before returning. Symmetrization is
 performed by returning <span><span class="MathJax_Preview"> (W + W^T)/2 </span><script type="math/tex"> (W + W^T)/2 </script></span>, except for when kernel='distance, in
-which case the symmetrized edge weights are the true distances. Default for symmetrization
-is True, unless the kernel is 'singular', in which case it is False.</dd>
+which case the symmetrized edge weights are the true distances, kernel='uniform',
+where the weights are all 0/1, or kernel='symgaussian', where the same formula
+is used for symmetry. Default for symmetrization is True, unless the kernel is
+'singular', in which case it is False.</dd>
 <dt><strong><code>metric</code></strong> :&ensp;<code>string (optional)</code>, default=<code>'raw'</code></dt>
 <dd>Metric identifier if data is a string (i.e., a dataset).</dd>
 <dt><strong><code>similarity</code></strong> :&ensp;<code>{'euclidean','angular','manhattan','hamming','dot'} (optional)</code>, default=<code>'euclidean'</code></dt>
@@ -795,12 +809,14 @@ in order to bypass the knnsearch step, which can be slow for large datasets.</dd
         If numpy array, n data points, each of dimension m, if string, then &#39;mnist&#39;, &#39;fashionmnist&#39;, or &#39;cifar&#39;
     k : int
         Number of nearest neighbors to use.
-    kernel : string (optional), {&#39;uniform&#39;,&#39;gaussian&#39;,&#39;singular&#39;,&#39;distance&#39;}, default=&#39;gaussian&#39;
+    kernel : string (optional), {&#39;uniform&#39;,&#39;gaussian&#39;,&#39;symgaussian&#39;,&#39;singular&#39;,&#39;distance&#39;}, default=&#39;gaussian&#39;
         The choice of kernel in computing the weights between \\(x_i\\) and each of its k 
         nearest neighbors. We let \\(d_k(x_i)\\) denote the distance from \\(x_i\\) to its kth 
         nearest neighbor. The choice &#39;uniform&#39; corresponds to \\(w_{i,j}=1\\) and constitutes
         an unweighted k nearest neighbor graph, &#39;gaussian&#39; corresponds to
         \\[ w_{i,j} = \\exp\\left(\\frac{-4\\|x_i - x_j\\|^2}{d_k(x_i)^2} \\right), \\]
+        &#39;symgaussian&#39; corresponds to
+        \\[ w_{i,j} = \\exp\\left(\\frac{-4\\|x_i - x_j\\|^2}{d_k(x_i)d_k(x_j)} \\right), \\]
         &#39;distance&#39; corresponds to
         \\[ w_{i,j} = \\|x_i - x_j\\|, \\]
         and &#39;singular&#39; corresponds to 
@@ -813,8 +829,10 @@ in order to bypass the knnsearch step, which can be slow for large datasets.</dd
     symmetrize : bool (optional), default=True, except when kernel=&#39;singular&#39;
         Whether or not to symmetrize the weight matrix before returning. Symmetrization is 
         performed by returning \\( (W + W^T)/2 \\), except for when kernel=&#39;distance, in 
-        which case the symmetrized edge weights are the true distances. Default for symmetrization
-        is True, unless the kernel is &#39;singular&#39;, in which case it is False.
+        which case the symmetrized edge weights are the true distances, kernel=&#39;uniform&#39;, 
+        where the weights are all 0/1, or kernel=&#39;symgaussian&#39;, where the same formula 
+        is used for symmetry. Default for symmetrization is True, unless the kernel is
+        &#39;singular&#39;, in which case it is False.
     metric : string (optional), default=&#39;raw&#39;
         Metric identifier if data is a string (i.e., a dataset).
     similarity : {&#39;euclidean&#39;,&#39;angular&#39;,&#39;manhattan&#39;,&#39;hamming&#39;,&#39;dot&#39;} (optional), default=&#39;euclidean&#39;
@@ -856,6 +874,9 @@ in order to bypass the knnsearch step, which can be slow for large datasets.</dd
             D = knn_dist*knn_dist
             eps = D[:,k-1]
             weights = np.exp(-4*D/eps[:,None])
+        elif kernel == &#39;symgaussian&#39;:
+            eps = knn_dist[:,k-1]
+            weights = np.exp(-4 * knn_dist * knn_dist / eps[:,None] / eps[knn_ind])
         elif kernel == &#39;distance&#39;:
             weights = knn_dist
         elif kernel == &#39;singular&#39;:
@@ -886,8 +907,11 @@ in order to bypass the knnsearch step, which can be slow for large datasets.</dd
     if symmetrize:
         if kernel in [&#39;distance&#39;,&#39;uniform&#39;]:
             W = utils.sparse_max(W, W.transpose())
+        elif kernel == &#39;symgaussian&#39;:
+            W = W + W.T.multiply(W.T &gt; W) - W.multiply(W.T &gt; W)
         else:
             W = (W + W.transpose())/2;
+
 
     return W</code></pre>
 </details>
