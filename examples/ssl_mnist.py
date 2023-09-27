@@ -2,12 +2,12 @@ import graphlearning as gl
 import time
 
 labels = gl.datasets.load('mnist', labels_only=True)
-W = gl.weightmatrix.knn('mnist', 10, metric='vae')
 
 num_train_per_class = 1
 train_ind = gl.trainsets.generate(labels, rate=num_train_per_class)
 train_labels = labels[train_ind]
 
+W = gl.weightmatrix.knn('mnist', 10, metric='vae',kernel='gaussian')
 models = [gl.ssl.laplace(W), gl.ssl.poisson(W)]
 
 for model in models:

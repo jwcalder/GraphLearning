@@ -27,12 +27,14 @@ def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', sim
         If numpy array, n data points, each of dimension m, if string, then 'mnist', 'fashionmnist', or 'cifar'
     k : int
         Number of nearest neighbors to use.
-    kernel : string (optional), {'uniform','gaussian','singular','distance'}, default='gaussian'
+    kernel : string (optional), {'uniform','gaussian','symgaussian','singular','distance'}, default='gaussian'
         The choice of kernel in computing the weights between \\(x_i\\) and each of its k 
         nearest neighbors. We let \\(d_k(x_i)\\) denote the distance from \\(x_i\\) to its kth 
         nearest neighbor. The choice 'uniform' corresponds to \\(w_{i,j}=1\\) and constitutes
         an unweighted k nearest neighbor graph, 'gaussian' corresponds to
         \\[ w_{i,j} = \\exp\\left(\\frac{-4\\|x_i - x_j\\|^2}{d_k(x_i)^2} \\right), \\]
+        'symgaussian' corresponds to
+        \\[ w_{i,j} = \\exp\\left(\\frac{-4\\|x_i - x_j\\|^2}{d_k(x_i)d_k(x_j)} \\right), \\]
         'distance' corresponds to
         \\[ w_{i,j} = \\|x_i - x_j\\|, \\]
         and 'singular' corresponds to 
@@ -45,8 +47,10 @@ def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', sim
     symmetrize : bool (optional), default=True, except when kernel='singular'
         Whether or not to symmetrize the weight matrix before returning. Symmetrization is 
         performed by returning \\( (W + W^T)/2 \\), except for when kernel='distance, in 
-        which case the symmetrized edge weights are the true distances. Default for symmetrization
-        is True, unless the kernel is 'singular', in which case it is False.
+        which case the symmetrized edge weights are the true distances, kernel='uniform', 
+        where the weights are all 0/1, or kernel='symgaussian', where the same formula 
+        is used for symmetry. Default for symmetrization is True, unless the kernel is
+        'singular', in which case it is False.
     metric : string (optional), default='raw'
         Metric identifier if data is a string (i.e., a dataset).
     similarity : {'euclidean','angular','manhattan','hamming','dot'} (optional), default='euclidean'
@@ -88,6 +92,9 @@ def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', sim
             D = knn_dist*knn_dist
             eps = D[:,k-1]
             weights = np.exp(-4*D/eps[:,None])
+        elif kernel == 'symgaussian':
+            eps = knn_dist[:,k-1]
+            weights = np.exp(-4 * knn_dist * knn_dist / eps[:,None] / eps[knn_ind])
         elif kernel == 'distance':
             weights = knn_dist
         elif kernel == 'singular':
@@ -118,8 +125,11 @@ def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', sim
     if symmetrize:
         if kernel in ['distance','uniform']:
             W = utils.sparse_max(W, W.transpose())
+        elif kernel == 'symgaussian':
+            W = W + W.T.multiply(W.T > W) - W.multiply(W.T > W)
         else:
             W = (W + W.transpose())/2;
+
 
     return W
 
