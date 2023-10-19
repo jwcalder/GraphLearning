@@ -975,7 +975,7 @@ class graph:
         else:
             return dist_func
 
-    def plaplace(self, bdy_set, bdy_val, p, tol=1e-1, max_num_it=1e6, prog=False):
+    def plaplace(self, bdy_set, bdy_val, p, tol=1e-1, max_num_it=1e6, prog=False, fast=True):
         """Game-theoretic p-Laplacian
         ======
 
@@ -1002,6 +1002,9 @@ class graph:
             Maximum number of iterations.
         prog : bool (optional), default=False
             Toggles whether to print progress information.
+        fast : bool (optional), default=True
+            Whether to use constant \\(w_{ij}=1\\) weights for the infinity-Laplacian
+            which allows a faster algorithm to be used.
 
         Returns
         -------
@@ -1038,25 +1041,41 @@ class graph:
         from . import cextensions
         
         n = self.num_nodes
+        alpha = 1/(p-1)
+        beta = 1-alpha
 
         #Convert boundary data to standard format
         bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
 
-        uu = np.max(bdy_val)*np.ones((n,))
-        ul = np.min(bdy_val)*np.ones((n,))
+        #If fast solver
+        if fast:
 
-        #Set labels
-        uu[bdy_set] = bdy_val
-        ul[bdy_set] = bdy_val
+            u = np.zeros((n,))        #Initial condition
 
-        #Type casting and memory blocking
-        uu = np.ascontiguousarray(uu,dtype=np.float64)
-        ul = np.ascontiguousarray(ul,dtype=np.float64)
-        bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
-        bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+            #Type casting and memory blocking
+            u = np.ascontiguousarray(u,dtype=np.float64)
+            bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+            bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
 
-        cextensions.lp_iterate(uu,ul,self.J,self.I,self.V,bdy_set,bdy_val,p,float(max_num_it),float(tol),float(prog))
-        u = (uu+ul)/2
+            weighted = False
+            tol = 1e-6
+            cextensions.lip_iterate(u,self.J,self.I,self.V,bdy_set,bdy_val,max_num_it,tol,float(prog),float(weighted),float(alpha),float(beta))
+        else:
+            uu = np.max(bdy_val)*np.ones((n,))
+            ul = np.min(bdy_val)*np.ones((n,))
+
+            #Set labels
+            uu[bdy_set] = bdy_val
+            ul[bdy_set] = bdy_val
+
+            #Type casting and memory blocking
+            uu = np.ascontiguousarray(uu,dtype=np.float64)
+            ul = np.ascontiguousarray(ul,dtype=np.float64)
+            bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
+            bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
+
+            cextensions.lp_iterate(uu,ul,self.J,self.I,self.V,bdy_set,bdy_val,p,float(max_num_it),float(tol),float(prog))
+            u = (uu+ul)/2
 
         return u
 
@@ -1096,16 +1115,20 @@ class graph:
 
         #Variables
         n = self.num_nodes
-        k = len(bdy_set)
         u = np.zeros((n,))        #Initial condition
         max_num_it = float(max_num_it)
+        alpha = 0
+        beta = 1
+
+        #Convert boundary data to standard format
+        bdy_set, bdy_val = utils._boundary_handling(bdy_set, bdy_val)
 
         #Type casting and memory blocking
         u = np.ascontiguousarray(u,dtype=np.float64)
         bdy_set = np.ascontiguousarray(bdy_set,dtype=np.int32)
         bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
 
-        cextensions.lip_iterate(u,self.J,self.I,self.V,bdy_set,bdy_val,max_num_it,tol,float(prog),float(weighted))
+        cextensions.lip_iterate(u,self.J,self.I,self.V,bdy_set,bdy_val,max_num_it,tol,float(prog),float(weighted),float(alpha),float(beta))
 
         return u
 

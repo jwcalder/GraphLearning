@@ -1,3 +1,3 @@
 all:
-	python3 setup.py install --user --prefix=
+	pip install .
 	bash generate_docs.sh

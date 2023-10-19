@@ -1665,7 +1665,7 @@ class peikonal(ssl):
 
 
 class plaplace(ssl):
-    def __init__(self, W=None, class_priors=None, p=10, max_num_it=1e6, tol=1e-1):
+    def __init__(self, W=None, class_priors=None, p=10, max_num_it=1e6, tol=1e-1, fast=True):
         """Graph p-laplace classifier
         ===================
 
@@ -1685,6 +1685,9 @@ class plaplace(ssl):
             Maximum number of iterations
         tol : float (optional), default=1e-3
             Tolerance with which to solve the equation.
+        fast : bool (optional), default=True
+            Whether to use constant \\(w_{ij}=1\\) weights for the infinity-Laplacian
+            which allows a faster algorithm to be used.
 
         References
         ----------
@@ -1696,6 +1699,7 @@ class plaplace(ssl):
         self.max_num_it = max_num_it
         self.tol = tol
         self.onevsrest = True
+        self.fast = fast
 
         #Setup accuracy filename and model name
         self.accuracy_filename = '_plaplace_p%.2f'%self.p 
@@ -1703,7 +1707,7 @@ class plaplace(ssl):
 
 
     def _fit(self, train_ind, train_labels, all_labels=None):
-        u = self.graph.plaplace(train_ind, train_labels, self.p, max_num_it=self.max_num_it, tol=self.tol)
+        u = self.graph.plaplace(train_ind, train_labels, self.p, max_num_it=self.max_num_it, tol=self.tol,fast=self.fast)
         return u
 
 

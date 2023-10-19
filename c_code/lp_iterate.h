@@ -31,7 +31,7 @@
 #include "memory_allocation.h"
 
 void lp_iterate_main(double *uu, double *ul, int *I, int *J, double *W, int *ind, double *val, double p, int T, double tol, bool prog, int n, int M, int m);
-void lip_iterate_main(double *u, int *I, int *J, int *ind, double *val, int T, double tol, bool prog, int n, int M, int m);
+void lip_iterate_main(double *u, int *I, int *J, double *W, int *ind, double *val, int T, double tol, bool prog, int n, int M, int m, double alpha, double beta);
 void lip_iterate_weighted_main(double *u, int *I, int *J, double *W, int *ind, double *val, int T, double tol, bool prog, int n, int M, int m);
 
 

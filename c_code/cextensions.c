@@ -65,6 +65,8 @@ static PyObject* lip_iterate(PyObject* self, PyObject* args)
    double tol;
    double progd;
    double weightedd;
+   double alpha;
+   double beta;
    PyArrayObject *u_array;
    PyArrayObject *I_array;
    PyArrayObject *J_array;
@@ -73,7 +75,7 @@ static PyObject* lip_iterate(PyObject* self, PyObject* args)
    PyArrayObject *val_array;
 
    /*  parse arguments */
-   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!dddd", &PyArray_Type, &u_array, &PyArray_Type, &I_array, &PyArray_Type, &J_array, &PyArray_Type, &W_array, &PyArray_Type, &ind_array, &PyArray_Type, &val_array, &Td, &tol, &progd, &weightedd))
+   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!dddddd", &PyArray_Type, &u_array, &PyArray_Type, &I_array, &PyArray_Type, &J_array, &PyArray_Type, &W_array, &PyArray_Type, &ind_array, &PyArray_Type, &val_array, &Td, &tol, &progd, &weightedd, &alpha, &beta))
       return NULL;
 
    npy_intp *dim =  PyArray_DIMS(u_array);
@@ -97,7 +99,7 @@ static PyObject* lip_iterate(PyObject* self, PyObject* args)
    if(weighted)
       lip_iterate_weighted_main(u,I,J,W,ind,val,T,tol,prog,n,M,m);
    else
-      lip_iterate_main(u,I,J,ind,val,T,tol,prog,n,M,m);
+      lip_iterate_main(u,I,J,W,ind,val,T,tol,prog,n,M,m,alpha,beta);
 
    Py_INCREF(Py_None);
    return Py_None;

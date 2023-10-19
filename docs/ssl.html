@@ -1795,7 +1795,7 @@ class peikonal(ssl):
 
 
 class plaplace(ssl):
-    def __init__(self, W=None, class_priors=None, p=10, max_num_it=1e6, tol=1e-1):
+    def __init__(self, W=None, class_priors=None, p=10, max_num_it=1e6, tol=1e-1, fast=True):
         &#34;&#34;&#34;Graph p-laplace classifier
         ===================
 
@@ -1815,6 +1815,9 @@ class plaplace(ssl):
             Maximum number of iterations
         tol : float (optional), default=1e-3
             Tolerance with which to solve the equation.
+        fast : bool (optional), default=True
+            Whether to use constant \\(w_{ij}=1\\) weights for the infinity-Laplacian
+            which allows a faster algorithm to be used.
 
         References
         ----------
@@ -1826,6 +1829,7 @@ class plaplace(ssl):
         self.max_num_it = max_num_it
         self.tol = tol
         self.onevsrest = True
+        self.fast = fast
 
         #Setup accuracy filename and model name
         self.accuracy_filename = &#39;_plaplace_p%.2f&#39;%self.p 
@@ -1833,7 +1837,7 @@ class plaplace(ssl):
 
 
     def _fit(self, train_ind, train_labels, all_labels=None):
-        u = self.graph.plaplace(train_ind, train_labels, self.p, max_num_it=self.max_num_it, tol=self.tol)
+        u = self.graph.plaplace(train_ind, train_labels, self.p, max_num_it=self.max_num_it, tol=self.tol,fast=self.fast)
         return u
 
 
@@ -3610,7 +3614,7 @@ will be done with the degree vector, which is a kernel density estimator in this
 </dd>
 <dt id="graphlearning.ssl.plaplace"><code class="flex name class">
 <span>class <span class="ident">plaplace</span></span>
-<span>(</span><span>W=None, class_priors=None, p=10, max_num_it=1000000.0, tol=0.1)</span>
+<span>(</span><span>W=None, class_priors=None, p=10, max_num_it=1000000.0, tol=0.1, fast=True)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="graph-p-laplace-classifier">Graph p-laplace classifier</h1>
@@ -3629,6 +3633,9 @@ nodes in each class.</dd>
 <dd>Maximum number of iterations</dd>
 <dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1e-3</code></dt>
 <dd>Tolerance with which to solve the equation.</dd>
+<dt><strong><code>fast</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>True</code></dt>
+<dd>Whether to use constant <span><span class="MathJax_Preview">w_{ij}=1</span><script type="math/tex">w_{ij}=1</script></span> weights for the infinity-Laplacian
+which allows a faster algorithm to be used.</dd>
 </dl>
 <h2 id="references">References</h2>
 <p>[1] M. Flores Rios, J. Calder, and G. Lerman. <a href="https://arxiv.org/abs/1901.05031">Algorithms for <span><span class="MathJax_Preview"> \ell_p</span><script type="math/tex"> \ell_p</script></span>-based semi-supervised learning on graphs.</a> arXiv:1901.05031, 2019.</p></div>
@@ -3637,7 +3644,7 @@ nodes in each class.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class plaplace(ssl):
-    def __init__(self, W=None, class_priors=None, p=10, max_num_it=1e6, tol=1e-1):
+    def __init__(self, W=None, class_priors=None, p=10, max_num_it=1e6, tol=1e-1, fast=True):
         &#34;&#34;&#34;Graph p-laplace classifier
         ===================
 
@@ -3657,6 +3664,9 @@ nodes in each class.</dd>
             Maximum number of iterations
         tol : float (optional), default=1e-3
             Tolerance with which to solve the equation.
+        fast : bool (optional), default=True
+            Whether to use constant \\(w_{ij}=1\\) weights for the infinity-Laplacian
+            which allows a faster algorithm to be used.
 
         References
         ----------
@@ -3668,6 +3678,7 @@ nodes in each class.</dd>
         self.max_num_it = max_num_it
         self.tol = tol
         self.onevsrest = True
+        self.fast = fast
 
         #Setup accuracy filename and model name
         self.accuracy_filename = &#39;_plaplace_p%.2f&#39;%self.p 
@@ -3675,7 +3686,7 @@ nodes in each class.</dd>
 
 
     def _fit(self, train_ind, train_labels, all_labels=None):
-        u = self.graph.plaplace(train_ind, train_labels, self.p, max_num_it=self.max_num_it, tol=self.tol)
+        u = self.graph.plaplace(train_ind, train_labels, self.p, max_num_it=self.max_num_it, tol=self.tol,fast=self.fast)
         return u</code></pre>
 </details>
 <h3>Ancestors</h3>

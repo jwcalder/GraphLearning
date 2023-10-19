@@ -126,7 +126,7 @@ void lp_iterate_main(double *uu, double *ul, int *I, int *J, double *W, int *ind
 
 
 //Main subroutine for iteration
-void lip_iterate_main(double *u, int *I, int *J, int *ind, double *val, int T, double tol, bool prog, int n, int M, int m){
+void lip_iterate_main(double *u, int *I, int *J, double *W, int *ind, double *val, int T, double tol, bool prog, int n, int M, int m, double alpha, double beta){
 
    int i, j, it;
    
@@ -161,11 +161,15 @@ void lip_iterate_main(double *u, int *I, int *J, int *ind, double *val, int T, d
          //Update if not a label
          if(label_mask[i]){
             double minu=u[I[start[i]]], maxu=u[I[start[i]]];
+            double sumu = 0.0;
+            double deg = 0.0;
             for(j=start[i];j<start[i]+num[i];j++){ //loop over neighbors
+               sumu += W[j]*u[I[j]];
+               deg += W[j];
                minu = MIN(u[I[j]],minu);
                maxu = MAX(u[I[j]],maxu);
             }
-            double new = (minu + maxu)/2;
+            double new = alpha*sumu/deg + beta*(minu + maxu)/2;
             err = MAX(ABS(u[i] - new),err);
             u[i] = new;
          }
