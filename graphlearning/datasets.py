@@ -161,7 +161,7 @@ def load_image(name):
     Parameters
     ----------
     name : string
-        Name of image, choices are {'cameraman', 'cow', 'house', 'jetplane', 'lake', 'mandril_color', 'mandril_gray', 'peppers_color', 'peppers_gray', 'pirate', 'walkbridge'}
+        Name of image, choices are {'cameraman', 'cow', 'house', 'jetplane', 'lake', 'mandril_color', 'mandril_gray', 'peppers_color', 'peppers_gray', 'pirate', 'walkbridge', 'chairtoy', 'chairtoy_highres','chairtoy_bw', 'chairtoy_highres_bw'}
     Returns
     -------
     image : numpy array, float
