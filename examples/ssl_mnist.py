@@ -7,7 +7,7 @@ train_ind = gl.trainsets.generate(labels, rate=num_train_per_class)
 train_labels = labels[train_ind]
 
 W = gl.weightmatrix.knn('mnist', 10, metric='vae',kernel='gaussian')
-models = [gl.ssl.laplace(W), gl.ssl.poisson(W)]#,gl.ssl.plaplace(W,p=3),gl.ssl.amle(W)]
+models = [gl.ssl.laplace(W), gl.ssl.poisson(W),gl.ssl.plaplace(W,p=3),gl.ssl.amle(W)]
 
 for model in models:
     pred_labels = model.fit_predict(train_ind,train_labels)
