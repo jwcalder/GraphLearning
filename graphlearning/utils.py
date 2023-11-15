@@ -870,7 +870,7 @@ def mesh(X, boundary_improvement=False):
 
 
 def image_grid(X, n_rows=10, n_cols=10, padding=2, title=None, normalize=False, 
-                             fontsize=None, transpose=True, return_image=False):
+                             fontsize=None, transpose=False, return_image=False):
     """Image Grid
     ======
 
@@ -894,7 +894,7 @@ def image_grid(X, n_rows=10, n_cols=10, padding=2, title=None, normalize=False,
         Whether to normalie pixel intensities for viewing.
     fontsize : int (optional), default=None
         Font size for title, if provided. None uses the default in matplotlib.
-    transpose : bool (optional), default=True
+    transpose : bool (optional), default=False
         Whether to transpose the images or not.
     return_image : bool (optional), default=False
         Whether to return the image or display it to a matplotlib window.
@@ -955,6 +955,161 @@ def image_grid(X, n_rows=10, n_cols=10, padding=2, title=None, normalize=False,
                 plt.title(title,fontsize=fontsize)
             else:
                 plt.title(title)
+
+def color_image_grid(X, n_rows=10, n_cols=10, padding=2, title=None, normalize=False,
+                        fontsize=None, transpose=False, return_image=False):
+    """Color Image Grid
+    ======
+
+    Displays (or returns) a color grid of images.
+   
+    Parameters
+    ----------
+    X : numpy array
+        (n,m) numpy array of n color images in (RRRGGGBBB) format, flattened to length m arrays.
+        Alternatively, X can have shape (n_rows, n_cols, m), in which case the
+        parameters n_rows and n_cols below are overridden.
+    n_rows : int (optional), default=10
+        Number of rows in image grid.
+    n_cols : int (optional), default=10
+        Number of columns in image grid.
+    padding : int (optional), default=2
+        Amount of padding between images in the grid.
+    title : str (optional), default=None
+        Optional title to add to image.
+    normalize : bool (optional), default=False
+        Whether to normalie pixel intensities for viewing.
+    fontsize : int (optional), default=None
+        Font size for title, if provided. None uses the default in matplotlib.
+    transpose : bool (optional), default=False
+        Whether to transpose the images or not.
+    return_image : bool (optional), default=False
+        Whether to return the image or display it to a matplotlib window.
+
+    Returns
+    -------
+    I : numpy array
+        Image grid as a color image (if `return_image=True).
+    """
+
+    m = int(X.shape[1]/3)
+    imgs = []
+    for i in range(3):
+        imgs += [image_grid(X[:,m*i:m*(i+1)], n_rows=n_rows, n_cols=n_cols, padding=padding, title=title, normalize=normalize, fontsize=fontsize, transpose=transpose, return_image=True)]
+
+    I = np.stack((imgs[0],imgs[1],imgs[2]),axis=2)
+
+    if return_image:
+        return I
+    else:
+        #Create a new window and plot the image
+        plt.figure(figsize=(10,10))
+        plt.imshow(I)
+        plt.axis('off')
+        if title is not None:
+            if fontsize is not None:
+                plt.title(title,fontsize=fontsize)
+            else:
+                plt.title(title)
+
+
+def image_to_patches(I,patch_size=(16,16)):
+    """Image to Patches
+    =======
+    Converts an image into an array of patches.
+    Supports color or grayscale images.
+
+    Parameters
+    ----------
+    I : numpy array
+        Image to convert into patches
+    patch_size : tuple (optional)
+        Size of patches to use
+
+    Returns
+    -------
+    P : numpy array
+        Numpy array of size (num_patches,num_pixels_per_patch).
+    """
+
+    if I.ndim == 2:
+        return _image_to_patches(I,patch_size=patch_size)
+    elif I.ndim == 3:
+        imgs = []
+        for i in range(I.shape[2]):
+            imgs += [_image_to_patches(I[:,:,i],patch_size=patch_size)]
+        img = imgs[0]
+        for J in imgs[1:]:
+            img = np.hstack((img,J))
+        return img
+    else: 
+        print('Error: Number of dimensions not supported.')
+        return 0
+
+def _image_to_patches(I,patch_size=(16,16)):
+
+    #Compute number of patches and enlarge image if necessary
+    num_patches = (np.ceil(np.array(I.shape)/np.array(patch_size))).astype(int)
+    image_size = num_patches*patch_size
+    J = np.zeros(tuple(image_size.astype(int)))
+    J[:I.shape[0],:I.shape[1]]=I
+
+    patches = np.zeros((num_patches[0]*num_patches[1],patch_size[0]*patch_size[1]))
+    p = 0
+    for i in range(int(num_patches[0])):
+        for j in range(int(num_patches[1])):
+            patches[p,:] = J[patch_size[0]*i:patch_size[0]*(i+1),patch_size[1]*j:patch_size[1]*(j+1)].flatten()
+            p+=1
+
+    return patches
+
+def patches_to_image(patches,image_shape,patch_size=(16,16)):
+    """Patches to image
+    =======
+    Converts an array of patches back into an image.
+    Supports color or grayscale images.
+
+    Parameters
+    ----------
+    patches : numpy array
+        Array containing patches along the rows.
+    image_shape : tuple 
+        Shape of output image.
+    patch_size : tuple (optional)
+        Size of patches.
+
+    Returns
+    -------
+    I : numpy array
+        Numpy array of reconstructed image.
+    """
+
+    m = patch_size[0]*patch_size[1]
+    num_channels = int(patches.shape[1]/m)
+
+    if num_channels == 1:
+        return _patches_to_image(patches,image_shape,patch_size=patch_size)
+    else:
+        img = np.zeros((image_shape[0],image_shape[1],num_channels))
+        for i in range(num_channels):
+            img[:,:,i] = _patches_to_image(patches[:,i*m:(i+1)*m],image_shape,patch_size=patch_size)
+        return img
+
+
+def _patches_to_image(patches,image_shape,patch_size=(16,16)):
+
+    #Compute number of patches and enlarge image if necessary
+    num_patches = (np.ceil(np.array(image_shape)/np.array(patch_size))).astype(int)
+    image_size = num_patches*np.array(patch_size)
+
+    I = np.zeros(tuple(image_size.astype(int)))
+    p = 0
+    for i in range(num_patches[0]):
+        for j in range(num_patches[1]):
+            I[patch_size[0]*i:patch_size[0]*(i+1),patch_size[1]*j:patch_size[1]*(j+1)] = np.reshape(patches[p,:],patch_size)
+            p+=1
+
+    return I[:image_shape[0],:image_shape[1]]
 
 
 

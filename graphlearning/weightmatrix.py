@@ -436,8 +436,8 @@ def vae(data, layer_widths=[400,20], no_cuda=False, batch_size=128, epochs=100, 
     pred_labels_raw = gl.ssl.poisson(W_raw).fit_predict(train_ind,train_labels)
     pred_labels_vae = gl.ssl.poisson(W_vae).fit_predict(train_ind,train_labels)
 
-    accuracy_raw = gl.ssl.ssl_accuracy(labels,pred_labels_raw,len(train_ind))
-    accuracy_vae = gl.ssl.ssl_accuracy(labels,pred_labels_vae,len(train_ind))
+    accuracy_raw = gl.ssl.ssl_accuracy(labels,pred_labels_raw,train_ind)
+    accuracy_vae = gl.ssl.ssl_accuracy(labels,pred_labels_vae,train_ind)
 
     print('Raw Accuracy: %.2f%%'%accuracy_raw)
     print('VAE Accuracy: %.2f%%'%accuracy_vae)

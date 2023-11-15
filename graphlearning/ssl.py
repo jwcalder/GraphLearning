@@ -25,7 +25,7 @@ train_labels = labels[train_ind]
 model = gl.ssl.laplace(W)
 pred_labels = model.fit_predict(train_ind, train_labels)
 
-accuracy = gl.ssl.ssl_accuracy(pred_labels, labels, len(train_ind))   
+accuracy = gl.ssl.ssl_accuracy(pred_labels, labels, train_ind)   
 print("Accuracy: %.2f%%"%accuracy)
 
 plt.scatter(X[:,0],X[:,1], c=pred_labels)
@@ -49,7 +49,7 @@ models = [gl.ssl.laplace(W), gl.ssl.poisson(W)]
 
 for model in models:
     pred_labels = model.fit_predict(train_ind,train_labels)
-    accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,len(train_ind))
+    accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,train_ind)
     print(model.name + ': %.2f%%'%accuracy)
 ```
 Comparing different methods
@@ -103,11 +103,11 @@ model = gl.ssl.laplace(W, class_priors=class_priors)
 model.fit(train_ind,train_labels)
 
 pred_labels = model.predict(ignore_class_priors=True)
-accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,len(train_ind))
+accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,train_ind)
 print(model.name + ' without class priors: %.2f%%'%accuracy)
 
 pred_labels = model.predict()
-accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,len(train_ind))
+accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,train_ind)
 print(model.name + ' with class priors: %.2f%%'%accuracy)
 ```
 """
@@ -364,12 +364,12 @@ class ssl:
             pred_labels = self.fit_predict(train_ind, train_labels)
 
             #Compute accuracy
-            accuracy = ssl_accuracy(pred_labels,labels,num_train)
+            accuracy = ssl_accuracy(pred_labels,labels,train_ind)
 
             #If class priors were provided, check accuracy without priors
             if self.class_priors is not None:
                 pred_labels = self.predict(ignore_class_priors=True)
-                accuracy_without_priors = ssl_accuracy(pred_labels,labels,num_train)
+                accuracy_without_priors = ssl_accuracy(pred_labels,labels,train_ind)
             
             #Print to terminal
             if self.class_priors is None:
@@ -566,7 +566,7 @@ class poisson(ssl):
         model = gl.ssl.poisson(W, solver='gradient_descent')
         pred_labels = model.fit_predict(train_ind, train_labels)
 
-        accuracy = gl.ssl.ssl_accuracy(pred_labels, labels, len(train_ind))   
+        accuracy = gl.ssl.ssl_accuracy(pred_labels, labels, train_ind)   
         print("Accuracy: %.2f%%"%accuracy)
 
         plt.scatter(X[:,0],X[:,1], c=pred_labels)
@@ -673,7 +673,7 @@ class poisson(ssl):
                     if all_labels is not None:
                         self.prob = u
                         labels = self.predict()
-                        acc = ssl_accuracy(labels,all_labels,len(train_ind))
+                        acc = ssl_accuracy(labels,all_labels,train_ind)
                         print('%d,Accuracy = %.2f'%(T,acc))
                 
         #Use spectral solver
@@ -741,7 +741,7 @@ class poisson_mbo(ssl):
         model = gl.ssl.poisson_mbo(W, class_priors)
         pred_labels = model.fit_predict(train_ind,train_labels,all_labels=labels)
 
-        accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,len(train_ind))
+        accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,train_ind)
         print(model.name + ': %.2f%%'%accuracy)
         ```
         Reference
@@ -833,7 +833,7 @@ class poisson_mbo(ssl):
 
             #Compute accuracy if all labels are provided
             if all_labels is not None:
-                acc = ssl_accuracy(labels,all_labels,len(train_ind))
+                acc = ssl_accuracy(labels,all_labels,train_ind)
                 print('%d, Accuracy = %.2f'%(i,acc))
 
         return u
@@ -999,7 +999,7 @@ class multiclass_mbo(ssl):
             if all_labels is not None:
                 self.prob = u.T
                 labels = self.predict()
-                acc = ssl_accuracy(labels,all_labels,len(train_ind))
+                acc = ssl_accuracy(labels,all_labels,train_ind)
                 print('Accuracy = %.2f'%acc)
 
         return u.T
@@ -1097,7 +1097,7 @@ class modularity_mbo(ssl):
             if all_labels is not None:
                 self.prob = u
                 labels = self.predict()
-                acc = ssl_accuracy(labels,all_labels,len(train_ind))
+                acc = ssl_accuracy(labels,all_labels,train_ind)
                 print('Accuracy = %.2f'%acc)
 
         return u
@@ -1322,7 +1322,7 @@ class dynamic_label_propagation(ssl):
                 if all_labels is not None:
                     self.prob = np.array(u)
                     labels = self.predict()
-                    acc = ssl_accuracy(labels,all_labels,len(train_ind))
+                    acc = ssl_accuracy(labels,all_labels,train_ind)
                     print('Accuracy = %.2f'%acc)
 
             u = np.array(u)
@@ -1407,7 +1407,7 @@ class centered_kernel(ssl):
             if all_labels is not None:
                 self.prob = u
                 labels = self.predict()
-                acc = ssl_accuracy(labels,all_labels,len(train_ind))
+                acc = ssl_accuracy(labels,all_labels,train_ind)
                 print('Accuracy = %.2f'%acc)
             
         return u
@@ -1489,7 +1489,7 @@ class sparse_label_propagation(ssl):
             if all_labels is not None:
                 self.prob = u.T
                 labels = self.predict()
-                acc = ssl_accuracy(labels,all_labels,len(train_ind))
+                acc = ssl_accuracy(labels,all_labels,train_ind)
                 print('%d,Accuracy = %.2f'%(i,acc))
  
         return u.T
@@ -1775,7 +1775,7 @@ class randomwalk(ssl):
 
         return u
 
-def ssl_accuracy(pred_labels, true_labels, num_train):   
+def ssl_accuracy(pred_labels, true_labels, train_ind):   
     """SSL Accuacy
     ======
 
@@ -1789,21 +1789,32 @@ def ssl_accuracy(pred_labels, true_labels, num_train):
         Predicted labels
     true_labels : numpy array, int
         True labels
-    num_train : int
-        Number of training points (removed from dataset during accuracy computation).
+    train_ind : numpy array, int 
+        Indices of training points, which will be removed from the accuracy computation.
 
     Returns
     -------
     accuracy : float
         Accuracy as a number in [0,100].
     """
+
+        #Remove labeled data
+    mask = np.ones(len(pred_labels),dtype=bool)
+    if type(train_ind) != np.ndarray:
+        print("Warning: ssl_accuracy has been updated and now requires the user to provide the indices of the labeled points, and not just the number of labels. Accuracy computation will be incorrect unless you update your code accordingly. See https://jwcalder.github.io/GraphLearning/ssl.html#two-moons-example")
+    else:
+        mask[train_ind]=False
+
+    pred_labels = pred_labels[mask]
+    true_labels = true_labels[mask]
+
     #Remove unlabeled nodes
     I = true_labels >=0
     pred_labels = pred_labels[I]
     true_labels = true_labels[I]
 
     #Compute accuracy
-    return 100*np.maximum(np.sum(pred_labels==true_labels)-num_train,0)/(len(true_labels)-num_train)
+    return 100*np.mean(pred_labels==true_labels)
 
 
 def accuracy_plot(model_list, tag='', testerror=False, savefile=None, title=None, errorbars=False, 
