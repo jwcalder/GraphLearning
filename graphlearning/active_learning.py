@@ -3,11 +3,48 @@ Active Learning
 ========================
 
 This module implements many active learning algorithms in an objected-oriented
-fashion, similar to [sklearn](https://scikit-learn.org/stable/). The usage is similar for all algorithms.
-Below, we give some high-level examples of how to use this module. There are also examples for some
-individual functions, given in the documentation below.
+fashion, similar to [sklearn](https://scikit-learn.org/stable/) and [modAL](https://modal-python.readthedocs.io/en/latest/index.html). The usage is similar for all algorithms, and we give some high-level examples of how to use this module with each of the provided acquisition functions.
 
+The common workflow, however, is as follows:
+```py
+import graphlearning as gl
+
+# define ssl model and acquisition function
+model = gl.ssl.laplace(W)                   # graph-based ssl classifier with a given graph
+acq_func = gl.active_learning.unc_sampling  # acquisition function for prioritizing which points to query
+
+
+# instantiate active learner object
+AL = gl.active_learner(
+     model=model,                                    
+     acq_function=acq_func,   
+     labeled_ind=..,                        # indices of initially labeled nodes 
+     labels=,                               # (integer) labels for initially labeled nodes
+     policy='max',                         # active learning policy (i.e., 'max', or 'prop')
+     **kwargs=...                           # other keyword arguments for the specified acq_function
+    )
+
+# select next query points
+query_point = AL.select_queries(
+                batch_size=1               # number of query points to select at this iteration
+               ) 
+
+# acquire label for query points
+query_labels = y[query_point] 
+
+
+# update the labeled data of active_learner object (including the graph-based ssl ``model`` outputs)
+AL.update(query_points, query_labels) 
+```
+
+Some clarification of terms:
+* ``acquisition function``: a function that quantifies "how useful" it would be to label a currently unlabeled node. Oftentimes, this is reflected in the "uncertainty" of the current classifier's output for each node. 
+    * __NOTE:__ users can provide their own acquisition functions that inherit from the ``acquisition_function`` class, being sure to implement it so that __larger values__ of the acquisition function correspond to __more desirable__ nodes to be labeled.
+* ``policy``: the active learning policy determines which node(s) will be selected as query points, given the set of acquisition function values evaluated on the unlabeled nodes. 
+    * The default value ``max`` indicates that query points will be the maximizers of the acquisition function on the unlabeled nodes. The policy ``prop`` selects the query points proportional to the ''softmax'' of the acquisition function values; namely, 
+    $$\mathbb{P}(X = x) \propto e^{\gamma \mathcal{A}(x)}$$
 """
+
 import numpy as np
 from scipy.special import softmax
 from abc import ABCMeta, abstractmethod
@@ -16,107 +53,93 @@ import matplotlib.pyplot as plt
 from . import graph
 
 
-class active_learning:
-    def __init__(self, W, current_labeled_set, current_labels, training_set=None, eval_cutoff=50, gamma=0.1):
-        if type(W) == graph.graph:
-            self.graph = W
+class active_learner:
+    def __init__(self, model, acq_function, labeled_ind, labels, policy='max', **kwargs):
+        self.model = model
+        self.labeled_ind = labeled_ind.copy()
+        self.labels = labels.copy()
+        self.acq_function = acq_function(**kwargs)
+        self.acq_function.update(labeled_ind, labels)
+        self.policy = policy
+        self.u = self.model.fit(self.labeled_ind, self.labels) # initialize the ssl model on the initially labeled data
+        self.n = self.model.graph.num_nodes
+        self.all_inds = np.arange(self.n)
+        self.unlabeled_ind = np.setdiff1d(self.all_inds, self.labeled_ind)
+        self.printed_warning = False
+        
+
+    def select_queries(self, batch_size=1, policy=None, candidate_ind='full', rand_frac=0.1, return_acq_vals=False, prop_gamma=1.0, 
+                       allow_repeat=False):
+        if policy is None:
+            policy = self.policy
+        
+        if isinstance(candidate_ind, np.ndarray):
+            if (candidate_ind.min() < 0) or (candidate_ind.max() > self.n):
+                raise ValueError(f"candidate_ind must have integer values between 0 and {self.n}")
+        elif candidate_ind == 'full':
+            if allow_repeat:
+                candidate_ind = np.arange(self.all_inds)
+            else:
+                candidate_ind = np.setdiff1d(self.all_inds, self.labeled_ind)
+        elif (candidate_set == 'rand') and (rand_frac>0 and rand_frac<1):
+            if allow_repeat:
+                candidate_ind = np.random.choice(self.all_inds, size=int(rand_frac * self.n), replace=False)
+            else:
+                candidate_ind = np.random.choice(self.unlabeled_ind, size=int(rand_frac * len(self.unlabeled_ind)), replace=False)
         else:
-            self.graph = graph.graph(W)          
-        self.current_labeled_set = current_labeled_set
-        self.current_labels = current_labels
-        self.initial_labeled_set = current_labeled_set
-        self.initial_labels = current_labels
-        if training_set is None:
-            self.training_set = np.arange(self.graph.num_nodes)
+            raise ValueError("Invalid input for candidate_ind")
+        
+        acq_vals = self.acq_function.compute(self.u, candidate_ind)
+        
+        if policy == 'max':
+            query_ind = candidate_ind[(-acq_vals).argsort()[:batch_size]]
+        elif policy == 'prop':
+            probs = np.exp(prop_gamma*(acq_vals - acq_vals.max()))
+            probs /= probs.sum()
+            query_ind = np.random.choice(candidate_ind, batch_size, p=probs)
         else:
-            self.training_set = training_set
-        self.candidate_inds = np.setdiff1d(self.training_set, current_labeled_set)
-        self.eval_cutoff = eval_cutoff
-        if self.eval_cutoff is not None:
-            self.gamma = gamma
-            self.evals, self.evecs = self.graph.eigen_decomp(normalization='normalized', k=eval_cutoff)
-            self.cov_matrix = np.linalg.inv(np.diag(self.evals) + self.evecs[current_labeled_set,:].T @ self.evecs[current_labeled_set,:] / gamma**2.)
-            self.init_cov_matrix = self.cov_matrix.copy()
+            query_ind = policy(candidate_ind, acq_vals, batch_size) # user-defined policy
 
-    def reset_labeled_data(self):
-        """Reset Labeled Data
-        ======
+        if return_acq_vals:
+            return query_ind, acq_vals
+        return query_ind
+    
 
-        Resets the current labeled set, labels, and covariance matrix to the initial labeled set, labels, and covariance matrix.
+    def update(self, query_ind, query_labels):
+        if np.intersect1d(query_ind, self.labeled_ind).size > 0 and not self.printed_warning:
+            print("WARNING: Having multiple observations at a single node detected")
+            self.printed_warning = True
+        self.labeled_ind = np.append(self.labeled_ind, query_ind)
+        self.labels = np.append(self.labels, query_labels)
+        self.u = self.model.fit(self.labeled_ind, self.labels)
+        self.unlabeled_ind = np.setdiff1d(self.all_inds, self.labeled_ind)
+        self.acq_function.update(query_ind, query_labels)
+        return
 
-        """
-        self.current_labeled_set = self.initial_labeled_set
-        self.current_labels = self.initial_labels
-        if self.eval_cutoff is not None:
-            self.cov_matrix = self.init_cov_matrix.copy()
+class acquisition_function:  
+    """Acquisition Function
+    ======
+    
+    Object that computes a measure of ''utility'' for labeling nodes that are currently unlabeled. Users can define their own acqusition functions to inherit from this class as follows:
+    
+    ```py
+    import graphlearning as gl
+    
+    class new_acq_func(gl.acquisition_function):
+        def __init__(self, arg1=None):
+            self.arg1 = arg1           # any arguments that are passed into this acquisition function are given 
+                                       # as kwargs in active_learner instantiation
 
-    def select_query_points(self, acquisition, u, batch_size=1, oracle=None, candidate_method='full', fraction_points=0.1):
-        """Select query points
-        ======
-
-        Select "batch_size" number of points to be labeled by an active learning algorithm we specify.
-
-        Parameters
-        ----------
-        u : numpy array
-            score matrix from GSSL classifier.
-        acquisition : class object
-            acquisition function object.
-        oracle : numpy array, int, default=None
-            true labels for all datapoints.
-        batch_size : int (optional), default=1
-            number of points want to be labeled in one iteration of active learning.
-        candidate_method : str (optional), default='full'
-            'full' for setting candidate indices to full unlabeled set.
-            'rand' for setting candidate indices to a random fraction of the unlabeled set.
-        fraction_points : int (optional), default=0.1
-            fraction of unlabeled points we want to use as our candidate set.
-
-        """
-
-        if candidate_method == 'full':
-            self.candidate_inds = np.setdiff1d(self.training_set, self.current_labeled_set)
-        elif (candidate_method == 'rand') and (fraction_points>0 and fraction_points<1):
-            unlabeled_inds = np.setdiff1d(self.training_set, self.current_labeled_set)
-            self.candidate_inds = np.random.choice(unlabeled_inds, size=int(fraction_points * len(unlabeled_inds)), replace=False)
-        else:
-            raise ValueError("Wrong input for candidate_method or fraction_points")
-        objective_values = acquisition.compute_values(self, u)
-        query_inds = self.candidate_inds[(-objective_values).argsort()[:batch_size]]
-
-        if oracle is not None:
-            self.update_labeled_data(query_inds, oracle[query_inds])
-
-        return query_inds
-
-    def update_labeled_data(self, query_inds, query_labels):
-        """Update labeled data
-        ======
-
-        Update the current labeled set, current labels, and covariance matrix of our active learning object.
-
-        Parameters
-        ----------
-        query_inds : numpy array
-            new selected query points to label.
-        query_labels : numpy array
-            true labels of query_inds.
-
-        """
-        mask = ~np.isin(query_inds, self.current_labeled_set)
-        query_inds, query_labels = query_inds[mask], query_labels[mask]
-        self.current_labeled_set = np.append(self.current_labeled_set, query_inds)
-        self.current_labels = np.append(self.current_labels, query_labels)
-        if self.eval_cutoff is not None:
-            for k in query_inds:
-                vk = self.evecs[k]
-                Cavk = self.cov_matrix @ vk
-                ip = np.inner(vk, Cavk)
-                self.cov_matrix -= np.outer(Cavk, Cavk)/(self.gamma**2. + ip) 
-
-class acquisition_function:        
+        def compute(self, u, candidate_ind):
+            vals = ...                 # compute the acquisition function so that larger values are more desired
+            return vals  
+    
+    ```
+    
+    
+    """
     @abstractmethod
-    def compute_values(self, active_learning, u):
+    def compute(self, u, candidate_ind):
         """Internal Compute Acquisition Function Values Function
         ======
 
@@ -124,19 +147,25 @@ class acquisition_function:
 
         Parameters
         ----------
-        active_learning : class object
-            active learning object.
         u : numpy array
             score matrix from GSSL classifier. 
+        candidate_ind : numpy array (or list)
+            (sub)set of indices on which to compute the acquisition function
 
         Returns
         -------
         acquisition_values : numpy array, float
             acquisition function values
         """
-        raise NotImplementedError("Must override compute_values")
+        raise NotImplementedError("Must override compute")
 
-class uncertainty_sampling(acquisition_function):
+    @abstractmethod
+    def update(self, query_ind, query_labels):
+        return 
+
+
+
+class unc_sampling(acquisition_function):
     """Uncertainty Sampling
     ===================
 
@@ -158,55 +187,52 @@ class uncertainty_sampling(acquisition_function):
     plt.scatter(X[train_ind,0],X[train_ind,1], c='r')
     plt.show()
 
+    
     model = gl.ssl.laplace(W)
-    acq = al.uncertainty_sampling()
-    act = al.active_learning(W, train_ind, labels[train_ind], eval_cutoff=200)
+    AL = gl.active_learning.active_learner(model, gl.active_learning.unc_sampling, train_ind, y[train_ind])
 
     for i in range(10):
-        u = model.fit(act.current_labeled_set, act.current_labels) # perform classification with GSSL classifier
-        query_points = act.select_query_points(acq, u, oracle=None) # return this iteration's newly chosen points
-        query_labels = labels[query_points] # simulate the human in the loop process
-        act.update_labeled_data(query_points, query_labels) # update the active_learning object's labeled set
+        query_points = AL.select_queries() # return this iteration's newly chosen points
+        query_labels = y[query_points] # simulate the human in the loop process
+        AL.update(query_points, query_labels) # update the active_learning object's labeled set
 
         # plot
-        plt.scatter(X[:,0],X[:,1], c=labels)
-        plt.scatter(X[act.current_labeled_set,0],X[act.current_labeled_set,1], c='r')
-        plt.scatter(X[query_points,0],X[query_points,1], c='r', marker='*', s=200, edgecolors='k', linewidths=1.5)
+        plt.scatter(X[:,0],X[:,1], c=y)
+        plt.scatter(X[AL.labeled_ind,0],X[AL.labeled_ind,1], c='r')
+        plt.scatter(X[query_points,0],X[query_points,1], c='r', marker='*', s=200, edgecolors='k', linewidths=1)
         plt.show()
-        print(act.current_labeled_set)
-        print(act.current_labels)
-
-    # reset active learning object    
-    print("reset")
-    act.reset_labeled_data()
-    print(act.current_labeled_set)
-    print(act.current_labels)
+        print(AL.labeled_ind)
+        print(AL.labels)
     ```
 
     Reference
     ---------
     [1] Settles, B., [Active Learning], vol. 6, Morgan & Claypool Publishers LLC (June 2012).
     """
-    def __init__(self, uncertainty_method='smallest_margin'):
-        self.uncertainty_method = uncertainty_method
+    def __init__(self, unc_method='smallest_margin'):
+        self.unc_method = unc_method
 
-    def compute_values(self, active_learning, u):
-        if self.uncertainty_method == "norm":
-            u_probs = softmax(u[active_learning.candidate_inds], axis=1)
-            one_hot_predicted_labels = np.eye(u.shape[1])[np.argmax(u[active_learning.candidate_inds], axis=1)]
+    def compute(self, u, candidate_ind):
+        if self.unc_method == "norm":
+            u_probs = softmax(u[candidate_ind], axis=1)
+            one_hot_predicted_labels = np.eye(u.shape[1])[np.argmax(u[candidate_ind], axis=1)]
             unc_terms = np.linalg.norm((u_probs - one_hot_predicted_labels), axis=1)
-        elif self.uncertainty_method == "entropy":
-            u_probs = softmax(u[active_learning.candidate_inds], axis=1)
+        elif self.unc_method == "entropy":
+            u_probs = softmax(u[candidate_ind], axis=1)
             unc_terms = np.max(u_probs, axis=1) - np.sum(u_probs*np.log(u_probs +.00001), axis=1)
-        elif self.uncertainty_method == "least_confidence":
-            unc_terms = np.ones((u[active_learning.candidate_inds].shape[0],)) - np.max(u[active_learning.candidate_inds], axis=1)
-        elif self.uncertainty_method == "smallest_margin":
-            u_sort = np.sort(u[active_learning.candidate_inds])
+        elif self.unc_method == "least_confidence":
+            unc_terms = np.ones((u[candidate_ind].shape[0],)) - np.max(u[candidate_ind], axis=1)
+        elif self.unc_method == "smallest_margin":
+            u_sort = np.sort(u[candidate_ind])
             unc_terms = 1.-(u_sort[:,-1] - u_sort[:,-2])
-        elif self.uncertainty_method == "largest_margin":
-            u_sort = np.sort(u[active_learning.candidate_inds])
+        elif self.unc_method == "largest_margin":
+            u_sort = np.sort(u[candidate_ind])
             unc_terms = 1.-(u_sort[:,-1] - u_sort[:,0])
+        elif self.unc_method == "unc_2norm":
+            unc_terms = 1. - np.linalg.norm(u[candidate_ind], axis=1)
         return unc_terms
+
+
 
 class v_opt(acquisition_function):
     """Variance Optimization
@@ -230,29 +256,23 @@ class v_opt(acquisition_function):
     plt.scatter(X[train_ind,0],X[train_ind,1], c='r')
     plt.show()
 
-    model = gl.ssl.laplace(W)
-    acq = al.v_opt()
-    act = al.active_learning(W, train_ind, labels[train_ind], eval_cutoff=200)
+    # compute initial, low-rank (spectral truncation) covariance matrix 
+    evals, evecs = model.graph.eigen_decomp(normalization='normalized', k=50)
+    C = np.diag(1. / (evals + 1e-11))
+    AL = gl.active_learning.active_learner(model, gl.active_learning.v_opt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
 
     for i in range(10):
-        u = model.fit(act.current_labeled_set, act.current_labels) # perform classification with GSSL classifier
-        query_points = act.select_query_points(acq, u, oracle=None) # return this iteration's newly chosen points
-        query_labels = labels[query_points] # simulate the human in the loop process
-        act.update_labeled_data(query_points, query_labels) # update the active_learning object's labeled set
+        query_points = AL.select_queries() # return this iteration's newly chosen points
+        query_labels = y[query_points] # simulate the human in the loop process
+        AL.update(query_points, query_labels) # update the active_learning object's labeled set
 
         # plot
-        plt.scatter(X[:,0],X[:,1], c=labels)
-        plt.scatter(X[act.current_labeled_set,0],X[act.current_labeled_set,1], c='r')
-        plt.scatter(X[query_points,0],X[query_points,1], c='r', marker='*', s=200, edgecolors='k', linewidths=1.5)
+        plt.scatter(X[:,0],X[:,1], c=y)
+        plt.scatter(X[AL.labeled_ind,0],X[AL.labeled_ind,1], c='r')
+        plt.scatter(X[query_points,0],X[query_points,1], c='r', marker='*', s=200, edgecolors='k', linewidths=1)
         plt.show()
-        print(act.current_labeled_set)
-        print(act.current_labels)
-
-    # reset active learning object    
-    print("reset")
-    act.reset_labeled_data()
-    print(act.current_labeled_set)
-    print(act.current_labels)
+        print(AL.labeled_ind)
+        print(AL.labels)
     ```
 
     Reference
@@ -260,11 +280,44 @@ class v_opt(acquisition_function):
     [1] Ji, M. and Han, J., “A variance minimization criterion to active learning on graphs,” in [Artificial Intelligence
     and Statistics ], 556–564 (Mar. 2012).
     """
-    def compute_values(self, active_learning, u=None):
-        Cavk = active_learning.cov_matrix @ active_learning.evecs[active_learning.candidate_inds,:].T
-        col_norms = np.linalg.norm(Cavk, axis=0)
-        diag_terms = (active_learning.gamma**2. + np.array([np.inner(active_learning.evecs[k,:], Cavk[:, i]) for i,k in enumerate(active_learning.candidate_inds)]))
-        return col_norms**2. / diag_terms
+
+    ## this only handles the FULL C computation or the spectral truncation
+    def __init__(self, C, V=None, gamma2=0.1**2.):
+        assert (C.shape[0] == C.shape[1]) or (V is not None)
+        self.C = C.copy()
+        self.V = V
+        self.gamma2 = gamma2
+        if self.V is None:
+            self.storage = 'full'
+        else:
+            self.storage = 'trunc'
+        
+        
+    def compute(self, u, candidate_ind):
+        if self.storage == 'full':
+            col_norms = np.linalg.norm(self.C, axis=0)**2.
+            diag_terms = self.gamma2 + self.C.diagonal()
+        else:
+            Cavk = self.C @ self.V[candidate_ind,:].T
+            col_norms = np.linalg.norm(Cavk, axis=0)**2.
+            diag_terms = (self.gamma2 + np.array([np.inner(self.V[k,:], Cavk[:, i]) for i,k in enumerate(candidate_ind)]))
+            
+        return col_norms / diag_terms
+
+    def update(self, query_ind, query_labels):
+        for k in query_ind:
+            if self.storage == 'full':
+                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+            else:
+                vk = self.V[k]
+                Cavk = self.C @ vk
+                ip = np.inner(vk, Cavk)
+                self.C -= np.outer(Cavk, Cavk)/(self.gamma2 + ip) 
+
+        return 
+
+
+
 
 class sigma_opt(acquisition_function):
     """Sigma Optimization
@@ -288,29 +341,23 @@ class sigma_opt(acquisition_function):
     plt.scatter(X[train_ind,0],X[train_ind,1], c='r')
     plt.show()
 
-    model = gl.ssl.laplace(W)
-    acq = al.sigma_opt()
-    act = al.active_learning(W, train_ind, labels[train_ind], eval_cutoff=200)
+    # compute initial, low-rank (spectral truncation) covariance matrix 
+    evals, evecs = model.graph.eigen_decomp(normalization='normalized', k=50)
+    C = np.diag(1. / (evals + 1e-11))
+    AL = gl.active_learning.active_learner(model, gl.active_learning.sigma_opt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
 
     for i in range(10):
-        u = model.fit(act.current_labeled_set, act.current_labels) # perform classification with GSSL classifier
-        query_points = act.select_query_points(acq, u, oracle=None) # return this iteration's newly chosen points
-        query_labels = labels[query_points] # simulate the human in the loop process
-        act.update_labeled_data(query_points, query_labels) # update the active_learning object's labeled set
+        query_points = AL.select_queries() # return this iteration's newly chosen points
+        query_labels = y[query_points] # simulate the human in the loop process
+        AL.update(query_points, query_labels) # update the active_learning object's labeled set
 
         # plot
-        plt.scatter(X[:,0],X[:,1], c=labels)
-        plt.scatter(X[act.current_labeled_set,0],X[act.current_labeled_set,1], c='r')
-        plt.scatter(X[query_points,0],X[query_points,1], c='r', marker='*', s=200, edgecolors='k', linewidths=1.5)
+        plt.scatter(X[:,0],X[:,1], c=y)
+        plt.scatter(X[AL.labeled_ind,0],X[AL.labeled_ind,1], c='r')
+        plt.scatter(X[query_points,0],X[query_points,1], c='r', marker='*', s=200, edgecolors='k', linewidths=1)
         plt.show()
-        print(act.current_labeled_set)
-        print(act.current_labels)
-
-    # reset active learning object    
-    print("reset")
-    act.reset_labeled_data()
-    print(act.current_labeled_set)
-    print(act.current_labels)
+        print(AL.labeled_ind)
+        print(AL.labels)
     ```
 
     Reference
@@ -319,11 +366,43 @@ class sigma_opt(acquisition_function):
     in [Advances in Neural Information Processing Systems 26 ], Burges, C. J. C., Bottou, L., Welling, M.,
     Ghahramani, Z., and Weinberger, K. Q., eds., 2751–2759, Curran Associates, Inc. (2013).
     """
-    def compute_values(self, active_learning, u=None):
-        Cavk = active_learning.cov_matrix @ active_learning.evecs[active_learning.candidate_inds,:].T
-        col_sums = np.sum(Cavk, axis=0)
-        diag_terms = (active_learning.gamma**2. + np.array([np.inner(active_learning.evecs[k,:], Cavk[:, i]) for i,k in enumerate(active_learning.candidate_inds)]))
-        return col_sums**2. / diag_terms
+    ## this only handles the FULL C computation or the spectral truncation
+    def __init__(self, C, V=None, gamma2=0.1**2.):
+        assert (C.shape[0] == C.shape[1]) or (V is not None)
+        self.C = C.copy()
+        self.V = V
+        self.gamma2 = gamma2
+        if self.V is None:
+            self.storage = 'full'
+        else:
+            self.storage = 'trunc'
+        
+        
+    def compute(self, u, candidate_ind):
+        if self.storage == 'full':
+            col_sums = np.sum(self.C, axis=0)**2.
+            diag_terms = selg.gamma2 + self.C.diagonal()
+        else:
+            Cavk = self.C @ self.V[candidate_ind,:].T
+            col_sums = np.sum(Cavk, axis=0)**2.
+            diag_terms = (self.gamma2 + np.array([np.inner(self.V[k,:], Cavk[:, i]) for i,k in enumerate(candidate_ind)]))
+            
+        return col_sums/ diag_terms
+
+
+    def update(self, query_ind, query_labels):
+        for k in query_ind:
+            if self.storage == 'full':
+                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+            else:
+                vk = self.V[k]
+                Cavk = self.C @ vk
+                ip = np.inner(vk, Cavk)
+                self.C -= np.outer(Cavk, Cavk)/(self.gamma2 + ip) 
+
+        return
+
+
 
 class model_change(acquisition_function):
     """Model Change
@@ -347,29 +426,23 @@ class model_change(acquisition_function):
     plt.scatter(X[train_ind,0],X[train_ind,1], c='r')
     plt.show()
 
-    model = gl.ssl.laplace(W)
-    acq = al.model_change()
-    act = al.active_learning(W, train_ind, labels[train_ind], eval_cutoff=200)
+    # compute initial, low-rank (spectral truncation) covariance matrix 
+    evals, evecs = model.graph.eigen_decomp(normalization='normalized', k=50)
+    C = np.diag(1. / (evals + 1e-11))
+    AL = gl.active_learning.active_learner(model, gl.active_learning.model_change, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
 
     for i in range(10):
-        u = model.fit(act.current_labeled_set, act.current_labels) # perform classification with GSSL classifier
-        query_points = act.select_query_points(acq, u, oracle=None) # return this iteration's newly chosen points
-        query_labels = labels[query_points] # simulate the human in the loop process
-        act.update_labeled_data(query_points, query_labels) # update the active_learning object's labeled set
+        query_points = AL.select_queries() # return this iteration's newly chosen points
+        query_labels = y[query_points] # simulate the human in the loop process
+        AL.update(query_points, query_labels) # update the active_learning object's labeled set
 
         # plot
-        plt.scatter(X[:,0],X[:,1], c=labels)
-        plt.scatter(X[act.current_labeled_set,0],X[act.current_labeled_set,1], c='r')
-        plt.scatter(X[query_points,0],X[query_points,1], c='r', marker='*', s=200, edgecolors='k', linewidths=1.5)
+        plt.scatter(X[:,0],X[:,1], c=y)
+        plt.scatter(X[AL.labeled_ind,0],X[AL.labeled_ind,1], c='r')
+        plt.scatter(X[query_points,0],X[query_points,1], c='r', marker='*', s=200, edgecolors='k', linewidths=1)
         plt.show()
-        print(act.current_labeled_set)
-        print(act.current_labels)
-
-    # reset active learning object    
-    print("reset")
-    act.reset_labeled_data()
-    print(act.current_labeled_set)
-    print(act.current_labels)
+        print(AL.labeled_ind)
+        print(AL.labels)
     ```
 
     Reference
@@ -380,15 +453,40 @@ class model_change(acquisition_function):
     [2] Karzand, M. and Nowak, R. D., “Maximin active learning in overparameterized model classes,” IEEE
     Journal on Selected Areas in Information Theory 1, 167–177 (May 2020).
     """
-    def __init__(self, uncertainty_method='smallest_margin'):
-        self.unc_sampling = uncertainty_sampling(uncertainty_method=uncertainty_method)
-
-    def compute_values(self, active_learning, u):
+    def __init__(self, C, V=None, gamma2=0.1**2., unc_method='smallest_margin'):
+        assert (C.shape[0] == C.shape[1]) or (V is not None)
+        self.C = C.copy()
+        self.V = V
+        self.gamma2 = gamma2
+        self.unc_sampling = uncertainty_sampling(unc_method=unc_method)
+        if self.V is None:
+            self.storage = 'full'
+        else:
+            self.storage = 'trunc'
+        
+    def compute(self, u, candidate_ind):
         unc_terms = self.unc_sampling.compute_values(active_learning, u)
-        Cavk = active_learning.cov_matrix @ active_learning.evecs[active_learning.candidate_inds,:].T
-        col_norms = np.linalg.norm(Cavk, axis=0)
-        diag_terms = (active_learning.gamma**2. + np.array([np.inner(active_learning.evecs[k,:], Cavk[:, i]) for i,k in enumerate(active_learning.candidate_inds)]))
+        if self.storage == 'full':
+            col_norms = np.linalg.norm(self.C, axis=0)
+            diag_terms = self.gamma2 + self.C.diagonal()
+        else:
+            Cavk = self.C @ self.V[candidate_ind,:].T
+            col_norms = np.linalg.norm(Cavk, axis=0)
+            diag_terms = (self.gamma2 + np.array([np.inner(self.V[k,:], Cavk[:, i]) for i,k in enumerate(candidate_ind)]))
         return unc_terms * col_norms / diag_terms  
+
+
+    def update(self, query_ind, query_labels):
+        for k in query_ind:
+            if self.storage == 'full':
+                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+            else:
+                vk = self.V[k]
+                Cavk = self.C @ vk
+                ip = np.inner(vk, Cavk)
+                self.C -= np.outer(Cavk, Cavk)/(self.gamma2 + ip) 
+        return
+        
 
 class model_change_vopt(acquisition_function):
     """Model Change Variance Optimization
@@ -412,29 +510,23 @@ class model_change_vopt(acquisition_function):
     plt.scatter(X[train_ind,0],X[train_ind,1], c='r')
     plt.show()
 
-    model = gl.ssl.laplace(W)
-    acq = al.model_change_vopt()
-    act = al.active_learning(W, train_ind, labels[train_ind], eval_cutoff=200)
+    # compute initial, low-rank (spectral truncation) covariance matrix 
+    evals, evecs = model.graph.eigen_decomp(normalization='normalized', k=50)
+    C = np.diag(1. / (evals + 1e-11))
+    AL = gl.active_learning.active_learner(model, gl.active_learning.mc_vopt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
 
     for i in range(10):
-        u = model.fit(act.current_labeled_set, act.current_labels) # perform classification with GSSL classifier
-        query_points = act.select_query_points(acq, u, oracle=None) # return this iteration's newly chosen points
-        query_labels = labels[query_points] # simulate the human in the loop process
-        act.update_labeled_data(query_points, query_labels) # update the active_learning object's labeled set
+        query_points = AL.select_queries() # return this iteration's newly chosen points
+        query_labels = y[query_points] # simulate the human in the loop process
+        AL.update(query_points, query_labels) # update the active_learning object's labeled set
 
         # plot
-        plt.scatter(X[:,0],X[:,1], c=labels)
-        plt.scatter(X[act.current_labeled_set,0],X[act.current_labeled_set,1], c='r')
-        plt.scatter(X[query_points,0],X[query_points,1], c='r', marker='*', s=200, edgecolors='k', linewidths=1.5)
+        plt.scatter(X[:,0],X[:,1], c=y)
+        plt.scatter(X[AL.labeled_ind,0],X[AL.labeled_ind,1], c='r')
+        plt.scatter(X[query_points,0],X[query_points,1], c='r', marker='*', s=200, edgecolors='k', linewidths=1)
         plt.show()
-        print(act.current_labeled_set)
-        print(act.current_labels)
-
-    # reset active learning object    
-    print("reset")
-    act.reset_labeled_data()
-    print(act.current_labeled_set)
-    print(act.current_labels)
+        print(AL.labeled_ind)
+        print(AL.labels)
     ```
 
     Reference
@@ -448,12 +540,36 @@ class model_change_vopt(acquisition_function):
     [3] Karzand, M. and Nowak, R. D., “Maximin active learning in overparameterized model classes,” IEEE
     Journal on Selected Areas in Information Theory 1, 167–177 (May 2020).
     """
-    def __init__(self, uncertainty_method='smallest_margin'):
-        self.unc_sampling = uncertainty_sampling(uncertainty_method=uncertainty_method)
-
-    def compute_values(self, active_learning, u):
+    def __init__(self, C, V=None, gamma2=0.1**2., unc_method='smallest_margin'):
+        assert (C.shape[0] == C.shape[1]) or (V is not None)
+        self.C = C.copy()
+        self.V = V
+        self.gamma2 = gamma2
+        self.unc_sampling = uncertainty_sampling(method=unc_method)
+        if self.V is None:
+            self.storage = 'full'
+        else:
+            self.storage = 'trunc'
+        
+    def compute(self, u, candidate_ind):
         unc_terms = self.unc_sampling.compute_values(active_learning, u)
-        Cavk = active_learning.cov_matrix @ active_learning.evecs[active_learning.candidate_inds,:].T
-        col_norms = np.linalg.norm(Cavk, axis=0)
-        diag_terms = (active_learning.gamma**2. + np.array([np.inner(active_learning.evecs[k,:], Cavk[:, i]) for i,k in enumerate(active_learning.candidate_inds)]))
-        return unc_terms * col_norms **2. / diag_terms
+        if self.storage == 'full':
+            col_norms = np.linalg.norm(self.C, axis=0)**2.
+            diag_terms = self.gamma2 + self.C.diagonal()
+        else:
+            Cavk = self.C @ self.V[candidate_ind,:].T
+            col_norms = np.linalg.norm(Cavk, axis=0)**2.
+            diag_terms = (self.gamma2 + np.array([np.inner(self.V[k,:], Cavk[:, i]) for i,k in enumerate(candidate_ind)]))
+        return unc_terms * col_norms / diag_terms  
+
+
+    def update(self, query_ind, query_labels):
+        for k in query_ind:
+            if self.storage == 'full':
+                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+            else:
+                vk = self.V[k]
+                Cavk = self.C @ vk
+                ip = np.inner(vk, Cavk)
+                self.C -= np.outer(Cavk, Cavk)/(self.gamma2 + ip) 
+        return
