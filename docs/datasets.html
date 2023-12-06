@@ -25,7 +25,7 @@
 </header>
 <section id="section-intro">
 <h1 id="datasets">Datasets</h1>
-<p>This module allows for loading standard datasets (currently mnist, fashionmnist, cifar), and creating
+<p>This module allows for loading standard datasets (currently mnist, fashionmnist, cifar10, signmnist), and creating
 and saving new datasets by name locally.</p>
 <details class="source">
 <summary>
@@ -35,7 +35,7 @@ and saving new datasets by name locally.</p>
 Datasets
 ==========
 
-This module allows for loading standard datasets (currently mnist, fashionmnist, cifar), and creating
+This module allows for loading standard datasets (currently mnist, fashionmnist, cifar10, signmnist), and creating
 and saving new datasets by name locally.
 &#34;&#34;&#34;
 
@@ -132,8 +132,9 @@ def load(dataset, metric=&#39;raw&#39;, labels_only=False):
 
     1. [mnist](http://yann.lecun.com/exdb/mnist/): metrics are &#39;raw&#39; and &#39;vae&#39; (variational autoencoder)
     2. [fashionmnist](https://github.com/zalandoresearch/fashion-mnist): metrics are &#39;raw&#39; and &#39;vae&#39; 
-    3. [cifar](https://www.cs.toronto.edu/~kriz/cifar.html): metrics are &#39;raw&#39; and &#39;aet&#39; (autoencoding transformations). Loads CIFAR-10.
+    3. [cifar10](https://www.cs.toronto.edu/~kriz/cifar.html): metrics are &#39;raw&#39; and &#39;simclr&#39;. Loads CIFAR-10.
     4. [yalefaces](https://paperswithcode.com/dataset/extended-yale-b-1): Only metric is &#39;raw&#39;.
+    5. [signmnist](https://www.kaggle.com/datasets/datamunge/sign-language-mnist): Sign language version of MNIST.
    
     Parameters
     ----------
@@ -239,8 +240,9 @@ def load_image(name):
 <ol>
 <li><a href="http://yann.lecun.com/exdb/mnist/">mnist</a>: metrics are 'raw' and 'vae' (variational autoencoder)</li>
 <li><a href="https://github.com/zalandoresearch/fashion-mnist">fashionmnist</a>: metrics are 'raw' and 'vae' </li>
-<li><a href="https://www.cs.toronto.edu/~kriz/cifar.html">cifar</a>: metrics are 'raw' and 'aet' (autoencoding transformations). Loads CIFAR-10.</li>
+<li><a href="https://www.cs.toronto.edu/~kriz/cifar.html">cifar10</a>: metrics are 'raw' and 'simclr'. Loads CIFAR-10.</li>
 <li><a href="https://paperswithcode.com/dataset/extended-yale-b-1">yalefaces</a>: Only metric is 'raw'.</li>
+<li><a href="https://www.kaggle.com/datasets/datamunge/sign-language-mnist">signmnist</a>: Sign language version of MNIST.</li>
 </ol>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -272,8 +274,9 @@ precomputed, so the raw features are not needed.</dd>
 
     1. [mnist](http://yann.lecun.com/exdb/mnist/): metrics are &#39;raw&#39; and &#39;vae&#39; (variational autoencoder)
     2. [fashionmnist](https://github.com/zalandoresearch/fashion-mnist): metrics are &#39;raw&#39; and &#39;vae&#39; 
-    3. [cifar](https://www.cs.toronto.edu/~kriz/cifar.html): metrics are &#39;raw&#39; and &#39;aet&#39; (autoencoding transformations). Loads CIFAR-10.
+    3. [cifar10](https://www.cs.toronto.edu/~kriz/cifar.html): metrics are &#39;raw&#39; and &#39;simclr&#39;. Loads CIFAR-10.
     4. [yalefaces](https://paperswithcode.com/dataset/extended-yale-b-1): Only metric is &#39;raw&#39;.
+    5. [signmnist](https://www.kaggle.com/datasets/datamunge/sign-language-mnist): Sign language version of MNIST.
    
     Parameters
     ----------

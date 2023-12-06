@@ -2,7 +2,7 @@
 Datasets
 ==========
 
-This module allows for loading standard datasets (currently mnist, fashionmnist, cifar), and creating
+This module allows for loading standard datasets (currently mnist, fashionmnist, cifar10, signmnist), and creating
 and saving new datasets by name locally.
 """
 
@@ -99,8 +99,9 @@ def load(dataset, metric='raw', labels_only=False):
 
     1. [mnist](http://yann.lecun.com/exdb/mnist/): metrics are 'raw' and 'vae' (variational autoencoder)
     2. [fashionmnist](https://github.com/zalandoresearch/fashion-mnist): metrics are 'raw' and 'vae' 
-    3. [cifar](https://www.cs.toronto.edu/~kriz/cifar.html): metrics are 'raw' and 'aet' (autoencoding transformations). Loads CIFAR-10.
+    3. [cifar10](https://www.cs.toronto.edu/~kriz/cifar.html): metrics are 'raw' and 'simclr'. Loads CIFAR-10.
     4. [yalefaces](https://paperswithcode.com/dataset/extended-yale-b-1): Only metric is 'raw'.
+    5. [signmnist](https://www.kaggle.com/datasets/datamunge/sign-language-mnist): Sign language version of MNIST.
    
     Parameters
     ----------
