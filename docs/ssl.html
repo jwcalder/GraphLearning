@@ -67,7 +67,7 @@ models = [gl.ssl.laplace(W), gl.ssl.poisson(W)]
 
 for model in models:
     pred_labels = model.fit_predict(train_ind,train_labels)
-    accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,train_ind)
+    accuracy = gl.ssl.ssl_accuracy(pred_labels, labels, train_ind)
     print(model.name + ': %.2f%%'%accuracy)
 </code></pre>
 <h2 id="comparing-different-methods">Comparing Different Methods</h2>
@@ -179,7 +179,7 @@ models = [gl.ssl.laplace(W), gl.ssl.poisson(W)]
 
 for model in models:
     pred_labels = model.fit_predict(train_ind,train_labels)
-    accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,train_ind)
+    accuracy = gl.ssl.ssl_accuracy(pred_labels, labels, train_ind)
     print(model.name + &#39;: %.2f%%&#39;%accuracy)
 ```
 Comparing different methods
@@ -1235,15 +1235,15 @@ class modularity_mbo(ssl):
 
 class laplace(ssl):
     def __init__(self, W=None, class_priors=None, X=None, reweighting=&#39;none&#39;, normalization=&#39;combinatorial&#39;, 
-                 tau=0, mean_shift=False, tol=1e-5, alpha=2, zeta=1e7, r=0.1):
+                 tau=0, order=1, mean_shift=False, tol=1e-5, alpha=2, zeta=1e7, r=0.1):
         &#34;&#34;&#34;Laplace Learning
         ===================
 
         Semi-supervised learning via the solution of the Laplace equation
-        \\[\\tau u_j + L u_j = 0, \\ \\ j \\geq m+1,\\]
+        \\[\\tau u_j + L^m u_j = 0, \\ \\ j \\geq m+1,\\]
         subject to \\(u_j = y_j\\) for \\(j=1,\\dots,m\\), where \\(L=D-W\\) is the 
         combinatorial graph Laplacian and \\(y_j\\) for \\(j=1,\\dots,m\\) are the 
-        label vectors. 
+        label vectors. Default order is m=1, and m &gt; 1 corresponds to higher order Laplace Learning.
 
         The original method was introduced in [1]. This class also implements reweighting 
         schemes `poisson` proposed in [2], `wnll` proposed in [3], and `properly`, proposed in [4].
@@ -1267,6 +1267,8 @@ class laplace(ssl):
             must supply the data features `X`.
         tau : float or numpy array (optional), default=0
             Zeroth order term in Laplace equation. Can be a scalar or vector.
+        order : integer (optional), default=1
+            Power m for higher order Laplace learning. Currently only integers are allowed. 
         mean_shift : bool (optional), default=False
             Whether to shift output to mean zero.
         tol : float (optional), default=1e-5
@@ -1299,6 +1301,7 @@ class laplace(ssl):
         self.normalization = normalization
         self.mean_shift = mean_shift
         self.tol = tol
+        self.order = order
         self.X = X
 
         #Set up tau
@@ -1319,6 +1322,8 @@ class laplace(ssl):
         if self.mean_shift:
             fname += &#39;_meanshift&#39;
             self.name += &#39; with meanshift&#39;
+        if self.order &gt; 1:
+            self.name += &#39; order %d&#39;%int(self.order)
         if np.max(self.tau) &gt; 0:
             fname += &#39;_tau_%.3f&#39;%np.max(self.tau)
             self.name += &#39; tau=%.3f&#39;%np.max(self.tau)
@@ -1343,6 +1348,12 @@ class laplace(ssl):
         
         #tau + Graph Laplacian and one-hot labels
         L = sparse.spdiags(self.tau, 0, G.num_nodes, G.num_nodes) + G.laplacian(normalization=self.normalization)
+        if self.order &gt; 1:
+            Lpow = L*L
+            if self.order &gt; 2:
+                for i in range(2,self.order):
+                    Lpow = L*Lpow
+            L = Lpow
         F = utils.labels_to_onehot(train_labels)
 
         #Locations of unlabeled points
@@ -2998,15 +3009,15 @@ this is used to construct a knn density estimator for reweighting the eikonal eq
 </dd>
 <dt id="graphlearning.ssl.laplace"><code class="flex name class">
 <span>class <span class="ident">laplace</span></span>
-<span>(</span><span>W=None, class_priors=None, X=None, reweighting='none', normalization='combinatorial', tau=0, mean_shift=False, tol=1e-05, alpha=2, zeta=10000000.0, r=0.1)</span>
+<span>(</span><span>W=None, class_priors=None, X=None, reweighting='none', normalization='combinatorial', tau=0, order=1, mean_shift=False, tol=1e-05, alpha=2, zeta=10000000.0, r=0.1)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="laplace-learning">Laplace Learning</h1>
 <p>Semi-supervised learning via the solution of the Laplace equation
-<span><span class="MathJax_Preview">\tau u_j + L u_j = 0, \ \ j \geq m+1,</span><script type="math/tex; mode=display">\tau u_j + L u_j = 0, \ \ j \geq m+1,</script></span>
+<span><span class="MathJax_Preview">\tau u_j + L^m u_j = 0, \ \ j \geq m+1,</span><script type="math/tex; mode=display">\tau u_j + L^m u_j = 0, \ \ j \geq m+1,</script></span>
 subject to <span><span class="MathJax_Preview">u_j = y_j</span><script type="math/tex">u_j = y_j</script></span> for <span><span class="MathJax_Preview">j=1,\dots,m</span><script type="math/tex">j=1,\dots,m</script></span>, where <span><span class="MathJax_Preview">L=D-W</span><script type="math/tex">L=D-W</script></span> is the
 combinatorial graph Laplacian and <span><span class="MathJax_Preview">y_j</span><script type="math/tex">y_j</script></span> for <span><span class="MathJax_Preview">j=1,\dots,m</span><script type="math/tex">j=1,\dots,m</script></span> are the
-label vectors. </p>
+label vectors. Default order is m=1, and m &gt; 1 corresponds to higher order Laplace Learning.</p>
 <p>The original method was introduced in [1]. This class also implements reweighting
 schemes <code><a title="graphlearning.ssl.poisson" href="#graphlearning.ssl.poisson">poisson</a></code> proposed in [2], <code>wnll</code> proposed in [3], and <code>properly</code>, proposed in [4].
 If <code>properly</code> is selected, the user must additionally provide the data features <code>X</code>.</p>
@@ -3028,6 +3039,8 @@ graph Laplacian method.</dd>
 must supply the data features <code>X</code>.</dd>
 <dt><strong><code>tau</code></strong> :&ensp;<code>float</code> or <code>numpy array (optional)</code>, default=<code>0</code></dt>
 <dd>Zeroth order term in Laplace equation. Can be a scalar or vector.</dd>
+<dt><strong><code>order</code></strong> :&ensp;<code>integer (optional)</code>, default=<code>1</code></dt>
+<dd>Power m for higher order Laplace learning. Currently only integers are allowed.</dd>
 <dt><strong><code>mean_shift</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
 <dd>Whether to shift output to mean zero.</dd>
 <dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1e-5</code></dt>
@@ -3055,15 +3068,15 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 </summary>
 <pre><code class="python">class laplace(ssl):
     def __init__(self, W=None, class_priors=None, X=None, reweighting=&#39;none&#39;, normalization=&#39;combinatorial&#39;, 
-                 tau=0, mean_shift=False, tol=1e-5, alpha=2, zeta=1e7, r=0.1):
+                 tau=0, order=1, mean_shift=False, tol=1e-5, alpha=2, zeta=1e7, r=0.1):
         &#34;&#34;&#34;Laplace Learning
         ===================
 
         Semi-supervised learning via the solution of the Laplace equation
-        \\[\\tau u_j + L u_j = 0, \\ \\ j \\geq m+1,\\]
+        \\[\\tau u_j + L^m u_j = 0, \\ \\ j \\geq m+1,\\]
         subject to \\(u_j = y_j\\) for \\(j=1,\\dots,m\\), where \\(L=D-W\\) is the 
         combinatorial graph Laplacian and \\(y_j\\) for \\(j=1,\\dots,m\\) are the 
-        label vectors. 
+        label vectors. Default order is m=1, and m &gt; 1 corresponds to higher order Laplace Learning.
 
         The original method was introduced in [1]. This class also implements reweighting 
         schemes `poisson` proposed in [2], `wnll` proposed in [3], and `properly`, proposed in [4].
@@ -3087,6 +3100,8 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
             must supply the data features `X`.
         tau : float or numpy array (optional), default=0
             Zeroth order term in Laplace equation. Can be a scalar or vector.
+        order : integer (optional), default=1
+            Power m for higher order Laplace learning. Currently only integers are allowed. 
         mean_shift : bool (optional), default=False
             Whether to shift output to mean zero.
         tol : float (optional), default=1e-5
@@ -3119,6 +3134,7 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
         self.normalization = normalization
         self.mean_shift = mean_shift
         self.tol = tol
+        self.order = order
         self.X = X
 
         #Set up tau
@@ -3139,6 +3155,8 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
         if self.mean_shift:
             fname += &#39;_meanshift&#39;
             self.name += &#39; with meanshift&#39;
+        if self.order &gt; 1:
+            self.name += &#39; order %d&#39;%int(self.order)
         if np.max(self.tau) &gt; 0:
             fname += &#39;_tau_%.3f&#39;%np.max(self.tau)
             self.name += &#39; tau=%.3f&#39;%np.max(self.tau)
@@ -3163,6 +3181,12 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
         
         #tau + Graph Laplacian and one-hot labels
         L = sparse.spdiags(self.tau, 0, G.num_nodes, G.num_nodes) + G.laplacian(normalization=self.normalization)
+        if self.order &gt; 1:
+            Lpow = L*L
+            if self.order &gt; 2:
+                for i in range(2,self.order):
+                    Lpow = L*Lpow
+            L = Lpow
         F = utils.labels_to_onehot(train_labels)
 
         #Locations of unlabeled points

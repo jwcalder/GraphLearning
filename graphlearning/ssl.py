@@ -49,7 +49,7 @@ models = [gl.ssl.laplace(W), gl.ssl.poisson(W)]
 
 for model in models:
     pred_labels = model.fit_predict(train_ind,train_labels)
-    accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,train_ind)
+    accuracy = gl.ssl.ssl_accuracy(pred_labels, labels, train_ind)
     print(model.name + ': %.2f%%'%accuracy)
 ```
 Comparing different methods
@@ -1105,15 +1105,15 @@ class modularity_mbo(ssl):
 
 class laplace(ssl):
     def __init__(self, W=None, class_priors=None, X=None, reweighting='none', normalization='combinatorial', 
-                 tau=0, mean_shift=False, tol=1e-5, alpha=2, zeta=1e7, r=0.1):
+                 tau=0, order=1, mean_shift=False, tol=1e-5, alpha=2, zeta=1e7, r=0.1):
         """Laplace Learning
         ===================
 
         Semi-supervised learning via the solution of the Laplace equation
-        \\[\\tau u_j + L u_j = 0, \\ \\ j \\geq m+1,\\]
+        \\[\\tau u_j + L^m u_j = 0, \\ \\ j \\geq m+1,\\]
         subject to \\(u_j = y_j\\) for \\(j=1,\\dots,m\\), where \\(L=D-W\\) is the 
         combinatorial graph Laplacian and \\(y_j\\) for \\(j=1,\\dots,m\\) are the 
-        label vectors. 
+        label vectors. Default order is m=1, and m > 1 corresponds to higher order Laplace Learning.
 
         The original method was introduced in [1]. This class also implements reweighting 
         schemes `poisson` proposed in [2], `wnll` proposed in [3], and `properly`, proposed in [4].
@@ -1137,6 +1137,8 @@ class laplace(ssl):
             must supply the data features `X`.
         tau : float or numpy array (optional), default=0
             Zeroth order term in Laplace equation. Can be a scalar or vector.
+        order : integer (optional), default=1
+            Power m for higher order Laplace learning. Currently only integers are allowed. 
         mean_shift : bool (optional), default=False
             Whether to shift output to mean zero.
         tol : float (optional), default=1e-5
@@ -1169,6 +1171,7 @@ class laplace(ssl):
         self.normalization = normalization
         self.mean_shift = mean_shift
         self.tol = tol
+        self.order = order
         self.X = X
 
         #Set up tau
@@ -1189,6 +1192,8 @@ class laplace(ssl):
         if self.mean_shift:
             fname += '_meanshift'
             self.name += ' with meanshift'
+        if self.order > 1:
+            self.name += ' order %d'%int(self.order)
         if np.max(self.tau) > 0:
             fname += '_tau_%.3f'%np.max(self.tau)
             self.name += ' tau=%.3f'%np.max(self.tau)
@@ -1213,6 +1218,12 @@ class laplace(ssl):
         
         #tau + Graph Laplacian and one-hot labels
         L = sparse.spdiags(self.tau, 0, G.num_nodes, G.num_nodes) + G.laplacian(normalization=self.normalization)
+        if self.order > 1:
+            Lpow = L*L
+            if self.order > 2:
+                for i in range(2,self.order):
+                    Lpow = L*Lpow
+            L = Lpow
         F = utils.labels_to_onehot(train_labels)
 
         #Locations of unlabeled points
