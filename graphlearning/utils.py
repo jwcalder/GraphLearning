@@ -481,7 +481,7 @@ def constrained_solve_gmres(L,f,R,g,ind,tol=1e-5):
     return u
 
 def conjgrad(A, b, x0=None, max_iter=1e5, tol=1e-10):
-    """Conjugate Gradient Method
+    r"""Conjugate Gradient Method
     ======
 
     Conjugate gradient method for solving the linear equation
