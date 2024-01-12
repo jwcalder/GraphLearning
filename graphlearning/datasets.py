@@ -11,6 +11,7 @@ import ssl
 import os
 import matplotlib.pyplot as plt
 from . import utils
+from . import graph
 
 #Directory for storing datasets
 data_dir = os.path.abspath(os.path.join(os.getcwd(),'data'))
@@ -152,6 +153,67 @@ def load(dataset, metric='raw', labels_only=False):
 
         data = utils.numpy_load(dataFile_path, 'data')
         return data, labels
+
+def load_graph(name):
+    """Load graph
+    ======
+
+    Load a graph. Currently implemented graphs include
+
+    1. [karate](https://en.wikipedia.org/wiki/Zachary's_karate_club): Zachary's karate club [1]
+    2. [cora](https://proceedings.mlr.press/v48/yanga16): Cora citation graph [2]
+    3. [citeseer](https://proceedings.mlr.press/v48/yanga16): CiteSeer citation graph [2]
+    4. [pubmed](https://proceedings.mlr.press/v48/yanga16): PubMed citation graph [2]
+    5. [webkb_cornell](https://openreview.net/forum?id=S1e2agrFvS): WebKB Cornell graph [4]
+    6. [webkb_texas](https://openreview.net/forum?id=S1e2agrFvS): WebKB Texas graph [4]
+    7. [webkb_wisconsin](https://openreview.net/forum?id=S1e2agrFvS): WebKB Wisconsin graph [4]
+    8. [nell](https://proceedings.mlr.press/v48/yanga16): The NELL knowledge graph [2,3]
+    9. [wikics](https://arxiv.org/abs/2007.02901): The Wiki-CS graph [5]
+    10. [airports_usa](https://arxiv.org/abs/1704.03165): The USA airports graph [6,7]
+    11. [airports_brazil](https://arxiv.org/abs/1704.03165): The Brazil airports graph [6,7]
+    12. [airports_europe](https://arxiv.org/abs/1704.03165): The Europe airports graph [6,7]
+
+    [1] Zachary, W. W. (1977). "An Information Flow Model for Conflict and Fission in Small Groups". Journal of Anthropological Research. 33 (4): 452–473
+
+    [2] Yang, Zhilin, William Cohen, and Ruslan Salakhudinov. "Revisiting semi-supervised learning with graph embeddings." International conference on machine learning. PMLR, 2016.
+
+    [3] Carlson, Andrew, Justin Betteridge, Bryan Kisiel, Burr Settles, Estevam Hruschka, and Tom Mitchell. "Toward an architecture for never-ending language learning." In Proceedings of the AAAI conference on artificial intelligence, vol. 24, no. 1, pp. 1306-1313. 2010.
+
+    [4] Pei, Hongbin, Bingzhe Wei, Kevin Chen-Chuan Chang, Yu Lei, and Bo Yang. "Geom-GCN: Geometric Graph Convolutional Networks." In International Conference on Learning Representations. 2019.
+
+    [5] Mernyei, Péter, and Cătălina Cangea. "Wiki-cs: A wikipedia-based benchmark for graph neural networks." arXiv preprint arXiv:2007.02901 (2020).
+
+    [6] Figueiredo, D.R., Ribeiro, L.F.R. and Saverese, P.H., 2017. struc2vec: Learning node representations from structural identity. CoRR, vol. abs/1704.03165.
+
+    [7] Jin, Y., Song, G. and Shi, C., 2020, April. GraLSP: Graph neural networks with local structural patterns. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 34, No. 04, pp. 4361-4368).
+  
+    Parameters
+    ----------
+    name : string, {'karate','cora','citeseer','pubmed','webkb_cornell','webkb_texas','webkb_wisconsin','nell','wikics'}
+        Name of dataset.
+    
+    Returns
+    -------
+    G : graphlearning graph object
+        Graph object with weight matrix and labels/features if available
+    """
+
+    #Dataset filename
+    dataFile = name.lower()+".pkl"
+
+    #Full path to file
+    dataFile_path = os.path.join(data_dir, dataFile)
+
+    #Check if Data directory exists
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
+    #Download dataset file if needed
+    if not os.path.exists(dataFile_path):
+        urlpath = 'http://www-users.math.umn.edu/~jwcalder/Data/'+dataFile
+        utils.download_file(urlpath, dataFile_path)
+
+    return graph.graph.load(name)
 
 def load_image(name):
     """Load image 

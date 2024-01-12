@@ -54,7 +54,7 @@ from . import utils
 
 class graph:
 
-    def __init__(self, W):
+    def __init__(self, W, labels=None, features=None):
         &#34;&#34;&#34;Graph class
         ========
 
@@ -65,13 +65,19 @@ class graph:
         ----------
         W : (n,n) numpy array, matrix, or scipy sparse matrix
             Weight matrix representing the graph.
+        labels : (n,) numpy array (optional)
+            Node labels.
+        features : (n,k) numpy array (optional)
+            Node features.
         &#34;&#34;&#34;
 
         self.weight_matrix = sparse.csr_matrix(W)
+        self.labels = labels
+        self.features = features
         self.num_nodes = W.shape[0]
 
         #Coordinates of sparse matrix for passing to C code
-        I,J,V = sparse.find(W)
+        I,J,V = sparse.find(self.weight_matrix)
         ind = np.argsort(I)
         self.I,self.J,self.V = I[ind], J[ind], V[ind]
         self.K = np.array((self.I[1:] - self.I[:-1]).nonzero()) + 1
@@ -1258,7 +1264,7 @@ class graph:
 <dl>
 <dt id="graphlearning.graph.graph"><code class="flex name class">
 <span>class <span class="ident">graph</span></span>
-<span>(</span><span>W)</span>
+<span>(</span><span>W, labels=None, features=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="graph-class">Graph class</h1>
@@ -1268,6 +1274,10 @@ eigendecompositions, which are useful in graph learning.</p>
 <dl>
 <dt><strong><code>W</code></strong> :&ensp;<code>(n,n) numpy array, matrix,</code> or <code>scipy sparse matrix</code></dt>
 <dd>Weight matrix representing the graph.</dd>
+<dt><strong><code>labels</code></strong> :&ensp;<code>(n,) numpy array (optional)</code></dt>
+<dd>Node labels.</dd>
+<dt><strong><code>features</code></strong> :&ensp;<code>(n,k) numpy array (optional)</code></dt>
+<dd>Node features.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1275,7 +1285,7 @@ eigendecompositions, which are useful in graph learning.</p>
 </summary>
 <pre><code class="python">class graph:
 
-    def __init__(self, W):
+    def __init__(self, W, labels=None, features=None):
         &#34;&#34;&#34;Graph class
         ========
 
@@ -1286,13 +1296,19 @@ eigendecompositions, which are useful in graph learning.</p>
         ----------
         W : (n,n) numpy array, matrix, or scipy sparse matrix
             Weight matrix representing the graph.
+        labels : (n,) numpy array (optional)
+            Node labels.
+        features : (n,k) numpy array (optional)
+            Node features.
         &#34;&#34;&#34;
 
         self.weight_matrix = sparse.csr_matrix(W)
+        self.labels = labels
+        self.features = features
         self.num_nodes = W.shape[0]
 
         #Coordinates of sparse matrix for passing to C code
-        I,J,V = sparse.find(W)
+        I,J,V = sparse.find(self.weight_matrix)
         ind = np.argsort(I)
         self.I,self.J,self.V = I[ind], J[ind], V[ind]
         self.K = np.array((self.I[1:] - self.I[:-1]).nonzero()) + 1

@@ -20,7 +20,7 @@ from . import utils
 
 class graph:
 
-    def __init__(self, W):
+    def __init__(self, W, labels=None, features=None):
         """Graph class
         ========
 
@@ -31,13 +31,19 @@ class graph:
         ----------
         W : (n,n) numpy array, matrix, or scipy sparse matrix
             Weight matrix representing the graph.
+        labels : (n,) numpy array (optional)
+            Node labels.
+        features : (n,k) numpy array (optional)
+            Node features.
         """
 
         self.weight_matrix = sparse.csr_matrix(W)
+        self.labels = labels
+        self.features = features
         self.num_nodes = W.shape[0]
 
         #Coordinates of sparse matrix for passing to C code
-        I,J,V = sparse.find(W)
+        I,J,V = sparse.find(self.weight_matrix)
         ind = np.argsort(I)
         self.I,self.J,self.V = I[ind], J[ind], V[ind]
         self.K = np.array((self.I[1:] - self.I[:-1]).nonzero()) + 1
