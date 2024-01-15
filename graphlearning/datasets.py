@@ -213,7 +213,7 @@ def load_graph(name):
         urlpath = 'http://www-users.math.umn.edu/~jwcalder/Data/'+dataFile
         utils.download_file(urlpath, dataFile_path)
 
-    return graph.graph.load(name)
+    return graph.graph.load(dataFile_path[:-4])
 
 def load_image(name):
     """Load image 
