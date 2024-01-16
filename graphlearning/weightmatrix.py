@@ -15,6 +15,55 @@ from . import utils
 #Directory to store knn data
 knn_dir = os.path.abspath(os.path.join(os.getcwd(),'knn_data'))
 
+def grid_graph(n,m=None,return_xy=False):
+    '''Grid graph
+    ========
+
+    Returns the adjacency matrix for a graph on a regular grid.
+
+    Parameters
+    ----------
+    n : int
+        Number of pixels wide. Or if n is an image, then (n,m) are taken as the shape
+        of the first and second dimensions of the image.
+    m : int (Optional)
+        Number of pixels high. Does not need to be specified if n is an image.
+    return_xy : bool (optional, default=False)
+        Whether to return x,y coordinates as well
+
+    Returns
+    -------
+    W : (m*n,m*n) scipy sparse matrix
+        Weight matrix of nearest neighbor graph on (m,n) grid
+    X : (m*n,2) numpy array, float
+        Coordiantes of vertices of grid
+    '''
+
+    if m is None:
+        s = n.shape
+        m = s[1]
+        n = s[0]
+        
+    xm, ym = np.meshgrid(np.arange(m),np.arange(n))
+    c = (xm + m*ym).flatten()
+    ne = (np.clip(xm + 1,0,m-1) + m*ym).flatten()
+    nw = (np.clip(xm - 1,0,m-1) + m*ym).flatten()
+    nn = (xm + m*np.clip(ym + 1,0,n-1)).flatten()
+    ns = (xm + m*np.clip(ym - 1,0,n-1)).flatten()
+    edges = np.vstack((c,ne)).T
+    edges = np.vstack((edges,np.vstack((c,nw)).T))
+    edges = np.vstack((edges,np.vstack((c,nn)).T))
+    edges = np.vstack((edges,np.vstack((c,ns)).T))
+    ind = edges[:,0] != edges[:,1]
+    edges = edges[ind,:]
+    W = sparse.coo_matrix((np.ones(len(edges)), (edges[:,0],edges[:,1])),shape=(m*n,m*n))
+
+    if return_xy:
+        X = np.vstack((xm.flatten(),ym.flatten())).T
+        return W.tocsr(),X.astype(float)
+    else:
+        return W.tocsr()
+
 def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', similarity='euclidean', knn_data=None):
     """knn weight matrix
     ======
