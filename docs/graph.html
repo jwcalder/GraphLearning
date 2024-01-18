@@ -42,6 +42,7 @@ Minimal Lipschitz Extensions), p-Laplace equations, and basic calculus on graphs
 &#34;&#34;&#34;
 
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy import sparse
 from scipy import spatial
 import scipy.sparse.linalg as splinalg
@@ -1250,7 +1251,76 @@ class graph:
             err = np.max(np.absolute(w-u))
             u = w.copy()
 
-        return u</code></pre>
+        return u
+
+    def draw(self,X=None,c=None,cmap=&#39;viridis&#39;,markersize=None,linewidth=None,edges=True):
+        &#34;&#34;&#34;Draw Graph
+        ======
+
+        Draws a planar representation of a graph using metric MDS. 
+
+        Parameters
+        ----------
+        X : (n,2) numpy array (optional)
+            Coordinates of graph vertices to draw. If not provided, uses metric MDS.
+        c : (n,) numpy array (optional)
+            Colors of vertices. If not provided, vertices are colored black.
+        cmap : string (optional)
+            Colormap. Default is &#39;viridis&#39;.
+        markersize : float (optional)
+            Markersize.
+        linewidth : float (optional)
+            Linewidth.
+        edges : bool (optional)
+            Whether to plot edges (default=True)
+        &#34;&#34;&#34;
+
+        plt.figure()
+        n = self.num_nodes
+
+        #If points are not provided, we use metric MDS
+        if X is None:
+            J = np.eye(n) - (1/n)*np.ones((n,n))
+            dist = np.zeros((n,n))
+            for i in range(n):
+                dist[i,:] = self.dijkstra([i])
+            H = -(1/2)*J@dist@J
+
+            #Need to sort eigenvalues, since H may not be positive semidef
+            vals,V = sparse.linalg.eigsh(H,k=10,which=&#39;LM&#39;)
+            ind = np.argsort(-vals)
+            V = V[:,ind]
+            vals = vals[ind]
+
+            #Get top eigenvectors and square roots of positive parts of eigenvalues
+            P = V[:,:2]
+            S = np.maximum(vals[:2],0)**(1/2)
+
+            #MDS embedding
+            X = P@np.diag(S)
+
+        #Plot points
+        x,y = X[:,0],X[:,1]
+        if c is None:
+            if markersize is None:
+                plt.scatter(x,y,zorder=2)
+            else:
+                plt.scatter(x,y,s=markersize,zorder=2)
+        else:
+            if markersize is None:
+                plt.scatter(x,y,c=c,cmap=cmap,zorder=2)
+            else:
+                plt.scatter(x,y,c=c,cmap=cmap,s=markersize,zorder=2)
+
+        #Draw edges
+        if edges:
+            for i in range(n):
+                nn = self.weight_matrix[i,:].nonzero()[1]
+                for j in nn:
+                    if linewidth is None:
+                        plt.plot([x[i],x[j]],[y[i],y[j]],c=&#39;black&#39;,zorder=0)
+                    else:
+                        plt.plot([x[i],x[j]],[y[i],y[j]],c=&#39;black&#39;,linewidth=linewidth,zorder=0)</code></pre>
 </details>
 </section>
 <section>
@@ -2481,7 +2551,76 @@ eigendecompositions, which are useful in graph learning.</p>
             err = np.max(np.absolute(w-u))
             u = w.copy()
 
-        return u</code></pre>
+        return u
+
+    def draw(self,X=None,c=None,cmap=&#39;viridis&#39;,markersize=None,linewidth=None,edges=True):
+        &#34;&#34;&#34;Draw Graph
+        ======
+
+        Draws a planar representation of a graph using metric MDS. 
+
+        Parameters
+        ----------
+        X : (n,2) numpy array (optional)
+            Coordinates of graph vertices to draw. If not provided, uses metric MDS.
+        c : (n,) numpy array (optional)
+            Colors of vertices. If not provided, vertices are colored black.
+        cmap : string (optional)
+            Colormap. Default is &#39;viridis&#39;.
+        markersize : float (optional)
+            Markersize.
+        linewidth : float (optional)
+            Linewidth.
+        edges : bool (optional)
+            Whether to plot edges (default=True)
+        &#34;&#34;&#34;
+
+        plt.figure()
+        n = self.num_nodes
+
+        #If points are not provided, we use metric MDS
+        if X is None:
+            J = np.eye(n) - (1/n)*np.ones((n,n))
+            dist = np.zeros((n,n))
+            for i in range(n):
+                dist[i,:] = self.dijkstra([i])
+            H = -(1/2)*J@dist@J
+
+            #Need to sort eigenvalues, since H may not be positive semidef
+            vals,V = sparse.linalg.eigsh(H,k=10,which=&#39;LM&#39;)
+            ind = np.argsort(-vals)
+            V = V[:,ind]
+            vals = vals[ind]
+
+            #Get top eigenvectors and square roots of positive parts of eigenvalues
+            P = V[:,:2]
+            S = np.maximum(vals[:2],0)**(1/2)
+
+            #MDS embedding
+            X = P@np.diag(S)
+
+        #Plot points
+        x,y = X[:,0],X[:,1]
+        if c is None:
+            if markersize is None:
+                plt.scatter(x,y,zorder=2)
+            else:
+                plt.scatter(x,y,s=markersize,zorder=2)
+        else:
+            if markersize is None:
+                plt.scatter(x,y,c=c,cmap=cmap,zorder=2)
+            else:
+                plt.scatter(x,y,c=c,cmap=cmap,s=markersize,zorder=2)
+
+        #Draw edges
+        if edges:
+            for i in range(n):
+                nn = self.weight_matrix[i,:].nonzero()[1]
+                for j in nn:
+                    if linewidth is None:
+                        plt.plot([x[i],x[j]],[y[i],y[j]],c=&#39;black&#39;,zorder=0)
+                    else:
+                        plt.plot([x[i],x[j]],[y[i],y[j]],c=&#39;black&#39;,linewidth=linewidth,zorder=0)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -3048,6 +3187,101 @@ matrix as follows
     divV = V*np.ones(self.num_nodes)/2
 
     return divV</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.draw"><code class="name flex">
+<span>def <span class="ident">draw</span></span>(<span>self, X=None, c=None, cmap='viridis', markersize=None, linewidth=None, edges=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="draw-graph">Draw Graph</h1>
+<p>Draws a planar representation of a graph using metric MDS. </p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>(n,2) numpy array (optional)</code></dt>
+<dd>Coordinates of graph vertices to draw. If not provided, uses metric MDS.</dd>
+<dt><strong><code>c</code></strong> :&ensp;<code>(n,) numpy array (optional)</code></dt>
+<dd>Colors of vertices. If not provided, vertices are colored black.</dd>
+<dt><strong><code>cmap</code></strong> :&ensp;<code>string (optional)</code></dt>
+<dd>Colormap. Default is 'viridis'.</dd>
+<dt><strong><code>markersize</code></strong> :&ensp;<code>float (optional)</code></dt>
+<dd>Markersize.</dd>
+<dt><strong><code>linewidth</code></strong> :&ensp;<code>float (optional)</code></dt>
+<dd>Linewidth.</dd>
+<dt><strong><code>edges</code></strong> :&ensp;<code>bool (optional)</code></dt>
+<dd>Whether to plot edges (default=True)</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def draw(self,X=None,c=None,cmap=&#39;viridis&#39;,markersize=None,linewidth=None,edges=True):
+    &#34;&#34;&#34;Draw Graph
+    ======
+
+    Draws a planar representation of a graph using metric MDS. 
+
+    Parameters
+    ----------
+    X : (n,2) numpy array (optional)
+        Coordinates of graph vertices to draw. If not provided, uses metric MDS.
+    c : (n,) numpy array (optional)
+        Colors of vertices. If not provided, vertices are colored black.
+    cmap : string (optional)
+        Colormap. Default is &#39;viridis&#39;.
+    markersize : float (optional)
+        Markersize.
+    linewidth : float (optional)
+        Linewidth.
+    edges : bool (optional)
+        Whether to plot edges (default=True)
+    &#34;&#34;&#34;
+
+    plt.figure()
+    n = self.num_nodes
+
+    #If points are not provided, we use metric MDS
+    if X is None:
+        J = np.eye(n) - (1/n)*np.ones((n,n))
+        dist = np.zeros((n,n))
+        for i in range(n):
+            dist[i,:] = self.dijkstra([i])
+        H = -(1/2)*J@dist@J
+
+        #Need to sort eigenvalues, since H may not be positive semidef
+        vals,V = sparse.linalg.eigsh(H,k=10,which=&#39;LM&#39;)
+        ind = np.argsort(-vals)
+        V = V[:,ind]
+        vals = vals[ind]
+
+        #Get top eigenvectors and square roots of positive parts of eigenvalues
+        P = V[:,:2]
+        S = np.maximum(vals[:2],0)**(1/2)
+
+        #MDS embedding
+        X = P@np.diag(S)
+
+    #Plot points
+    x,y = X[:,0],X[:,1]
+    if c is None:
+        if markersize is None:
+            plt.scatter(x,y,zorder=2)
+        else:
+            plt.scatter(x,y,s=markersize,zorder=2)
+    else:
+        if markersize is None:
+            plt.scatter(x,y,c=c,cmap=cmap,zorder=2)
+        else:
+            plt.scatter(x,y,c=c,cmap=cmap,s=markersize,zorder=2)
+
+    #Draw edges
+    if edges:
+        for i in range(n):
+            nn = self.weight_matrix[i,:].nonzero()[1]
+            for j in nn:
+                if linewidth is None:
+                    plt.plot([x[i],x[j]],[y[i],y[j]],c=&#39;black&#39;,zorder=0)
+                else:
+                    plt.plot([x[i],x[j]],[y[i],y[j]],c=&#39;black&#39;,linewidth=linewidth,zorder=0)</code></pre>
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.eigen_decomp"><code class="name flex">
@@ -4405,6 +4639,7 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 <li><code><a title="graphlearning.graph.graph.dijkstra" href="#graphlearning.graph.graph.dijkstra">dijkstra</a></code></li>
 <li><code><a title="graphlearning.graph.graph.dijkstra_hl" href="#graphlearning.graph.graph.dijkstra_hl">dijkstra_hl</a></code></li>
 <li><code><a title="graphlearning.graph.graph.divergence" href="#graphlearning.graph.graph.divergence">divergence</a></code></li>
+<li><code><a title="graphlearning.graph.graph.draw" href="#graphlearning.graph.graph.draw">draw</a></code></li>
 <li><code><a title="graphlearning.graph.graph.eigen_decomp" href="#graphlearning.graph.graph.eigen_decomp">eigen_decomp</a></code></li>
 <li><code><a title="graphlearning.graph.graph.fiedler_vector" href="#graphlearning.graph.graph.fiedler_vector">fiedler_vector</a></code></li>
 <li><code><a title="graphlearning.graph.graph.gradient" href="#graphlearning.graph.graph.gradient">gradient</a></code></li>

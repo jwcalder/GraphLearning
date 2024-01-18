@@ -8,6 +8,7 @@ Minimal Lipschitz Extensions), p-Laplace equations, and basic calculus on graphs
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy import sparse
 from scipy import spatial
 import scipy.sparse.linalg as splinalg
@@ -1217,6 +1218,79 @@ class graph:
             u = w.copy()
 
         return u
+
+    def draw(self,X=None,c=None,cmap='viridis',markersize=None,linewidth=None,edges=True):
+        """Draw Graph
+        ======
+
+        Draws a planar representation of a graph using metric MDS. 
+
+        Parameters
+        ----------
+        X : (n,2) numpy array (optional)
+            Coordinates of graph vertices to draw. If not provided, uses metric MDS.
+        c : (n,) numpy array (optional)
+            Colors of vertices. If not provided, vertices are colored black.
+        cmap : string (optional)
+            Colormap. Default is 'viridis'.
+        markersize : float (optional)
+            Markersize.
+        linewidth : float (optional)
+            Linewidth.
+        edges : bool (optional)
+            Whether to plot edges (default=True)
+        """
+
+        plt.figure()
+        n = self.num_nodes
+
+        #If points are not provided, we use metric MDS
+        if X is None:
+            J = np.eye(n) - (1/n)*np.ones((n,n))
+            dist = np.zeros((n,n))
+            for i in range(n):
+                dist[i,:] = self.dijkstra([i])
+            H = -(1/2)*J@dist@J
+
+            #Need to sort eigenvalues, since H may not be positive semidef
+            vals,V = sparse.linalg.eigsh(H,k=10,which='LM')
+            ind = np.argsort(-vals)
+            V = V[:,ind]
+            vals = vals[ind]
+
+            #Get top eigenvectors and square roots of positive parts of eigenvalues
+            P = V[:,:2]
+            S = np.maximum(vals[:2],0)**(1/2)
+
+            #MDS embedding
+            X = P@np.diag(S)
+
+        #Plot points
+        x,y = X[:,0],X[:,1]
+        if c is None:
+            if markersize is None:
+                plt.scatter(x,y,zorder=2)
+            else:
+                plt.scatter(x,y,s=markersize,zorder=2)
+        else:
+            if markersize is None:
+                plt.scatter(x,y,c=c,cmap=cmap,zorder=2)
+            else:
+                plt.scatter(x,y,c=c,cmap=cmap,s=markersize,zorder=2)
+
+        #Draw edges
+        if edges:
+            for i in range(n):
+                nn = self.weight_matrix[i,:].nonzero()[1]
+                for j in nn:
+                    if linewidth is None:
+                        plt.plot([x[i],x[j]],[y[i],y[j]],c='black',zorder=0)
+                    else:
+                        plt.plot([x[i],x[j]],[y[i],y[j]],c='black',linewidth=linewidth,zorder=0)
+
+
+
+
 
 
 

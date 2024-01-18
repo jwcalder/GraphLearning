@@ -246,7 +246,7 @@ def load_graph(name):
         urlpath = &#39;http://www-users.math.umn.edu/~jwcalder/Data/&#39;+dataFile
         utils.download_file(urlpath, dataFile_path)
 
-    return graph.graph.load(name)
+    return graph.graph.load(dataFile_path[:-4])
 
 def load_image(name):
     &#34;&#34;&#34;Load image 
@@ -491,7 +491,7 @@ precomputed, so the raw features are not needed.</dd>
         urlpath = &#39;http://www-users.math.umn.edu/~jwcalder/Data/&#39;+dataFile
         utils.download_file(urlpath, dataFile_path)
 
-    return graph.graph.load(name)</code></pre>
+    return graph.graph.load(dataFile_path[:-4])</code></pre>
 </details>
 </dd>
 <dt id="graphlearning.datasets.load_image"><code class="name flex">

@@ -48,6 +48,55 @@ from . import utils
 #Directory to store knn data
 knn_dir = os.path.abspath(os.path.join(os.getcwd(),&#39;knn_data&#39;))
 
+def grid_graph(n,m=None,return_xy=False):
+    &#39;&#39;&#39;Grid graph
+    ========
+
+    Returns the adjacency matrix for a graph on a regular grid.
+
+    Parameters
+    ----------
+    n : int
+        Number of pixels wide. Or if n is an image, then (n,m) are taken as the shape
+        of the first and second dimensions of the image.
+    m : int (Optional)
+        Number of pixels high. Does not need to be specified if n is an image.
+    return_xy : bool (optional, default=False)
+        Whether to return x,y coordinates as well
+
+    Returns
+    -------
+    W : (m*n,m*n) scipy sparse matrix
+        Weight matrix of nearest neighbor graph on (m,n) grid
+    X : (m*n,2) numpy array, float
+        Coordiantes of vertices of grid
+    &#39;&#39;&#39;
+
+    if m is None:
+        s = n.shape
+        m = s[1]
+        n = s[0]
+        
+    xm, ym = np.meshgrid(np.arange(m),np.arange(n))
+    c = (xm + m*ym).flatten()
+    ne = (np.clip(xm + 1,0,m-1) + m*ym).flatten()
+    nw = (np.clip(xm - 1,0,m-1) + m*ym).flatten()
+    nn = (xm + m*np.clip(ym + 1,0,n-1)).flatten()
+    ns = (xm + m*np.clip(ym - 1,0,n-1)).flatten()
+    edges = np.vstack((c,ne)).T
+    edges = np.vstack((edges,np.vstack((c,nw)).T))
+    edges = np.vstack((edges,np.vstack((c,nn)).T))
+    edges = np.vstack((edges,np.vstack((c,ns)).T))
+    ind = edges[:,0] != edges[:,1]
+    edges = edges[ind,:]
+    W = sparse.coo_matrix((np.ones(len(edges)), (edges[:,0],edges[:,1])),shape=(m*n,m*n))
+
+    if return_xy:
+        X = np.vstack((xm.flatten(),ym.flatten())).T
+        return W.tocsr(),X.astype(float)
+    else:
+        return W.tocsr()
+
 def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#39;raw&#39;, similarity=&#39;euclidean&#39;, knn_data=None):
     &#34;&#34;&#34;knn weight matrix
     ======
@@ -744,6 +793,83 @@ such as a texture indicator.</dd>
     return W.tocsr()</code></pre>
 </details>
 </dd>
+<dt id="graphlearning.weightmatrix.grid_graph"><code class="name flex">
+<span>def <span class="ident">grid_graph</span></span>(<span>n, m=None, return_xy=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="grid-graph">Grid graph</h1>
+<p>Returns the adjacency matrix for a graph on a regular grid.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>n</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of pixels wide. Or if n is an image, then (n,m) are taken as the shape
+of the first and second dimensions of the image.</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>int (Optional)</code></dt>
+<dd>Number of pixels high. Does not need to be specified if n is an image.</dd>
+<dt><strong><code>return_xy</code></strong> :&ensp;<code>bool (optional</code>, default=<code>False)</code></dt>
+<dd>Whether to return x,y coordinates as well</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>W</code></strong> :&ensp;<code>(m*n,m*n) scipy sparse matrix</code></dt>
+<dd>Weight matrix of nearest neighbor graph on (m,n) grid</dd>
+<dt><strong><code>X</code></strong> :&ensp;<code>(m*n,2) numpy array, float</code></dt>
+<dd>Coordiantes of vertices of grid</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def grid_graph(n,m=None,return_xy=False):
+    &#39;&#39;&#39;Grid graph
+    ========
+
+    Returns the adjacency matrix for a graph on a regular grid.
+
+    Parameters
+    ----------
+    n : int
+        Number of pixels wide. Or if n is an image, then (n,m) are taken as the shape
+        of the first and second dimensions of the image.
+    m : int (Optional)
+        Number of pixels high. Does not need to be specified if n is an image.
+    return_xy : bool (optional, default=False)
+        Whether to return x,y coordinates as well
+
+    Returns
+    -------
+    W : (m*n,m*n) scipy sparse matrix
+        Weight matrix of nearest neighbor graph on (m,n) grid
+    X : (m*n,2) numpy array, float
+        Coordiantes of vertices of grid
+    &#39;&#39;&#39;
+
+    if m is None:
+        s = n.shape
+        m = s[1]
+        n = s[0]
+        
+    xm, ym = np.meshgrid(np.arange(m),np.arange(n))
+    c = (xm + m*ym).flatten()
+    ne = (np.clip(xm + 1,0,m-1) + m*ym).flatten()
+    nw = (np.clip(xm - 1,0,m-1) + m*ym).flatten()
+    nn = (xm + m*np.clip(ym + 1,0,n-1)).flatten()
+    ns = (xm + m*np.clip(ym - 1,0,n-1)).flatten()
+    edges = np.vstack((c,ne)).T
+    edges = np.vstack((edges,np.vstack((c,nw)).T))
+    edges = np.vstack((edges,np.vstack((c,nn)).T))
+    edges = np.vstack((edges,np.vstack((c,ns)).T))
+    ind = edges[:,0] != edges[:,1]
+    edges = edges[ind,:]
+    W = sparse.coo_matrix((np.ones(len(edges)), (edges[:,0],edges[:,1])),shape=(m*n,m*n))
+
+    if return_xy:
+        X = np.vstack((xm.flatten(),ym.flatten())).T
+        return W.tocsr(),X.astype(float)
+    else:
+        return W.tocsr()</code></pre>
+</details>
+</dd>
 <dt id="graphlearning.weightmatrix.knn"><code class="name flex">
 <span>def <span class="ident">knn</span></span>(<span>data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', similarity='euclidean', knn_data=None)</span>
 </code></dt>
@@ -1383,8 +1509,9 @@ print('VAE Accuracy: %.2f%%'%accuracy_vae)
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="graphlearning.weightmatrix.epsilon_ball" href="#graphlearning.weightmatrix.epsilon_ball">epsilon_ball</a></code></li>
+<li><code><a title="graphlearning.weightmatrix.grid_graph" href="#graphlearning.weightmatrix.grid_graph">grid_graph</a></code></li>
 <li><code><a title="graphlearning.weightmatrix.knn" href="#graphlearning.weightmatrix.knn">knn</a></code></li>
 <li><code><a title="graphlearning.weightmatrix.knnsearch" href="#graphlearning.weightmatrix.knnsearch">knnsearch</a></code></li>
 <li><code><a title="graphlearning.weightmatrix.load_knn_data" href="#graphlearning.weightmatrix.load_knn_data">load_knn_data</a></code></li>
