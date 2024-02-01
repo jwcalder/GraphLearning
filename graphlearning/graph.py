@@ -21,7 +21,7 @@ from . import utils
 
 class graph:
 
-    def __init__(self, W, labels=None, features=None):
+    def __init__(self, W, labels=None, features=None, label_names=None, node_names=None):
         """Graph class
         ========
 
@@ -36,12 +36,18 @@ class graph:
             Node labels.
         features : (n,k) numpy array (optional)
             Node features.
+        label_names : list (optional)
+            Names corresponding to each label.
+        node_names : list (optional)
+            Names for each node in the graph.
         """
 
         self.weight_matrix = sparse.csr_matrix(W)
         self.labels = labels
         self.features = features
         self.num_nodes = W.shape[0]
+        self.label_names = label_names
+        self.node_names = node_names
 
         #Coordinates of sparse matrix for passing to C code
         I,J,V = sparse.find(self.weight_matrix)
@@ -107,6 +113,32 @@ class graph:
 
         d = self.weight_matrix*np.ones(self.num_nodes)
         return d
+
+    def fiedler_vector(self, return_value=False):
+        """Fiedler Vector
+        ======
+
+        Computes the Fiedler vector for graph, which is the eigenvector 
+        of the graph Laplacian correpsonding to the second smallest eigenvalue.
+
+        Parameters
+        ----------
+        return_value : bool (optional), default=False
+            Whether to return Fiedler value.
+
+        Returns
+        -------
+        v : numpy array, float
+            Fiedler vector
+        l : float (optional)
+            Fiedler value
+        """
+        
+        vals, vecs = self.eigen_decomp(k=2)
+        if return_value:
+            return vecs[:,1], vals[1]
+        else:
+            return vecs[:,1]
 
 
     def degree_matrix(self, p=1):
@@ -498,7 +530,7 @@ class graph:
         normalization : {'combinatorial','randomwalk','normalized'}, default='combinatorial'
             Type of normalization of graph Laplacian to apply.
         method : {'exact','lowrank'}, default='exact'
-            Method for computing eigenvectors. 'exact' uses scipy.sparse.linalg.eigs, while
+            Method for computing eigenvectors. 'exact' uses scipy.sparse.linalg.svds, while
             'lowrank' uses a low rank approximation via randomized SVD. Lowrank is not 
             implemented for gamma > 0.
         k : int (optional), default=10

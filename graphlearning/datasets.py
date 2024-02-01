@@ -172,6 +172,7 @@ def load_graph(name):
     10. [airports_usa](https://arxiv.org/abs/1704.03165): The USA airports graph [6,7]
     11. [airports_brazil](https://arxiv.org/abs/1704.03165): The Brazil airports graph [6,7]
     12. [airports_europe](https://arxiv.org/abs/1704.03165): The Europe airports graph [6,7]
+    13. [polbooks](https://www.pnas.org/doi/full/10.1073/pnas.0601602103): The Political books graph [8]
 
     [1] Zachary, W. W. (1977). "An Information Flow Model for Conflict and Fission in Small Groups". Journal of Anthropological Research. 33 (4): 452–473
 
@@ -187,6 +188,8 @@ def load_graph(name):
 
     [7] Jin, Y., Song, G. and Shi, C., 2020, April. GraLSP: Graph neural networks with local structural patterns. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 34, No. 04, pp. 4361-4368).
   
+    [8] Newman, M.E., 2006. Modularity and community structure in networks. Proceedings of the national academy of sciences, 103(23), pp.8577-8582.
+
     Parameters
     ----------
     name : string, {'karate','cora','citeseer','pubmed','webkb_cornell','webkb_texas','webkb_wisconsin','nell','wikics'}
