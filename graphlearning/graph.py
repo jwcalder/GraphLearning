@@ -114,7 +114,7 @@ class graph:
         d = self.weight_matrix*np.ones(self.num_nodes)
         return d
 
-    def fiedler_vector(self, return_value=False):
+    def fiedler_vector(self, return_value=False, method='exact',tol=0):
         """Fiedler Vector
         ======
 
@@ -125,6 +125,12 @@ class graph:
         ----------
         return_value : bool (optional), default=False
             Whether to return Fiedler value.
+        method : {'exact','lowrank'}, default='exact'
+            Method for computing eigenvectors. 'exact' uses scipy.sparse.linalg.svds, while
+            'lowrank' uses a low rank approximation via randomized SVD. Lowrank is not 
+            implemented for gamma > 0.
+        tol : float (optional), default=0
+            Tolerance for eigensolvers.
 
         Returns
         -------
@@ -134,7 +140,7 @@ class graph:
             Fiedler value
         """
         
-        vals, vecs = self.eigen_decomp(k=2)
+        vals, vecs = self.eigen_decomp(k=2,method=method,tol=tol)
         if return_value:
             return vecs[:,1], vals[1]
         else:
@@ -700,33 +706,6 @@ class graph:
             self.eigendata[normalization]['eigenvectors'] = vecs
 
             return vals, vecs
-
-    def fiedler_vector(self, method='exact', tol=0):
-        """Fiedler vector
-        ======
-
-        Computes the Fiedler vector, which is the second eigenvector for the 
-        combinatorial graph Laplacian \\(L = D-W\\).
-
-        Parameters
-        ----------
-        method : {'exact','lowrank'}, default='exact'
-            Method for computing eigenvectors. 'exact' uses scipy.sparse.linalg.eigs, while
-            'lowrank' uses a low rank approximation via randomized SVD.
-        tol : float (optional), default=0
-            tolerance for eigensolvers.
-
-
-        Returns
-        -------
-        fiedler_vector : numpy array, float 
-            Contents of fiedler vector.
-        """
-
-        vals, vecs = self.eigen_decomp(normalization='combinatorial', method=method, k=2, tol=tol)
-        fiedler_vector = vecs[:,1]
-
-        return fiedler_vector
 
     def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, nl_bdy=False, u0=None, solver='fmm',
                               max_num_it=1e5, tol=1e-3, num_bisection_it=30, prog=False,):

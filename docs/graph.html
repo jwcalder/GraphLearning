@@ -148,7 +148,7 @@ class graph:
         d = self.weight_matrix*np.ones(self.num_nodes)
         return d
 
-    def fiedler_vector(self, return_value=False):
+    def fiedler_vector(self, return_value=False, method=&#39;exact&#39;,tol=0):
         &#34;&#34;&#34;Fiedler Vector
         ======
 
@@ -159,6 +159,12 @@ class graph:
         ----------
         return_value : bool (optional), default=False
             Whether to return Fiedler value.
+        method : {&#39;exact&#39;,&#39;lowrank&#39;}, default=&#39;exact&#39;
+            Method for computing eigenvectors. &#39;exact&#39; uses scipy.sparse.linalg.svds, while
+            &#39;lowrank&#39; uses a low rank approximation via randomized SVD. Lowrank is not 
+            implemented for gamma &gt; 0.
+        tol : float (optional), default=0
+            Tolerance for eigensolvers.
 
         Returns
         -------
@@ -168,7 +174,7 @@ class graph:
             Fiedler value
         &#34;&#34;&#34;
         
-        vals, vecs = self.eigen_decomp(k=2)
+        vals, vecs = self.eigen_decomp(k=2,method=method,tol=tol)
         if return_value:
             return vecs[:,1], vals[1]
         else:
@@ -734,33 +740,6 @@ class graph:
             self.eigendata[normalization][&#39;eigenvectors&#39;] = vecs
 
             return vals, vecs
-
-    def fiedler_vector(self, method=&#39;exact&#39;, tol=0):
-        &#34;&#34;&#34;Fiedler vector
-        ======
-
-        Computes the Fiedler vector, which is the second eigenvector for the 
-        combinatorial graph Laplacian \\(L = D-W\\).
-
-        Parameters
-        ----------
-        method : {&#39;exact&#39;,&#39;lowrank&#39;}, default=&#39;exact&#39;
-            Method for computing eigenvectors. &#39;exact&#39; uses scipy.sparse.linalg.eigs, while
-            &#39;lowrank&#39; uses a low rank approximation via randomized SVD.
-        tol : float (optional), default=0
-            tolerance for eigensolvers.
-
-
-        Returns
-        -------
-        fiedler_vector : numpy array, float 
-            Contents of fiedler vector.
-        &#34;&#34;&#34;
-
-        vals, vecs = self.eigen_decomp(normalization=&#39;combinatorial&#39;, method=method, k=2, tol=tol)
-        fiedler_vector = vecs[:,1]
-
-        return fiedler_vector
 
     def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, nl_bdy=False, u0=None, solver=&#39;fmm&#39;,
                               max_num_it=1e5, tol=1e-3, num_bisection_it=30, prog=False,):
@@ -1484,7 +1463,7 @@ eigendecompositions, which are useful in graph learning.</p>
         d = self.weight_matrix*np.ones(self.num_nodes)
         return d
 
-    def fiedler_vector(self, return_value=False):
+    def fiedler_vector(self, return_value=False, method=&#39;exact&#39;,tol=0):
         &#34;&#34;&#34;Fiedler Vector
         ======
 
@@ -1495,6 +1474,12 @@ eigendecompositions, which are useful in graph learning.</p>
         ----------
         return_value : bool (optional), default=False
             Whether to return Fiedler value.
+        method : {&#39;exact&#39;,&#39;lowrank&#39;}, default=&#39;exact&#39;
+            Method for computing eigenvectors. &#39;exact&#39; uses scipy.sparse.linalg.svds, while
+            &#39;lowrank&#39; uses a low rank approximation via randomized SVD. Lowrank is not 
+            implemented for gamma &gt; 0.
+        tol : float (optional), default=0
+            Tolerance for eigensolvers.
 
         Returns
         -------
@@ -1504,7 +1489,7 @@ eigendecompositions, which are useful in graph learning.</p>
             Fiedler value
         &#34;&#34;&#34;
         
-        vals, vecs = self.eigen_decomp(k=2)
+        vals, vecs = self.eigen_decomp(k=2,method=method,tol=tol)
         if return_value:
             return vecs[:,1], vals[1]
         else:
@@ -2070,33 +2055,6 @@ eigendecompositions, which are useful in graph learning.</p>
             self.eigendata[normalization][&#39;eigenvectors&#39;] = vecs
 
             return vals, vecs
-
-    def fiedler_vector(self, method=&#39;exact&#39;, tol=0):
-        &#34;&#34;&#34;Fiedler vector
-        ======
-
-        Computes the Fiedler vector, which is the second eigenvector for the 
-        combinatorial graph Laplacian \\(L = D-W\\).
-
-        Parameters
-        ----------
-        method : {&#39;exact&#39;,&#39;lowrank&#39;}, default=&#39;exact&#39;
-            Method for computing eigenvectors. &#39;exact&#39; uses scipy.sparse.linalg.eigs, while
-            &#39;lowrank&#39; uses a low rank approximation via randomized SVD.
-        tol : float (optional), default=0
-            tolerance for eigensolvers.
-
-
-        Returns
-        -------
-        fiedler_vector : numpy array, float 
-            Contents of fiedler vector.
-        &#34;&#34;&#34;
-
-        vals, vecs = self.eigen_decomp(normalization=&#39;combinatorial&#39;, method=method, k=2, tol=tol)
-        fiedler_vector = vecs[:,1]
-
-        return fiedler_vector
 
     def peikonal(self, bdy_set, bdy_val=0, f=1, p=1, nl_bdy=False, u0=None, solver=&#39;fmm&#39;,
                               max_num_it=1e5, tol=1e-3, num_bisection_it=30, prog=False,):
@@ -3614,55 +3572,65 @@ plt.show()
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.fiedler_vector"><code class="name flex">
-<span>def <span class="ident">fiedler_vector</span></span>(<span>self, method='exact', tol=0)</span>
+<span>def <span class="ident">fiedler_vector</span></span>(<span>self, return_value=False, method='exact', tol=0)</span>
 </code></dt>
 <dd>
-<div class="desc"><h1 id="fiedler-vector">Fiedler vector</h1>
-<p>Computes the Fiedler vector, which is the second eigenvector for the
-combinatorial graph Laplacian <span><span class="MathJax_Preview">L = D-W</span><script type="math/tex">L = D-W</script></span>.</p>
+<div class="desc"><h1 id="fiedler-vector">Fiedler Vector</h1>
+<p>Computes the Fiedler vector for graph, which is the eigenvector
+of the graph Laplacian correpsonding to the second smallest eigenvalue.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
+<dt><strong><code>return_value</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Whether to return Fiedler value.</dd>
 <dt><strong><code>method</code></strong> :&ensp;<code>{'exact','lowrank'}</code>, default=<code>'exact'</code></dt>
-<dd>Method for computing eigenvectors. 'exact' uses scipy.sparse.linalg.eigs, while
-'lowrank' uses a low rank approximation via randomized SVD.</dd>
+<dd>Method for computing eigenvectors. 'exact' uses scipy.sparse.linalg.svds, while
+'lowrank' uses a low rank approximation via randomized SVD. Lowrank is not
+implemented for gamma &gt; 0.</dd>
 <dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default=<code>0</code></dt>
-<dd>tolerance for eigensolvers.</dd>
+<dd>Tolerance for eigensolvers.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>fiedler_vector</code></strong> :&ensp;<code>numpy array, float </code></dt>
-<dd>Contents of fiedler vector.</dd>
+<dt><strong><code>v</code></strong> :&ensp;<code>numpy array, float</code></dt>
+<dd>Fiedler vector</dd>
+<dt><strong><code>l</code></strong> :&ensp;<code>float (optional)</code></dt>
+<dd>Fiedler value</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def fiedler_vector(self, method=&#39;exact&#39;, tol=0):
-    &#34;&#34;&#34;Fiedler vector
+<pre><code class="python">def fiedler_vector(self, return_value=False, method=&#39;exact&#39;,tol=0):
+    &#34;&#34;&#34;Fiedler Vector
     ======
 
-    Computes the Fiedler vector, which is the second eigenvector for the 
-    combinatorial graph Laplacian \\(L = D-W\\).
+    Computes the Fiedler vector for graph, which is the eigenvector 
+    of the graph Laplacian correpsonding to the second smallest eigenvalue.
 
     Parameters
     ----------
+    return_value : bool (optional), default=False
+        Whether to return Fiedler value.
     method : {&#39;exact&#39;,&#39;lowrank&#39;}, default=&#39;exact&#39;
-        Method for computing eigenvectors. &#39;exact&#39; uses scipy.sparse.linalg.eigs, while
-        &#39;lowrank&#39; uses a low rank approximation via randomized SVD.
+        Method for computing eigenvectors. &#39;exact&#39; uses scipy.sparse.linalg.svds, while
+        &#39;lowrank&#39; uses a low rank approximation via randomized SVD. Lowrank is not 
+        implemented for gamma &gt; 0.
     tol : float (optional), default=0
-        tolerance for eigensolvers.
-
+        Tolerance for eigensolvers.
 
     Returns
     -------
-    fiedler_vector : numpy array, float 
-        Contents of fiedler vector.
+    v : numpy array, float
+        Fiedler vector
+    l : float (optional)
+        Fiedler value
     &#34;&#34;&#34;
-
-    vals, vecs = self.eigen_decomp(normalization=&#39;combinatorial&#39;, method=method, k=2, tol=tol)
-    fiedler_vector = vecs[:,1]
-
-    return fiedler_vector</code></pre>
+    
+    vals, vecs = self.eigen_decomp(k=2,method=method,tol=tol)
+    if return_value:
+        return vecs[:,1], vals[1]
+    else:
+        return vecs[:,1]</code></pre>
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.gradient"><code class="name flex">
