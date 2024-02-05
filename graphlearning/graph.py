@@ -114,7 +114,7 @@ class graph:
         d = self.weight_matrix*np.ones(self.num_nodes)
         return d
 
-    def fiedler_vector(self, return_value=False, method='exact',tol=0):
+    def fiedler_vector(self, return_value=False, tol=1e-8):
         """Fiedler Vector
         ======
 
@@ -125,10 +125,6 @@ class graph:
         ----------
         return_value : bool (optional), default=False
             Whether to return Fiedler value.
-        method : {'exact','lowrank'}, default='exact'
-            Method for computing eigenvectors. 'exact' uses scipy.sparse.linalg.svds, while
-            'lowrank' uses a low rank approximation via randomized SVD. Lowrank is not 
-            implemented for gamma > 0.
         tol : float (optional), default=0
             Tolerance for eigensolvers.
 
@@ -140,11 +136,39 @@ class graph:
             Fiedler value
         """
         
-        vals, vecs = self.eigen_decomp(k=2,method=method,tol=tol)
+        #vals, vecs = self.eigen_decomp(k=2,method=method,tol=tol)
+        #if return_value:
+        #    return vecs[:,1], vals[1]
+        #else:
+        #    return vecs[:,1]
+
+        L = self.laplacian()
+        m = self.num_nodes
+        v = np.random.rand(m,1)
+        o = np.ones((m,1))/m
+        v -= np.sum(v)*o
+        d = self.degree_vector()
+        lam = 2*np.max(d)
+        M = lam*sparse.identity(m) - L
+        fval_old = v.T@(L@v)
+        err = 1
+        while err > tol:
+            x = M@v
+            x -= np.sum(x)*o
+            v = x/np.linalg.norm(x)
+            fval = v.T@(L@v)
+            err = abs(fval_old-fval)
+            fval_old = fval
+
+        v = v.flatten()
+        #Fix consistent sign
+        if v[0] > 0:
+            v = -v
         if return_value:
-            return vecs[:,1], vals[1]
+            return v, fval
         else:
-            return vecs[:,1]
+            return v
+
 
 
     def degree_matrix(self, p=1):
