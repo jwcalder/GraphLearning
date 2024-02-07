@@ -1006,9 +1006,34 @@ class graph:
             else:
                 return d
 
+    def distance_matrix(self, centered=False):
+        """Graph distance matrix
+        ======
+        
+        Computes the shortest path distance between all pairs of points in the graph.
+        Edges are weighted by the reciprocals of the edge weights \\(w_{ij}^{-1}\\).
 
+        Parameters
+        -------
+        centered : bool (optional), default=False
+            Whether to center the distance matrix, as in ISOMAP.
 
+        Returns 
+        -------
+        T : numpy array, float
+            Distance matrix
+        """
 
+        n = self.num_nodes
+        T = np.zeros((n,n))
+        for i in range(n):
+            d,T[i,:] = self.distance(i,i,return_distance_vector=True)
+
+        if centered:
+            J = np.eye(n)  - (1/n)*np.ones((n,n))
+            T = -0.5*J@T@J
+
+        return T
 
     def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False, reciprocal_weights=False):
         """Dijkstra's algorithm
@@ -1347,7 +1372,7 @@ class graph:
 
         return u
 
-    def draw(self,X=None,c=None,cmap='viridis',markersize=None,linewidth=None,edges=True):
+    def draw(self,X=None,c=None,cmap='viridis',markersize=None,linewidth=None,edges=True,linecolor='black'):
         """Draw Graph
         ======
 
@@ -1367,6 +1392,8 @@ class graph:
             Linewidth.
         edges : bool (optional)
             Whether to plot edges (default=True)
+        linecolor : string (optional)
+            Color for lines (default='black')
 
         Parameters
         ----------
@@ -1418,9 +1445,9 @@ class graph:
                 nn = self.weight_matrix[i,:].nonzero()[1]
                 for j in nn:
                     if linewidth is None:
-                        plt.plot([x[i],x[j]],[y[i],y[j]],c='black',zorder=0)
+                        plt.plot([x[i],x[j]],[y[i],y[j]],color=linecolor,zorder=0)
                     else:
-                        plt.plot([x[i],x[j]],[y[i],y[j]],c='black',linewidth=linewidth,zorder=0)
+                        plt.plot([x[i],x[j]],[y[i],y[j]],color=linecolor,linewidth=linewidth,zorder=0)
 
         return X
 
