@@ -957,6 +957,58 @@ class graph:
         else:
             return dist_func
 
+    def distance(self, i, j, return_path=False, return_distance_vector=False):
+        """Graph distance
+        ======
+        
+        Computes the shortest path distance between two points. Can also return the shortest path.
+        Edges are weighted by the reciprocals of the edge weights \\(w_{ij}^{-1}\\).
+
+        Parameters
+        ----------
+        i : int 
+            First index
+        j : int 
+            Second index
+        return_path : bool (optional), default = False
+            Whether to return optimal path.
+        return_distance_vector : bool (optional), default = False
+            Whether to return distance vector to node i.
+
+        Returns 
+        -------
+        d : float
+            Distance
+        path : numpy array, int (optional)
+            Indices of optimal path
+        v : numpy array, float (optional)
+            Distance vector to node i
+        """
+
+        v = self.dijkstra([i],reciprocal_weights=True)
+        d = v[j]
+        if return_path:
+            p = j
+            path = [p]
+            while p != i:
+                nn, w = self.neighbors(p, return_weights=True)
+                k = np.argmin(v[nn] + w**-1)
+                p = nn[k]
+                path += [p]
+            path = np.array(path)
+            if return_distance_vector:
+                return d,path,v
+            else:
+                return d,path
+        else:
+            if return_distance_vector:
+                return d,v
+            else:
+                return d
+
+
+
+
 
     def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False, reciprocal_weights=False):
         """Dijkstra's algorithm
