@@ -49,18 +49,7 @@ class graph:
         self.label_names = label_names
         self.node_names = node_names
 
-        #Coordinates of sparse matrix for passing to C code
-        I,J,V = sparse.find(self.weight_matrix)
-        ind = np.argsort(I)
-        self.I,self.J,self.V = I[ind], J[ind], V[ind]
-        self.K = np.array((self.I[1:] - self.I[:-1]).nonzero()) + 1
-        self.K = np.append(0,np.append(self.K,len(self.I)))
-
-        #For passing to C code
-        self.I = np.ascontiguousarray(self.I, dtype=np.int32)
-        self.J = np.ascontiguousarray(self.J, dtype=np.int32)
-        self.V = np.ascontiguousarray(self.V, dtype=np.float64)
-        self.K = np.ascontiguousarray(self.K, dtype=np.int32)
+        self.__ccode_init__()
 
         self.eigendata = {}
         normalizations = ['combinatorial','randomwalk','normalized']
@@ -75,6 +64,23 @@ class graph:
             self.eigendata[norm]['gamma'] = None
             self.eigendata[norm]['tol'] = None
             self.eigendata[norm]['q'] = None
+
+    def __ccode_init__(self):
+
+        #Coordinates of sparse matrix for passing to C code
+        I,J,V = sparse.find(self.weight_matrix)
+        ind = np.argsort(I)
+        self.I,self.J,self.V = I[ind], J[ind], V[ind]
+        self.K = np.array((self.I[1:] - self.I[:-1]).nonzero()) + 1
+        self.K = np.append(0,np.append(self.K,len(self.I)))
+        self.Vinv = 1/self.V
+
+        #For passing to C code
+        self.I = np.ascontiguousarray(self.I, dtype=np.int32)
+        self.J = np.ascontiguousarray(self.J, dtype=np.int32)
+        self.V = np.ascontiguousarray(self.V, dtype=np.float64)
+        self.Vinv = np.ascontiguousarray(self.Vinv, dtype=np.float64)
+        self.K = np.ascontiguousarray(self.K, dtype=np.int32)
 
     def subgraph(self,ind):
         """Sub-Graph
@@ -113,6 +119,35 @@ class graph:
 
         d = self.weight_matrix*np.ones(self.num_nodes)
         return d
+
+    def neighbors(self, i, return_weights=False):
+        """Neighbors
+        ======
+
+        Returns neighbors of node i.
+
+        Parameters
+        ----------
+        i : int 
+            Index of vertex to return neighbors of.
+        return_weights : bool (optional), default=False
+            Whether to return the weights of neighbors as well.
+
+        Returns
+        -------
+        N : numpy array, int
+            Array of nearest neighbor indices.
+        W : numpy array, float
+            Weights of edges to neighbors. 
+        """
+        
+        N = self.weight_matrix[i,:].nonzero()[1]
+        N = N[N != i]
+
+        if return_weights:
+            return N, self.weight_matrix[i,N].toarray().flatten()
+        else:
+            return N
 
     def fiedler_vector(self, return_value=False, tol=1e-8):
         """Fiedler Vector
@@ -923,7 +958,7 @@ class graph:
             return dist_func
 
 
-    def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False):
+    def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False, reciprocal_weights=False):
         """Dijkstra's algorithm
         ======
 
@@ -958,6 +993,9 @@ class graph:
         return_cp : bool (optional), default=False
             Whether to return closest point. Nodes with distance greater than max_dist 
             contain `-1` for closest point index.
+        reciprocal_weights : bool (optional), default=False
+            Whether to use the reciprocals of the weights \\(w_{ij}^{-1}\\) in the definition of 
+            graph distance. 
 
         Returns
         -------
@@ -1010,7 +1048,10 @@ class graph:
         bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
         f = np.ascontiguousarray(f,dtype=np.float64)
 
-        cextensions.dijkstra(dist_func,cp,self.J,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
+        if reciprocal_weights:
+            cextensions.dijkstra(dist_func,cp,self.J,self.K,self.Vinv,bdy_set,bdy_val,f,1.0,max_dist)
+        else:
+            cextensions.dijkstra(dist_func,cp,self.J,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
 
         if return_cp:
             return dist_func, cp
@@ -1207,7 +1248,7 @@ class graph:
         filename += '.pkl'
         with open(filename, 'rb') as inp:
             G = pickle.load(inp)
-
+        G.__ccode_init__()
         return G
 
 
@@ -1274,6 +1315,12 @@ class graph:
             Linewidth.
         edges : bool (optional)
             Whether to plot edges (default=True)
+
+        Parameters
+        ----------
+        X : (n,2) numpy array
+            Returns coordinates of points.
+
         """
 
         plt.figure()
@@ -1323,6 +1370,7 @@ class graph:
                     else:
                         plt.plot([x[i],x[j]],[y[i],y[j]],c='black',linewidth=linewidth,zorder=0)
 
+        return X
 
 
 
