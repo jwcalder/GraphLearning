@@ -1407,11 +1407,12 @@ class graph:
 
         #If points are not provided, we use metric MDS
         if X is None:
-            J = np.eye(n) - (1/n)*np.ones((n,n))
-            dist = np.zeros((n,n))
-            for i in range(n):
-                dist[i,:] = self.dijkstra([i])
-            H = -(1/2)*J@dist@J
+            #J = np.eye(n) - (1/n)*np.ones((n,n))
+            #dist = np.zeros((n,n))
+            #for i in range(n):
+            #    dist[i,:] = self.dijkstra([i])
+            #H = -(1/2)*J@dist@J
+            H = self.distance_matrix(centered=True)
 
             #Need to sort eigenvalues, since H may not be positive semidef
             vals,V = sparse.linalg.eigsh(H,k=10,which='LM')

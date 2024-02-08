@@ -114,6 +114,9 @@ def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', sim
     W : (n,n) scipy sparse matrix, float 
         Sparse weight matrix.
     """
+    
+    #Self is counted in knn data, so add one
+    k += 1
 
     #If knn_data provided
     if knn_data is not None:
@@ -151,7 +154,6 @@ def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', sim
             weights = knn_dist
             weights[knn_dist==0] = 1
             weights = 1/weights
-            symmetrize = False
         else:
             sys.exit('Invalid choice of kernel: ' + kernel)
 
@@ -173,14 +175,14 @@ def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', sim
     W = sparse.coo_matrix((weights, (self_ind, knn_ind)),shape=(n,n)).tocsr()
 
     if symmetrize:
-        if kernel in ['distance','uniform']:
+        if kernel in ['distance','uniform','singular']:
             W = utils.sparse_max(W, W.transpose())
         elif kernel == 'symgaussian':
             W = W + W.T.multiply(W.T > W) - W.multiply(W.T > W)
         else:
             W = (W + W.transpose())/2;
 
-
+    W.setdiag(0)
     return W
 
 def epsilon_ball(data, epsilon, kernel='gaussian', features=None, epsilon_f=1, eta=None, zero_diagonal=False):
@@ -262,6 +264,7 @@ def epsilon_ball(data, epsilon, kernel='gaussian', features=None, epsilon_f=1, e
     #Construct sparse matrix and convert to Compressed Sparse Row (CSR) format
     W = sparse.coo_matrix((weights, (M1,M2)),shape=(n,n))
 
+    W.setdiag(0)
     return W.tocsr()
 
 def __weights__(dists,epsilon,kernel,eta):
