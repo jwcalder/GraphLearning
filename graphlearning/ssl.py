@@ -331,7 +331,7 @@ class ssl:
 
             outfile = os.path.join(results_dir, tag+self.get_accuracy_filename())
             if (not overwrite) and os.path.exists(outfile):
-                print('Aborting: SSL trial already completed, and overwrite is False.')
+                print('Aborting: SSL trial ('+self.get_accuracy_filename()+') already completed , and overwrite is False.')
                 return
             f = open(outfile,"w")
             #now = datetime.datetime.now()
@@ -1193,12 +1193,14 @@ class laplace(ssl):
             fname += '_meanshift'
             self.name += ' with meanshift'
         if self.order > 1:
+            fname += '_order%d'%int(self.order)
             self.name += ' order %d'%int(self.order)
         if np.max(self.tau) > 0:
             fname += '_tau_%.3f'%np.max(self.tau)
             self.name += ' tau=%.3f'%np.max(self.tau)
 
         self.accuracy_filename = fname
+
 
 
     def _fit(self, train_ind, train_labels, all_labels=None):

@@ -103,7 +103,7 @@ def generate(labels, rate=1, num_trials=1, mask=None, dataset=None, trainset_nam
         if rate.ndim != 2:
             sys.exit('Must provide a 2-dimensional array for rate')
         if rate.shape[1] == 1:
-            rate = rate@np.ones((1,num_clases))
+            rate = rate@np.ones((1,num_classes))
         if np.issubdtype(ratetype,np.integer):
             rate = rate.astype(int) 
         elif np.issubdtype(ratetype,np.floating):
