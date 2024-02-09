@@ -96,8 +96,8 @@ def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', sim
         where \\(d_k(x_i)\\) is the distance from \\(x_i\\) to its kth nearest neighbor.
     symmetrize : bool (optional), default=True, except when kernel='singular'
         Whether or not to symmetrize the weight matrix before returning. Symmetrization is 
-        performed by returning \\( (W + W^T)/2 \\), except for when kernel='distance, in 
-        which case the symmetrized edge weights are the true distances, kernel='uniform', 
+        performed by returning \\( (W + W^T)/2 \\), except for when kernel='distance','singular', in 
+        which case the symmetrized edge weights are the true distances (or inverses), kernel='uniform', 
         where the weights are all 0/1, or kernel='symgaussian', where the same formula 
         is used for symmetry. Default for symmetrization is True, unless the kernel is
         'singular', in which case it is False.

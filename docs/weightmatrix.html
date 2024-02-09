@@ -43,6 +43,7 @@ import numpy as np
 from scipy import spatial
 from scipy import sparse
 import os
+import sys
 from . import utils
 
 #Directory to store knn data
@@ -128,8 +129,8 @@ def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#
         where \\(d_k(x_i)\\) is the distance from \\(x_i\\) to its kth nearest neighbor.
     symmetrize : bool (optional), default=True, except when kernel=&#39;singular&#39;
         Whether or not to symmetrize the weight matrix before returning. Symmetrization is 
-        performed by returning \\( (W + W^T)/2 \\), except for when kernel=&#39;distance, in 
-        which case the symmetrized edge weights are the true distances, kernel=&#39;uniform&#39;, 
+        performed by returning \\( (W + W^T)/2 \\), except for when kernel=&#39;distance&#39;,&#39;singular&#39;, in 
+        which case the symmetrized edge weights are the true distances (or inverses), kernel=&#39;uniform&#39;, 
         where the weights are all 0/1, or kernel=&#39;symgaussian&#39;, where the same formula 
         is used for symmetry. Default for symmetrization is True, unless the kernel is
         &#39;singular&#39;, in which case it is False.
@@ -146,6 +147,9 @@ def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#
     W : (n,n) scipy sparse matrix, float 
         Sparse weight matrix.
     &#34;&#34;&#34;
+    
+    #Self is counted in knn data, so add one
+    k += 1
 
     #If knn_data provided
     if knn_data is not None:
@@ -183,7 +187,6 @@ def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#
             weights = knn_dist
             weights[knn_dist==0] = 1
             weights = 1/weights
-            symmetrize = False
         else:
             sys.exit(&#39;Invalid choice of kernel: &#39; + kernel)
 
@@ -205,14 +208,14 @@ def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#
     W = sparse.coo_matrix((weights, (self_ind, knn_ind)),shape=(n,n)).tocsr()
 
     if symmetrize:
-        if kernel in [&#39;distance&#39;,&#39;uniform&#39;]:
+        if kernel in [&#39;distance&#39;,&#39;uniform&#39;,&#39;singular&#39;]:
             W = utils.sparse_max(W, W.transpose())
         elif kernel == &#39;symgaussian&#39;:
             W = W + W.T.multiply(W.T &gt; W) - W.multiply(W.T &gt; W)
         else:
             W = (W + W.transpose())/2;
 
-
+    W.setdiag(0)
     return W
 
 def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, features=None, epsilon_f=1, eta=None, zero_diagonal=False):
@@ -294,6 +297,7 @@ def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, features=None, epsilo
     #Construct sparse matrix and convert to Compressed Sparse Row (CSR) format
     W = sparse.coo_matrix((weights, (M1,M2)),shape=(n,n))
 
+    W.setdiag(0)
     return W.tocsr()
 
 def __weights__(dists,epsilon,kernel,eta):
@@ -790,6 +794,7 @@ such as a texture indicator.</dd>
     #Construct sparse matrix and convert to Compressed Sparse Row (CSR) format
     W = sparse.coo_matrix((weights, (M1,M2)),shape=(n,n))
 
+    W.setdiag(0)
     return W.tocsr()</code></pre>
 </details>
 </dd>
@@ -901,8 +906,8 @@ when <span><span class="MathJax_Preview">i\neq j</span><script type="math/tex">i
 where <span><span class="MathJax_Preview">d_k(x_i)</span><script type="math/tex">d_k(x_i)</script></span> is the distance from <span><span class="MathJax_Preview">x_i</span><script type="math/tex">x_i</script></span> to its kth nearest neighbor.</dd>
 <dt><strong><code>symmetrize</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>True, except when kernel='singular'</code></dt>
 <dd>Whether or not to symmetrize the weight matrix before returning. Symmetrization is
-performed by returning <span><span class="MathJax_Preview"> (W + W^T)/2 </span><script type="math/tex"> (W + W^T)/2 </script></span>, except for when kernel='distance, in
-which case the symmetrized edge weights are the true distances, kernel='uniform',
+performed by returning <span><span class="MathJax_Preview"> (W + W^T)/2 </span><script type="math/tex"> (W + W^T)/2 </script></span>, except for when kernel='distance','singular', in
+which case the symmetrized edge weights are the true distances (or inverses), kernel='uniform',
 where the weights are all 0/1, or kernel='symgaussian', where the same formula
 is used for symmetry. Default for symmetrization is True, unless the kernel is
 'singular', in which case it is False.</dd>
@@ -954,8 +959,8 @@ in order to bypass the knnsearch step, which can be slow for large datasets.</dd
         where \\(d_k(x_i)\\) is the distance from \\(x_i\\) to its kth nearest neighbor.
     symmetrize : bool (optional), default=True, except when kernel=&#39;singular&#39;
         Whether or not to symmetrize the weight matrix before returning. Symmetrization is 
-        performed by returning \\( (W + W^T)/2 \\), except for when kernel=&#39;distance, in 
-        which case the symmetrized edge weights are the true distances, kernel=&#39;uniform&#39;, 
+        performed by returning \\( (W + W^T)/2 \\), except for when kernel=&#39;distance&#39;,&#39;singular&#39;, in 
+        which case the symmetrized edge weights are the true distances (or inverses), kernel=&#39;uniform&#39;, 
         where the weights are all 0/1, or kernel=&#39;symgaussian&#39;, where the same formula 
         is used for symmetry. Default for symmetrization is True, unless the kernel is
         &#39;singular&#39;, in which case it is False.
@@ -972,6 +977,9 @@ in order to bypass the knnsearch step, which can be slow for large datasets.</dd
     W : (n,n) scipy sparse matrix, float 
         Sparse weight matrix.
     &#34;&#34;&#34;
+    
+    #Self is counted in knn data, so add one
+    k += 1
 
     #If knn_data provided
     if knn_data is not None:
@@ -1009,7 +1017,6 @@ in order to bypass the knnsearch step, which can be slow for large datasets.</dd
             weights = knn_dist
             weights[knn_dist==0] = 1
             weights = 1/weights
-            symmetrize = False
         else:
             sys.exit(&#39;Invalid choice of kernel: &#39; + kernel)
 
@@ -1031,14 +1038,14 @@ in order to bypass the knnsearch step, which can be slow for large datasets.</dd
     W = sparse.coo_matrix((weights, (self_ind, knn_ind)),shape=(n,n)).tocsr()
 
     if symmetrize:
-        if kernel in [&#39;distance&#39;,&#39;uniform&#39;]:
+        if kernel in [&#39;distance&#39;,&#39;uniform&#39;,&#39;singular&#39;]:
             W = utils.sparse_max(W, W.transpose())
         elif kernel == &#39;symgaussian&#39;:
             W = W + W.T.multiply(W.T &gt; W) - W.multiply(W.T &gt; W)
         else:
             W = (W + W.transpose())/2;
 
-
+    W.setdiag(0)
     return W</code></pre>
 </details>
 </dd>

@@ -83,18 +83,7 @@ class graph:
         self.label_names = label_names
         self.node_names = node_names
 
-        #Coordinates of sparse matrix for passing to C code
-        I,J,V = sparse.find(self.weight_matrix)
-        ind = np.argsort(I)
-        self.I,self.J,self.V = I[ind], J[ind], V[ind]
-        self.K = np.array((self.I[1:] - self.I[:-1]).nonzero()) + 1
-        self.K = np.append(0,np.append(self.K,len(self.I)))
-
-        #For passing to C code
-        self.I = np.ascontiguousarray(self.I, dtype=np.int32)
-        self.J = np.ascontiguousarray(self.J, dtype=np.int32)
-        self.V = np.ascontiguousarray(self.V, dtype=np.float64)
-        self.K = np.ascontiguousarray(self.K, dtype=np.int32)
+        self.__ccode_init__()
 
         self.eigendata = {}
         normalizations = [&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;]
@@ -109,6 +98,23 @@ class graph:
             self.eigendata[norm][&#39;gamma&#39;] = None
             self.eigendata[norm][&#39;tol&#39;] = None
             self.eigendata[norm][&#39;q&#39;] = None
+
+    def __ccode_init__(self):
+
+        #Coordinates of sparse matrix for passing to C code
+        I,J,V = sparse.find(self.weight_matrix)
+        ind = np.argsort(I)
+        self.I,self.J,self.V = I[ind], J[ind], V[ind]
+        self.K = np.array((self.I[1:] - self.I[:-1]).nonzero()) + 1
+        self.K = np.append(0,np.append(self.K,len(self.I)))
+        self.Vinv = 1/self.V
+
+        #For passing to C code
+        self.I = np.ascontiguousarray(self.I, dtype=np.int32)
+        self.J = np.ascontiguousarray(self.J, dtype=np.int32)
+        self.V = np.ascontiguousarray(self.V, dtype=np.float64)
+        self.Vinv = np.ascontiguousarray(self.Vinv, dtype=np.float64)
+        self.K = np.ascontiguousarray(self.K, dtype=np.int32)
 
     def subgraph(self,ind):
         &#34;&#34;&#34;Sub-Graph
@@ -148,7 +154,36 @@ class graph:
         d = self.weight_matrix*np.ones(self.num_nodes)
         return d
 
-    def fiedler_vector(self, return_value=False, method=&#39;exact&#39;,tol=0):
+    def neighbors(self, i, return_weights=False):
+        &#34;&#34;&#34;Neighbors
+        ======
+
+        Returns neighbors of node i.
+
+        Parameters
+        ----------
+        i : int 
+            Index of vertex to return neighbors of.
+        return_weights : bool (optional), default=False
+            Whether to return the weights of neighbors as well.
+
+        Returns
+        -------
+        N : numpy array, int
+            Array of nearest neighbor indices.
+        W : numpy array, float
+            Weights of edges to neighbors. 
+        &#34;&#34;&#34;
+        
+        N = self.weight_matrix[i,:].nonzero()[1]
+        N = N[N != i]
+
+        if return_weights:
+            return N, self.weight_matrix[i,N].toarray().flatten()
+        else:
+            return N
+
+    def fiedler_vector(self, return_value=False, tol=1e-8):
         &#34;&#34;&#34;Fiedler Vector
         ======
 
@@ -159,10 +194,6 @@ class graph:
         ----------
         return_value : bool (optional), default=False
             Whether to return Fiedler value.
-        method : {&#39;exact&#39;,&#39;lowrank&#39;}, default=&#39;exact&#39;
-            Method for computing eigenvectors. &#39;exact&#39; uses scipy.sparse.linalg.svds, while
-            &#39;lowrank&#39; uses a low rank approximation via randomized SVD. Lowrank is not 
-            implemented for gamma &gt; 0.
         tol : float (optional), default=0
             Tolerance for eigensolvers.
 
@@ -174,11 +205,39 @@ class graph:
             Fiedler value
         &#34;&#34;&#34;
         
-        vals, vecs = self.eigen_decomp(k=2,method=method,tol=tol)
+        #vals, vecs = self.eigen_decomp(k=2,method=method,tol=tol)
+        #if return_value:
+        #    return vecs[:,1], vals[1]
+        #else:
+        #    return vecs[:,1]
+
+        L = self.laplacian()
+        m = self.num_nodes
+        v = np.random.rand(m,1)
+        o = np.ones((m,1))/m
+        v -= np.sum(v)*o
+        d = self.degree_vector()
+        lam = 2*np.max(d)
+        M = lam*sparse.identity(m) - L
+        fval_old = v.T@(L@v)
+        err = 1
+        while err &gt; tol:
+            x = M@v
+            x -= np.sum(x)*o
+            v = x/np.linalg.norm(x)
+            fval = v.T@(L@v)
+            err = abs(fval_old-fval)
+            fval_old = fval
+
+        v = v.flatten()
+        #Fix consistent sign
+        if v[0] &gt; 0:
+            v = -v
         if return_value:
-            return vecs[:,1], vals[1]
+            return v, fval
         else:
-            return vecs[:,1]
+            return v
+
 
 
     def degree_matrix(self, p=1):
@@ -932,8 +991,85 @@ class graph:
         else:
             return dist_func
 
+    def distance(self, i, j, return_path=False, return_distance_vector=False):
+        &#34;&#34;&#34;Graph distance
+        ======
+        
+        Computes the shortest path distance between two points. Can also return the shortest path.
+        Edges are weighted by the reciprocals of the edge weights \\(w_{ij}^{-1}\\).
 
-    def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False):
+        Parameters
+        ----------
+        i : int 
+            First index
+        j : int 
+            Second index
+        return_path : bool (optional), default = False
+            Whether to return optimal path.
+        return_distance_vector : bool (optional), default = False
+            Whether to return distance vector to node i.
+
+        Returns 
+        -------
+        d : float
+            Distance
+        path : numpy array, int (optional)
+            Indices of optimal path
+        v : numpy array, float (optional)
+            Distance vector to node i
+        &#34;&#34;&#34;
+
+        v = self.dijkstra([i],reciprocal_weights=True)
+        d = v[j]
+        if return_path:
+            p = j
+            path = [p]
+            while p != i:
+                nn, w = self.neighbors(p, return_weights=True)
+                k = np.argmin(v[nn] + w**-1)
+                p = nn[k]
+                path += [p]
+            path = np.array(path)
+            if return_distance_vector:
+                return d,path,v
+            else:
+                return d,path
+        else:
+            if return_distance_vector:
+                return d,v
+            else:
+                return d
+
+    def distance_matrix(self, centered=False):
+        &#34;&#34;&#34;Graph distance matrix
+        ======
+        
+        Computes the shortest path distance between all pairs of points in the graph.
+        Edges are weighted by the reciprocals of the edge weights \\(w_{ij}^{-1}\\).
+
+        Parameters
+        -------
+        centered : bool (optional), default=False
+            Whether to center the distance matrix, as in ISOMAP.
+
+        Returns 
+        -------
+        T : numpy array, float
+            Distance matrix
+        &#34;&#34;&#34;
+
+        n = self.num_nodes
+        T = np.zeros((n,n))
+        for i in range(n):
+            d,T[i,:] = self.distance(i,i,return_distance_vector=True)
+
+        if centered:
+            J = np.eye(n)  - (1/n)*np.ones((n,n))
+            T = -0.5*J@T@J
+
+        return T
+
+    def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False, reciprocal_weights=False):
         &#34;&#34;&#34;Dijkstra&#39;s algorithm
         ======
 
@@ -968,6 +1104,9 @@ class graph:
         return_cp : bool (optional), default=False
             Whether to return closest point. Nodes with distance greater than max_dist 
             contain `-1` for closest point index.
+        reciprocal_weights : bool (optional), default=False
+            Whether to use the reciprocals of the weights \\(w_{ij}^{-1}\\) in the definition of 
+            graph distance. 
 
         Returns
         -------
@@ -1020,7 +1159,10 @@ class graph:
         bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
         f = np.ascontiguousarray(f,dtype=np.float64)
 
-        cextensions.dijkstra(dist_func,cp,self.J,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
+        if reciprocal_weights:
+            cextensions.dijkstra(dist_func,cp,self.J,self.K,self.Vinv,bdy_set,bdy_val,f,1.0,max_dist)
+        else:
+            cextensions.dijkstra(dist_func,cp,self.J,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
 
         if return_cp:
             return dist_func, cp
@@ -1217,7 +1359,7 @@ class graph:
         filename += &#39;.pkl&#39;
         with open(filename, &#39;rb&#39;) as inp:
             G = pickle.load(inp)
-
+        G.__ccode_init__()
         return G
 
 
@@ -1264,7 +1406,7 @@ class graph:
 
         return u
 
-    def draw(self,X=None,c=None,cmap=&#39;viridis&#39;,markersize=None,linewidth=None,edges=True):
+    def draw(self,X=None,c=None,cmap=&#39;viridis&#39;,markersize=None,linewidth=None,edges=True,linecolor=&#39;black&#39;):
         &#34;&#34;&#34;Draw Graph
         ======
 
@@ -1284,6 +1426,14 @@ class graph:
             Linewidth.
         edges : bool (optional)
             Whether to plot edges (default=True)
+        linecolor : string (optional)
+            Color for lines (default=&#39;black&#39;)
+
+        Parameters
+        ----------
+        X : (n,2) numpy array
+            Returns coordinates of points.
+
         &#34;&#34;&#34;
 
         plt.figure()
@@ -1291,11 +1441,12 @@ class graph:
 
         #If points are not provided, we use metric MDS
         if X is None:
-            J = np.eye(n) - (1/n)*np.ones((n,n))
-            dist = np.zeros((n,n))
-            for i in range(n):
-                dist[i,:] = self.dijkstra([i])
-            H = -(1/2)*J@dist@J
+            #J = np.eye(n) - (1/n)*np.ones((n,n))
+            #dist = np.zeros((n,n))
+            #for i in range(n):
+            #    dist[i,:] = self.dijkstra([i])
+            #H = -(1/2)*J@dist@J
+            H = self.distance_matrix(centered=True)
 
             #Need to sort eigenvalues, since H may not be positive semidef
             vals,V = sparse.linalg.eigsh(H,k=10,which=&#39;LM&#39;)
@@ -1329,9 +1480,11 @@ class graph:
                 nn = self.weight_matrix[i,:].nonzero()[1]
                 for j in nn:
                     if linewidth is None:
-                        plt.plot([x[i],x[j]],[y[i],y[j]],c=&#39;black&#39;,zorder=0)
+                        plt.plot([x[i],x[j]],[y[i],y[j]],color=linecolor,zorder=0)
                     else:
-                        plt.plot([x[i],x[j]],[y[i],y[j]],c=&#39;black&#39;,linewidth=linewidth,zorder=0)</code></pre>
+                        plt.plot([x[i],x[j]],[y[i],y[j]],color=linecolor,linewidth=linewidth,zorder=0)
+
+        return X</code></pre>
 </details>
 </section>
 <section>
@@ -1398,18 +1551,7 @@ eigendecompositions, which are useful in graph learning.</p>
         self.label_names = label_names
         self.node_names = node_names
 
-        #Coordinates of sparse matrix for passing to C code
-        I,J,V = sparse.find(self.weight_matrix)
-        ind = np.argsort(I)
-        self.I,self.J,self.V = I[ind], J[ind], V[ind]
-        self.K = np.array((self.I[1:] - self.I[:-1]).nonzero()) + 1
-        self.K = np.append(0,np.append(self.K,len(self.I)))
-
-        #For passing to C code
-        self.I = np.ascontiguousarray(self.I, dtype=np.int32)
-        self.J = np.ascontiguousarray(self.J, dtype=np.int32)
-        self.V = np.ascontiguousarray(self.V, dtype=np.float64)
-        self.K = np.ascontiguousarray(self.K, dtype=np.int32)
+        self.__ccode_init__()
 
         self.eigendata = {}
         normalizations = [&#39;combinatorial&#39;,&#39;randomwalk&#39;,&#39;normalized&#39;]
@@ -1424,6 +1566,23 @@ eigendecompositions, which are useful in graph learning.</p>
             self.eigendata[norm][&#39;gamma&#39;] = None
             self.eigendata[norm][&#39;tol&#39;] = None
             self.eigendata[norm][&#39;q&#39;] = None
+
+    def __ccode_init__(self):
+
+        #Coordinates of sparse matrix for passing to C code
+        I,J,V = sparse.find(self.weight_matrix)
+        ind = np.argsort(I)
+        self.I,self.J,self.V = I[ind], J[ind], V[ind]
+        self.K = np.array((self.I[1:] - self.I[:-1]).nonzero()) + 1
+        self.K = np.append(0,np.append(self.K,len(self.I)))
+        self.Vinv = 1/self.V
+
+        #For passing to C code
+        self.I = np.ascontiguousarray(self.I, dtype=np.int32)
+        self.J = np.ascontiguousarray(self.J, dtype=np.int32)
+        self.V = np.ascontiguousarray(self.V, dtype=np.float64)
+        self.Vinv = np.ascontiguousarray(self.Vinv, dtype=np.float64)
+        self.K = np.ascontiguousarray(self.K, dtype=np.int32)
 
     def subgraph(self,ind):
         &#34;&#34;&#34;Sub-Graph
@@ -1463,7 +1622,36 @@ eigendecompositions, which are useful in graph learning.</p>
         d = self.weight_matrix*np.ones(self.num_nodes)
         return d
 
-    def fiedler_vector(self, return_value=False, method=&#39;exact&#39;,tol=0):
+    def neighbors(self, i, return_weights=False):
+        &#34;&#34;&#34;Neighbors
+        ======
+
+        Returns neighbors of node i.
+
+        Parameters
+        ----------
+        i : int 
+            Index of vertex to return neighbors of.
+        return_weights : bool (optional), default=False
+            Whether to return the weights of neighbors as well.
+
+        Returns
+        -------
+        N : numpy array, int
+            Array of nearest neighbor indices.
+        W : numpy array, float
+            Weights of edges to neighbors. 
+        &#34;&#34;&#34;
+        
+        N = self.weight_matrix[i,:].nonzero()[1]
+        N = N[N != i]
+
+        if return_weights:
+            return N, self.weight_matrix[i,N].toarray().flatten()
+        else:
+            return N
+
+    def fiedler_vector(self, return_value=False, tol=1e-8):
         &#34;&#34;&#34;Fiedler Vector
         ======
 
@@ -1474,10 +1662,6 @@ eigendecompositions, which are useful in graph learning.</p>
         ----------
         return_value : bool (optional), default=False
             Whether to return Fiedler value.
-        method : {&#39;exact&#39;,&#39;lowrank&#39;}, default=&#39;exact&#39;
-            Method for computing eigenvectors. &#39;exact&#39; uses scipy.sparse.linalg.svds, while
-            &#39;lowrank&#39; uses a low rank approximation via randomized SVD. Lowrank is not 
-            implemented for gamma &gt; 0.
         tol : float (optional), default=0
             Tolerance for eigensolvers.
 
@@ -1489,11 +1673,39 @@ eigendecompositions, which are useful in graph learning.</p>
             Fiedler value
         &#34;&#34;&#34;
         
-        vals, vecs = self.eigen_decomp(k=2,method=method,tol=tol)
+        #vals, vecs = self.eigen_decomp(k=2,method=method,tol=tol)
+        #if return_value:
+        #    return vecs[:,1], vals[1]
+        #else:
+        #    return vecs[:,1]
+
+        L = self.laplacian()
+        m = self.num_nodes
+        v = np.random.rand(m,1)
+        o = np.ones((m,1))/m
+        v -= np.sum(v)*o
+        d = self.degree_vector()
+        lam = 2*np.max(d)
+        M = lam*sparse.identity(m) - L
+        fval_old = v.T@(L@v)
+        err = 1
+        while err &gt; tol:
+            x = M@v
+            x -= np.sum(x)*o
+            v = x/np.linalg.norm(x)
+            fval = v.T@(L@v)
+            err = abs(fval_old-fval)
+            fval_old = fval
+
+        v = v.flatten()
+        #Fix consistent sign
+        if v[0] &gt; 0:
+            v = -v
         if return_value:
-            return vecs[:,1], vals[1]
+            return v, fval
         else:
-            return vecs[:,1]
+            return v
+
 
 
     def degree_matrix(self, p=1):
@@ -2247,8 +2459,85 @@ eigendecompositions, which are useful in graph learning.</p>
         else:
             return dist_func
 
+    def distance(self, i, j, return_path=False, return_distance_vector=False):
+        &#34;&#34;&#34;Graph distance
+        ======
+        
+        Computes the shortest path distance between two points. Can also return the shortest path.
+        Edges are weighted by the reciprocals of the edge weights \\(w_{ij}^{-1}\\).
 
-    def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False):
+        Parameters
+        ----------
+        i : int 
+            First index
+        j : int 
+            Second index
+        return_path : bool (optional), default = False
+            Whether to return optimal path.
+        return_distance_vector : bool (optional), default = False
+            Whether to return distance vector to node i.
+
+        Returns 
+        -------
+        d : float
+            Distance
+        path : numpy array, int (optional)
+            Indices of optimal path
+        v : numpy array, float (optional)
+            Distance vector to node i
+        &#34;&#34;&#34;
+
+        v = self.dijkstra([i],reciprocal_weights=True)
+        d = v[j]
+        if return_path:
+            p = j
+            path = [p]
+            while p != i:
+                nn, w = self.neighbors(p, return_weights=True)
+                k = np.argmin(v[nn] + w**-1)
+                p = nn[k]
+                path += [p]
+            path = np.array(path)
+            if return_distance_vector:
+                return d,path,v
+            else:
+                return d,path
+        else:
+            if return_distance_vector:
+                return d,v
+            else:
+                return d
+
+    def distance_matrix(self, centered=False):
+        &#34;&#34;&#34;Graph distance matrix
+        ======
+        
+        Computes the shortest path distance between all pairs of points in the graph.
+        Edges are weighted by the reciprocals of the edge weights \\(w_{ij}^{-1}\\).
+
+        Parameters
+        -------
+        centered : bool (optional), default=False
+            Whether to center the distance matrix, as in ISOMAP.
+
+        Returns 
+        -------
+        T : numpy array, float
+            Distance matrix
+        &#34;&#34;&#34;
+
+        n = self.num_nodes
+        T = np.zeros((n,n))
+        for i in range(n):
+            d,T[i,:] = self.distance(i,i,return_distance_vector=True)
+
+        if centered:
+            J = np.eye(n)  - (1/n)*np.ones((n,n))
+            T = -0.5*J@T@J
+
+        return T
+
+    def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False, reciprocal_weights=False):
         &#34;&#34;&#34;Dijkstra&#39;s algorithm
         ======
 
@@ -2283,6 +2572,9 @@ eigendecompositions, which are useful in graph learning.</p>
         return_cp : bool (optional), default=False
             Whether to return closest point. Nodes with distance greater than max_dist 
             contain `-1` for closest point index.
+        reciprocal_weights : bool (optional), default=False
+            Whether to use the reciprocals of the weights \\(w_{ij}^{-1}\\) in the definition of 
+            graph distance. 
 
         Returns
         -------
@@ -2335,7 +2627,10 @@ eigendecompositions, which are useful in graph learning.</p>
         bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
         f = np.ascontiguousarray(f,dtype=np.float64)
 
-        cextensions.dijkstra(dist_func,cp,self.J,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
+        if reciprocal_weights:
+            cextensions.dijkstra(dist_func,cp,self.J,self.K,self.Vinv,bdy_set,bdy_val,f,1.0,max_dist)
+        else:
+            cextensions.dijkstra(dist_func,cp,self.J,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
 
         if return_cp:
             return dist_func, cp
@@ -2532,7 +2827,7 @@ eigendecompositions, which are useful in graph learning.</p>
         filename += &#39;.pkl&#39;
         with open(filename, &#39;rb&#39;) as inp:
             G = pickle.load(inp)
-
+        G.__ccode_init__()
         return G
 
 
@@ -2579,7 +2874,7 @@ eigendecompositions, which are useful in graph learning.</p>
 
         return u
 
-    def draw(self,X=None,c=None,cmap=&#39;viridis&#39;,markersize=None,linewidth=None,edges=True):
+    def draw(self,X=None,c=None,cmap=&#39;viridis&#39;,markersize=None,linewidth=None,edges=True,linecolor=&#39;black&#39;):
         &#34;&#34;&#34;Draw Graph
         ======
 
@@ -2599,6 +2894,14 @@ eigendecompositions, which are useful in graph learning.</p>
             Linewidth.
         edges : bool (optional)
             Whether to plot edges (default=True)
+        linecolor : string (optional)
+            Color for lines (default=&#39;black&#39;)
+
+        Parameters
+        ----------
+        X : (n,2) numpy array
+            Returns coordinates of points.
+
         &#34;&#34;&#34;
 
         plt.figure()
@@ -2606,11 +2909,12 @@ eigendecompositions, which are useful in graph learning.</p>
 
         #If points are not provided, we use metric MDS
         if X is None:
-            J = np.eye(n) - (1/n)*np.ones((n,n))
-            dist = np.zeros((n,n))
-            for i in range(n):
-                dist[i,:] = self.dijkstra([i])
-            H = -(1/2)*J@dist@J
+            #J = np.eye(n) - (1/n)*np.ones((n,n))
+            #dist = np.zeros((n,n))
+            #for i in range(n):
+            #    dist[i,:] = self.dijkstra([i])
+            #H = -(1/2)*J@dist@J
+            H = self.distance_matrix(centered=True)
 
             #Need to sort eigenvalues, since H may not be positive semidef
             vals,V = sparse.linalg.eigsh(H,k=10,which=&#39;LM&#39;)
@@ -2644,9 +2948,11 @@ eigendecompositions, which are useful in graph learning.</p>
                 nn = self.weight_matrix[i,:].nonzero()[1]
                 for j in nn:
                     if linewidth is None:
-                        plt.plot([x[i],x[j]],[y[i],y[j]],c=&#39;black&#39;,zorder=0)
+                        plt.plot([x[i],x[j]],[y[i],y[j]],color=linecolor,zorder=0)
                     else:
-                        plt.plot([x[i],x[j]],[y[i],y[j]],c=&#39;black&#39;,linewidth=linewidth,zorder=0)</code></pre>
+                        plt.plot([x[i],x[j]],[y[i],y[j]],color=linecolor,linewidth=linewidth,zorder=0)
+
+        return X</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -2857,7 +3163,7 @@ in the form
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.dijkstra"><code class="name flex">
-<span>def <span class="ident">dijkstra</span></span>(<span>self, bdy_set, bdy_val=0, f=1, max_dist=inf, return_cp=False)</span>
+<span>def <span class="ident">dijkstra</span></span>(<span>self, bdy_set, bdy_val=0, f=1, max_dist=inf, return_cp=False, reciprocal_weights=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="dijkstras-algorithm">Dijkstra's algorithm</h1>
@@ -2891,6 +3197,9 @@ greater than <code>max_dist</code> will contain the value <code>np.inf</code>.</
 <dt><strong><code>return_cp</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
 <dd>Whether to return closest point. Nodes with distance greater than max_dist
 contain <code>-1</code> for closest point index.</dd>
+<dt><strong><code>reciprocal_weights</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Whether to use the reciprocals of the weights <span><span class="MathJax_Preview">w_{ij}^{-1}</span><script type="math/tex">w_{ij}^{-1}</script></span> in the definition of
+graph distance.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -2921,7 +3230,7 @@ for n in [int(10**i) for i in range(3,6)]:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False):
+<pre><code class="python">def dijkstra(self, bdy_set, bdy_val=0, f=1, max_dist=np.inf, return_cp=False, reciprocal_weights=False):
     &#34;&#34;&#34;Dijkstra&#39;s algorithm
     ======
 
@@ -2956,6 +3265,9 @@ for n in [int(10**i) for i in range(3,6)]:
     return_cp : bool (optional), default=False
         Whether to return closest point. Nodes with distance greater than max_dist 
         contain `-1` for closest point index.
+    reciprocal_weights : bool (optional), default=False
+        Whether to use the reciprocals of the weights \\(w_{ij}^{-1}\\) in the definition of 
+        graph distance. 
 
     Returns
     -------
@@ -3008,7 +3320,10 @@ for n in [int(10**i) for i in range(3,6)]:
     bdy_val = np.ascontiguousarray(bdy_val,dtype=np.float64)
     f = np.ascontiguousarray(f,dtype=np.float64)
 
-    cextensions.dijkstra(dist_func,cp,self.J,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
+    if reciprocal_weights:
+        cextensions.dijkstra(dist_func,cp,self.J,self.K,self.Vinv,bdy_set,bdy_val,f,1.0,max_dist)
+    else:
+        cextensions.dijkstra(dist_func,cp,self.J,self.K,self.V,bdy_set,bdy_val,f,1.0,max_dist)
 
     if return_cp:
         return dist_func, cp
@@ -3154,6 +3469,134 @@ for n in [int(10**i) for i in range(3,6)]:
         return dist_func</code></pre>
 </details>
 </dd>
+<dt id="graphlearning.graph.graph.distance"><code class="name flex">
+<span>def <span class="ident">distance</span></span>(<span>self, i, j, return_path=False, return_distance_vector=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="graph-distance">Graph distance</h1>
+<p>Computes the shortest path distance between two points. Can also return the shortest path.
+Edges are weighted by the reciprocals of the edge weights <span><span class="MathJax_Preview">w_{ij}^{-1}</span><script type="math/tex">w_{ij}^{-1}</script></span>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>i</code></strong> :&ensp;<code>int </code></dt>
+<dd>First index</dd>
+<dt><strong><code>j</code></strong> :&ensp;<code>int </code></dt>
+<dd>Second index</dd>
+<dt><strong><code>return_path</code></strong> :&ensp;<code>bool (optional)</code>, default <code>= False</code></dt>
+<dd>Whether to return optimal path.</dd>
+<dt><strong><code>return_distance_vector</code></strong> :&ensp;<code>bool (optional)</code>, default <code>= False</code></dt>
+<dd>Whether to return distance vector to node i.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>d : float
+Distance
+path : numpy array, int (optional)
+Indices of optimal path
+v : numpy array, float (optional)
+Distance vector to node i</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def distance(self, i, j, return_path=False, return_distance_vector=False):
+    &#34;&#34;&#34;Graph distance
+    ======
+    
+    Computes the shortest path distance between two points. Can also return the shortest path.
+    Edges are weighted by the reciprocals of the edge weights \\(w_{ij}^{-1}\\).
+
+    Parameters
+    ----------
+    i : int 
+        First index
+    j : int 
+        Second index
+    return_path : bool (optional), default = False
+        Whether to return optimal path.
+    return_distance_vector : bool (optional), default = False
+        Whether to return distance vector to node i.
+
+    Returns 
+    -------
+    d : float
+        Distance
+    path : numpy array, int (optional)
+        Indices of optimal path
+    v : numpy array, float (optional)
+        Distance vector to node i
+    &#34;&#34;&#34;
+
+    v = self.dijkstra([i],reciprocal_weights=True)
+    d = v[j]
+    if return_path:
+        p = j
+        path = [p]
+        while p != i:
+            nn, w = self.neighbors(p, return_weights=True)
+            k = np.argmin(v[nn] + w**-1)
+            p = nn[k]
+            path += [p]
+        path = np.array(path)
+        if return_distance_vector:
+            return d,path,v
+        else:
+            return d,path
+    else:
+        if return_distance_vector:
+            return d,v
+        else:
+            return d</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.distance_matrix"><code class="name flex">
+<span>def <span class="ident">distance_matrix</span></span>(<span>self, centered=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="graph-distance-matrix">Graph distance matrix</h1>
+<p>Computes the shortest path distance between all pairs of points in the graph.
+Edges are weighted by the reciprocals of the edge weights <span><span class="MathJax_Preview">w_{ij}^{-1}</span><script type="math/tex">w_{ij}^{-1}</script></span>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>centered</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Whether to center the distance matrix, as in ISOMAP.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>T : numpy array, float
+Distance matrix</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def distance_matrix(self, centered=False):
+    &#34;&#34;&#34;Graph distance matrix
+    ======
+    
+    Computes the shortest path distance between all pairs of points in the graph.
+    Edges are weighted by the reciprocals of the edge weights \\(w_{ij}^{-1}\\).
+
+    Parameters
+    -------
+    centered : bool (optional), default=False
+        Whether to center the distance matrix, as in ISOMAP.
+
+    Returns 
+    -------
+    T : numpy array, float
+        Distance matrix
+    &#34;&#34;&#34;
+
+    n = self.num_nodes
+    T = np.zeros((n,n))
+    for i in range(n):
+        d,T[i,:] = self.distance(i,i,return_distance_vector=True)
+
+    if centered:
+        J = np.eye(n)  - (1/n)*np.ones((n,n))
+        T = -0.5*J@T@J
+
+    return T</code></pre>
+</details>
+</dd>
 <dt id="graphlearning.graph.graph.divergence"><code class="name flex">
 <span>def <span class="ident">divergence</span></span>(<span>self, V, weighted=True)</span>
 </code></dt>
@@ -3216,7 +3659,7 @@ matrix as follows
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.draw"><code class="name flex">
-<span>def <span class="ident">draw</span></span>(<span>self, X=None, c=None, cmap='viridis', markersize=None, linewidth=None, edges=True)</span>
+<span>def <span class="ident">draw</span></span>(<span>self, X=None, c=None, cmap='viridis', markersize=None, linewidth=None, edges=True, linecolor='black')</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="draw-graph">Draw Graph</h1>
@@ -3235,12 +3678,19 @@ matrix as follows
 <dd>Linewidth.</dd>
 <dt><strong><code>edges</code></strong> :&ensp;<code>bool (optional)</code></dt>
 <dd>Whether to plot edges (default=True)</dd>
+<dt><strong><code>linecolor</code></strong> :&ensp;<code>string (optional)</code></dt>
+<dd>Color for lines (default='black')</dd>
+</dl>
+<h2 id="parameters_1">Parameters</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>(n,2) numpy array</code></dt>
+<dd>Returns coordinates of points.</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def draw(self,X=None,c=None,cmap=&#39;viridis&#39;,markersize=None,linewidth=None,edges=True):
+<pre><code class="python">def draw(self,X=None,c=None,cmap=&#39;viridis&#39;,markersize=None,linewidth=None,edges=True,linecolor=&#39;black&#39;):
     &#34;&#34;&#34;Draw Graph
     ======
 
@@ -3260,6 +3710,14 @@ matrix as follows
         Linewidth.
     edges : bool (optional)
         Whether to plot edges (default=True)
+    linecolor : string (optional)
+        Color for lines (default=&#39;black&#39;)
+
+    Parameters
+    ----------
+    X : (n,2) numpy array
+        Returns coordinates of points.
+
     &#34;&#34;&#34;
 
     plt.figure()
@@ -3267,11 +3725,12 @@ matrix as follows
 
     #If points are not provided, we use metric MDS
     if X is None:
-        J = np.eye(n) - (1/n)*np.ones((n,n))
-        dist = np.zeros((n,n))
-        for i in range(n):
-            dist[i,:] = self.dijkstra([i])
-        H = -(1/2)*J@dist@J
+        #J = np.eye(n) - (1/n)*np.ones((n,n))
+        #dist = np.zeros((n,n))
+        #for i in range(n):
+        #    dist[i,:] = self.dijkstra([i])
+        #H = -(1/2)*J@dist@J
+        H = self.distance_matrix(centered=True)
 
         #Need to sort eigenvalues, since H may not be positive semidef
         vals,V = sparse.linalg.eigsh(H,k=10,which=&#39;LM&#39;)
@@ -3305,9 +3764,11 @@ matrix as follows
             nn = self.weight_matrix[i,:].nonzero()[1]
             for j in nn:
                 if linewidth is None:
-                    plt.plot([x[i],x[j]],[y[i],y[j]],c=&#39;black&#39;,zorder=0)
+                    plt.plot([x[i],x[j]],[y[i],y[j]],color=linecolor,zorder=0)
                 else:
-                    plt.plot([x[i],x[j]],[y[i],y[j]],c=&#39;black&#39;,linewidth=linewidth,zorder=0)</code></pre>
+                    plt.plot([x[i],x[j]],[y[i],y[j]],color=linecolor,linewidth=linewidth,zorder=0)
+
+    return X</code></pre>
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.eigen_decomp"><code class="name flex">
@@ -3572,7 +4033,7 @@ plt.show()
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.fiedler_vector"><code class="name flex">
-<span>def <span class="ident">fiedler_vector</span></span>(<span>self, return_value=False, method='exact', tol=0)</span>
+<span>def <span class="ident">fiedler_vector</span></span>(<span>self, return_value=False, tol=1e-08)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="fiedler-vector">Fiedler Vector</h1>
@@ -3582,10 +4043,6 @@ of the graph Laplacian correpsonding to the second smallest eigenvalue.</p>
 <dl>
 <dt><strong><code>return_value</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
 <dd>Whether to return Fiedler value.</dd>
-<dt><strong><code>method</code></strong> :&ensp;<code>{'exact','lowrank'}</code>, default=<code>'exact'</code></dt>
-<dd>Method for computing eigenvectors. 'exact' uses scipy.sparse.linalg.svds, while
-'lowrank' uses a low rank approximation via randomized SVD. Lowrank is not
-implemented for gamma &gt; 0.</dd>
 <dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default=<code>0</code></dt>
 <dd>Tolerance for eigensolvers.</dd>
 </dl>
@@ -3600,7 +4057,7 @@ implemented for gamma &gt; 0.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def fiedler_vector(self, return_value=False, method=&#39;exact&#39;,tol=0):
+<pre><code class="python">def fiedler_vector(self, return_value=False, tol=1e-8):
     &#34;&#34;&#34;Fiedler Vector
     ======
 
@@ -3611,10 +4068,6 @@ implemented for gamma &gt; 0.</dd>
     ----------
     return_value : bool (optional), default=False
         Whether to return Fiedler value.
-    method : {&#39;exact&#39;,&#39;lowrank&#39;}, default=&#39;exact&#39;
-        Method for computing eigenvectors. &#39;exact&#39; uses scipy.sparse.linalg.svds, while
-        &#39;lowrank&#39; uses a low rank approximation via randomized SVD. Lowrank is not 
-        implemented for gamma &gt; 0.
     tol : float (optional), default=0
         Tolerance for eigensolvers.
 
@@ -3626,11 +4079,38 @@ implemented for gamma &gt; 0.</dd>
         Fiedler value
     &#34;&#34;&#34;
     
-    vals, vecs = self.eigen_decomp(k=2,method=method,tol=tol)
+    #vals, vecs = self.eigen_decomp(k=2,method=method,tol=tol)
+    #if return_value:
+    #    return vecs[:,1], vals[1]
+    #else:
+    #    return vecs[:,1]
+
+    L = self.laplacian()
+    m = self.num_nodes
+    v = np.random.rand(m,1)
+    o = np.ones((m,1))/m
+    v -= np.sum(v)*o
+    d = self.degree_vector()
+    lam = 2*np.max(d)
+    M = lam*sparse.identity(m) - L
+    fval_old = v.T@(L@v)
+    err = 1
+    while err &gt; tol:
+        x = M@v
+        x -= np.sum(x)*o
+        v = x/np.linalg.norm(x)
+        fval = v.T@(L@v)
+        err = abs(fval_old-fval)
+        fval_old = fval
+
+    v = v.flatten()
+    #Fix consistent sign
+    if v[0] &gt; 0:
+        v = -v
     if return_value:
-        return vecs[:,1], vals[1]
+        return v, fval
     else:
-        return vecs[:,1]</code></pre>
+        return v</code></pre>
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.gradient"><code class="name flex">
@@ -3936,8 +4416,62 @@ largest component.</dd>
     filename += &#39;.pkl&#39;
     with open(filename, &#39;rb&#39;) as inp:
         G = pickle.load(inp)
-
+    G.__ccode_init__()
     return G</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.neighbors"><code class="name flex">
+<span>def <span class="ident">neighbors</span></span>(<span>self, i, return_weights=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="neighbors">Neighbors</h1>
+<p>Returns neighbors of node i.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>i</code></strong> :&ensp;<code>int </code></dt>
+<dd>Index of vertex to return neighbors of.</dd>
+<dt><strong><code>return_weights</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Whether to return the weights of neighbors as well.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>N</code></strong> :&ensp;<code>numpy array, int</code></dt>
+<dd>Array of nearest neighbor indices.</dd>
+<dt><strong><code>W</code></strong> :&ensp;<code>numpy array, float</code></dt>
+<dd>Weights of edges to neighbors.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def neighbors(self, i, return_weights=False):
+    &#34;&#34;&#34;Neighbors
+    ======
+
+    Returns neighbors of node i.
+
+    Parameters
+    ----------
+    i : int 
+        Index of vertex to return neighbors of.
+    return_weights : bool (optional), default=False
+        Whether to return the weights of neighbors as well.
+
+    Returns
+    -------
+    N : numpy array, int
+        Array of nearest neighbor indices.
+    W : numpy array, float
+        Weights of edges to neighbors. 
+    &#34;&#34;&#34;
+    
+    N = self.weight_matrix[i,:].nonzero()[1]
+    N = N[N != i]
+
+    if return_weights:
+        return N, self.weight_matrix[i,N].toarray().flatten()
+    else:
+        return N</code></pre>
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.page_rank"><code class="name flex">
@@ -4674,6 +5208,8 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 <li><code><a title="graphlearning.graph.graph.degree_vector" href="#graphlearning.graph.graph.degree_vector">degree_vector</a></code></li>
 <li><code><a title="graphlearning.graph.graph.dijkstra" href="#graphlearning.graph.graph.dijkstra">dijkstra</a></code></li>
 <li><code><a title="graphlearning.graph.graph.dijkstra_hl" href="#graphlearning.graph.graph.dijkstra_hl">dijkstra_hl</a></code></li>
+<li><code><a title="graphlearning.graph.graph.distance" href="#graphlearning.graph.graph.distance">distance</a></code></li>
+<li><code><a title="graphlearning.graph.graph.distance_matrix" href="#graphlearning.graph.graph.distance_matrix">distance_matrix</a></code></li>
 <li><code><a title="graphlearning.graph.graph.divergence" href="#graphlearning.graph.graph.divergence">divergence</a></code></li>
 <li><code><a title="graphlearning.graph.graph.draw" href="#graphlearning.graph.graph.draw">draw</a></code></li>
 <li><code><a title="graphlearning.graph.graph.eigen_decomp" href="#graphlearning.graph.graph.eigen_decomp">eigen_decomp</a></code></li>
@@ -4684,6 +5220,7 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 <li><code><a title="graphlearning.graph.graph.laplacian" href="#graphlearning.graph.graph.laplacian">laplacian</a></code></li>
 <li><code><a title="graphlearning.graph.graph.largest_connected_component" href="#graphlearning.graph.graph.largest_connected_component">largest_connected_component</a></code></li>
 <li><code><a title="graphlearning.graph.graph.load" href="#graphlearning.graph.graph.load">load</a></code></li>
+<li><code><a title="graphlearning.graph.graph.neighbors" href="#graphlearning.graph.graph.neighbors">neighbors</a></code></li>
 <li><code><a title="graphlearning.graph.graph.page_rank" href="#graphlearning.graph.graph.page_rank">page_rank</a></code></li>
 <li><code><a title="graphlearning.graph.graph.peikonal" href="#graphlearning.graph.graph.peikonal">peikonal</a></code></li>
 <li><code><a title="graphlearning.graph.graph.plaplace" href="#graphlearning.graph.graph.plaplace">plaplace</a></code></li>

@@ -461,7 +461,7 @@ class ssl:
 
             outfile = os.path.join(results_dir, tag+self.get_accuracy_filename())
             if (not overwrite) and os.path.exists(outfile):
-                print(&#39;Aborting: SSL trial already completed, and overwrite is False.&#39;)
+                print(&#39;Aborting: SSL trial (&#39;+self.get_accuracy_filename()+&#39;) already completed , and overwrite is False.&#39;)
                 return
             f = open(outfile,&#34;w&#34;)
             #now = datetime.datetime.now()
@@ -1323,12 +1323,14 @@ class laplace(ssl):
             fname += &#39;_meanshift&#39;
             self.name += &#39; with meanshift&#39;
         if self.order &gt; 1:
+            fname += &#39;_order%d&#39;%int(self.order)
             self.name += &#39; order %d&#39;%int(self.order)
         if np.max(self.tau) &gt; 0:
             fname += &#39;_tau_%.3f&#39;%np.max(self.tau)
             self.name += &#39; tau=%.3f&#39;%np.max(self.tau)
 
         self.accuracy_filename = fname
+
 
 
     def _fit(self, train_ind, train_labels, all_labels=None):
@@ -3156,12 +3158,14 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
             fname += &#39;_meanshift&#39;
             self.name += &#39; with meanshift&#39;
         if self.order &gt; 1:
+            fname += &#39;_order%d&#39;%int(self.order)
             self.name += &#39; order %d&#39;%int(self.order)
         if np.max(self.tau) &gt; 0:
             fname += &#39;_tau_%.3f&#39;%np.max(self.tau)
             self.name += &#39; tau=%.3f&#39;%np.max(self.tau)
 
         self.accuracy_filename = fname
+
 
 
     def _fit(self, train_ind, train_labels, all_labels=None):
@@ -4696,7 +4700,7 @@ nodes in each class.</dd>
 
             outfile = os.path.join(results_dir, tag+self.get_accuracy_filename())
             if (not overwrite) and os.path.exists(outfile):
-                print(&#39;Aborting: SSL trial already completed, and overwrite is False.&#39;)
+                print(&#39;Aborting: SSL trial (&#39;+self.get_accuracy_filename()+&#39;) already completed , and overwrite is False.&#39;)
                 return
             f = open(outfile,&#34;w&#34;)
             #now = datetime.datetime.now()
@@ -5222,7 +5226,7 @@ of <code><a title="graphlearning.trainsets.generate" href="trainsets.html#graphl
 
         outfile = os.path.join(results_dir, tag+self.get_accuracy_filename())
         if (not overwrite) and os.path.exists(outfile):
-            print(&#39;Aborting: SSL trial already completed, and overwrite is False.&#39;)
+            print(&#39;Aborting: SSL trial (&#39;+self.get_accuracy_filename()+&#39;) already completed , and overwrite is False.&#39;)
             return
         f = open(outfile,&#34;w&#34;)
         #now = datetime.datetime.now()
