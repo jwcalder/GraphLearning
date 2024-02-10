@@ -1032,7 +1032,7 @@ class volume_mbo(ssl):
         train_labels = np.ascontiguousarray(train_labels,dtype=np.int32)
         ClassCounts = np.ascontiguousarray(self.class_counts,dtype=np.int32)
 
-        cextensions.volume_mbo(u,WI,WJ,WV,train_ind,train_labels,ClassCounts,k,1.0,self.temperature,self.volume_constraint)
+        cextensions.volume_mbo(u,WJ,WI,WV,train_ind,train_labels,ClassCounts,k,1.0,self.temperature,self.volume_constraint)
 
         #Set given labels and convert to vector format
         u[train_ind] = train_labels
@@ -1826,8 +1826,8 @@ class plaplace(ssl):
             Value of p in the p-Laplace equation (\\( 2 \\leq p \\leq \\infty\\).
         max_num_it : int (optional), default=1e5
             Maximum number of iterations
-        tol : float (optional), default=1e-3
-            Tolerance with which to solve the equation.
+        tol : float (optional)
+            Tolerance with which to solve the equation. Default tol=0.1 for fast=False and tol=1e-5 otherwise.
         fast : bool (optional), default=True
             Whether to use constant \\(w_{ij}=1\\) weights for the infinity-Laplacian
             which allows a faster algorithm to be used.
@@ -1844,6 +1844,8 @@ class plaplace(ssl):
         self.onevsrest = True
         self.fast = fast
 
+        if fast:
+            self.tol = 1e-5
         #Setup accuracy filename and model name
         self.accuracy_filename = &#39;_plaplace_p%.2f&#39;%self.p 
         self.name = &#39;p-Laplace (p=%.2f)&#39;%self.p
@@ -3681,8 +3683,8 @@ nodes in each class.</dd>
 <dd>Value of p in the p-Laplace equation (( 2 \leq p \leq \infty).</dd>
 <dt><strong><code>max_num_it</code></strong> :&ensp;<code>int (optional)</code>, default=<code>1e5</code></dt>
 <dd>Maximum number of iterations</dd>
-<dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1e-3</code></dt>
-<dd>Tolerance with which to solve the equation.</dd>
+<dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code></dt>
+<dd>Tolerance with which to solve the equation. Default tol=0.1 for fast=False and tol=1e-5 otherwise.</dd>
 <dt><strong><code>fast</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>True</code></dt>
 <dd>Whether to use constant <span><span class="MathJax_Preview">w_{ij}=1</span><script type="math/tex">w_{ij}=1</script></span> weights for the infinity-Laplacian
 which allows a faster algorithm to be used.</dd>
@@ -3712,8 +3714,8 @@ which allows a faster algorithm to be used.</dd>
             Value of p in the p-Laplace equation (\\( 2 \\leq p \\leq \\infty\\).
         max_num_it : int (optional), default=1e5
             Maximum number of iterations
-        tol : float (optional), default=1e-3
-            Tolerance with which to solve the equation.
+        tol : float (optional)
+            Tolerance with which to solve the equation. Default tol=0.1 for fast=False and tol=1e-5 otherwise.
         fast : bool (optional), default=True
             Whether to use constant \\(w_{ij}=1\\) weights for the infinity-Laplacian
             which allows a faster algorithm to be used.
@@ -3730,6 +3732,8 @@ which allows a faster algorithm to be used.</dd>
         self.onevsrest = True
         self.fast = fast
 
+        if fast:
+            self.tol = 1e-5
         #Setup accuracy filename and model name
         self.accuracy_filename = &#39;_plaplace_p%.2f&#39;%self.p 
         self.name = &#39;p-Laplace (p=%.2f)&#39;%self.p
@@ -5508,7 +5512,7 @@ Setting <code>volume_constraint=1</code> yields the tightest constraint.</dd>
         train_labels = np.ascontiguousarray(train_labels,dtype=np.int32)
         ClassCounts = np.ascontiguousarray(self.class_counts,dtype=np.int32)
 
-        cextensions.volume_mbo(u,WI,WJ,WV,train_ind,train_labels,ClassCounts,k,1.0,self.temperature,self.volume_constraint)
+        cextensions.volume_mbo(u,WJ,WI,WV,train_ind,train_labels,ClassCounts,k,1.0,self.temperature,self.volume_constraint)
 
         #Set given labels and convert to vector format
         u[train_ind] = train_labels

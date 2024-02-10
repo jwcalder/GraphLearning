@@ -902,7 +902,7 @@ class volume_mbo(ssl):
         train_labels = np.ascontiguousarray(train_labels,dtype=np.int32)
         ClassCounts = np.ascontiguousarray(self.class_counts,dtype=np.int32)
 
-        cextensions.volume_mbo(u,WI,WJ,WV,train_ind,train_labels,ClassCounts,k,1.0,self.temperature,self.volume_constraint)
+        cextensions.volume_mbo(u,WJ,WI,WV,train_ind,train_labels,ClassCounts,k,1.0,self.temperature,self.volume_constraint)
 
         #Set given labels and convert to vector format
         u[train_ind] = train_labels
@@ -1696,8 +1696,8 @@ class plaplace(ssl):
             Value of p in the p-Laplace equation (\\( 2 \\leq p \\leq \\infty\\).
         max_num_it : int (optional), default=1e5
             Maximum number of iterations
-        tol : float (optional), default=1e-3
-            Tolerance with which to solve the equation.
+        tol : float (optional)
+            Tolerance with which to solve the equation. Default tol=0.1 for fast=False and tol=1e-5 otherwise.
         fast : bool (optional), default=True
             Whether to use constant \\(w_{ij}=1\\) weights for the infinity-Laplacian
             which allows a faster algorithm to be used.
@@ -1714,6 +1714,8 @@ class plaplace(ssl):
         self.onevsrest = True
         self.fast = fast
 
+        if fast:
+            self.tol = 1e-5
         #Setup accuracy filename and model name
         self.accuracy_filename = '_plaplace_p%.2f'%self.p 
         self.name = 'p-Laplace (p=%.2f)'%self.p
