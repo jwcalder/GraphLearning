@@ -477,9 +477,9 @@ def clustering_accuracy(pred_labels,true_labels):
     Parameters
     ----------
     pred_labels : numpy array, int
-        Predicted labels
+        Predicted labels. Should be 0,1,...,k-1 if k classes/clusters
     true_labels : numpy array, int
-        True labels
+        True labels. Can be any integers, will be converted to 0,1,...,k-1
 
     Returns
     -------
@@ -487,13 +487,24 @@ def clustering_accuracy(pred_labels,true_labels):
         Accuracy as a number in [0,100].
     """
 
-    unique_classes = np.unique(true_labels)
+    tl = true_labels.copy()
+    unique_classes = np.unique(tl)
     num_classes = len(unique_classes)
+
+    #Need to copy true labels
+
+    ind = []
+    for c in unique_classes:
+        ind_c = tl == c
+        ind.append(ind_c)
+
+    for i in range(num_classes):
+        tl[ind[i]] = i
 
     C = np.zeros((num_classes, num_classes), dtype=float)
     for i in range(num_classes):
         for j in range(num_classes):
-            C[i][j] = np.sum((pred_labels == i) & (true_labels != j))
+            C[i][j] = np.sum((pred_labels == i) & (tl != j))
     row_ind, col_ind = opt.linear_sum_assignment(C)
 
     return 100*(1-C[row_ind,col_ind].sum()/len(pred_labels))

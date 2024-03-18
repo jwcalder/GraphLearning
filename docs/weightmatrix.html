@@ -218,7 +218,7 @@ def knn(data, k, kernel=&#39;gaussian&#39;, eta=None, symmetrize=True, metric=&#
     W.setdiag(0)
     return W
 
-def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, features=None, epsilon_f=1, eta=None, zero_diagonal=False):
+def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, features=None, epsilon_f=1, eta=None):
     &#34;&#34;&#34;Epsilon ball weight matrix
     ======
 
@@ -226,6 +226,7 @@ def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, features=None, epsilo
     \\[ w_{i,j} = \\eta\\left(\\frac{\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right), \\]
     when \\(\\|x_i - x_j\\|\\leq \\varepsilon\\), and \\(w_{i,j}=0\\) otherwise.
     This type of weight matrix is only feasible in relatively low dimensions.
+    The diagonals are always zero.
    
     Parameters
     ----------
@@ -256,8 +257,6 @@ def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, features=None, epsilo
     eta : python function handle (optional)
         If provided, this overrides the kernel option and instead uses the weights
         \\[ w_{i,j} = \\eta\\left(\\frac{\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right). \\]
-    zero_diagonal : bool (optional)
-        Whether to put zero on the diagonal, instead of \\(\\eta(0)\\). Default is False.
 
     Returns
     -------
@@ -284,15 +283,9 @@ def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, features=None, epsilo
         weights = weights*feature_weights
         fzero = fzero**2
 
-    #Symmetrize weights and add diagonal entries if they are not zero
-    if zero_diagonal:
-        weights = np.concatenate((weights,weights))
-        M1 = np.concatenate((M[:,0],M[:,1]))
-        M2 = np.concatenate((M[:,1],M[:,0]))
-    else:
-        weights = np.concatenate((weights,weights,fzero*np.ones(n,)))
-        M1 = np.concatenate((M[:,0],M[:,1],np.arange(0,n)))
-        M2 = np.concatenate((M[:,1],M[:,0],np.arange(0,n)))
+    weights = np.concatenate((weights,weights,fzero*np.ones(n,)))
+    M1 = np.concatenate((M[:,0],M[:,1],np.arange(0,n)))
+    M2 = np.concatenate((M[:,1],M[:,0],np.arange(0,n)))
 
     #Construct sparse matrix and convert to Compressed Sparse Row (CSR) format
     W = sparse.coo_matrix((weights, (M1,M2)),shape=(n,n))
@@ -664,14 +657,15 @@ def vae(data, layer_widths=[400,20], no_cuda=False, batch_size=128, epochs=100, 
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="graphlearning.weightmatrix.epsilon_ball"><code class="name flex">
-<span>def <span class="ident">epsilon_ball</span></span>(<span>data, epsilon, kernel='gaussian', features=None, epsilon_f=1, eta=None, zero_diagonal=False)</span>
+<span>def <span class="ident">epsilon_ball</span></span>(<span>data, epsilon, kernel='gaussian', features=None, epsilon_f=1, eta=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="epsilon-ball-weight-matrix">Epsilon ball weight matrix</h1>
 <p>General function for constructing a sparse epsilon-ball weight matrix, whose weights have the form
 <span><span class="MathJax_Preview"> w_{i,j} = \eta\left(\frac{\|x_i - x_j\|^2}{\varepsilon^2} \right), </span><script type="math/tex; mode=display"> w_{i,j} = \eta\left(\frac{\|x_i - x_j\|^2}{\varepsilon^2} \right), </script></span>
 when <span><span class="MathJax_Preview">\|x_i - x_j\|\leq \varepsilon</span><script type="math/tex">\|x_i - x_j\|\leq \varepsilon</script></span>, and <span><span class="MathJax_Preview">w_{i,j}=0</span><script type="math/tex">w_{i,j}=0</script></span> otherwise.
-This type of weight matrix is only feasible in relatively low dimensions.</p>
+This type of weight matrix is only feasible in relatively low dimensions.
+The diagonals are always zero.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>data</code></strong> :&ensp;<code>(n,m) numpy array</code></dt>
@@ -703,8 +697,6 @@ such as a texture indicator.</dd>
 <dt><strong><code>eta</code></strong> :&ensp;<code>python function handle (optional)</code></dt>
 <dd>If provided, this overrides the kernel option and instead uses the weights
 <span><span class="MathJax_Preview"> w_{i,j} = \eta\left(\frac{\|x_i - x_j\|^2}{\varepsilon^2} \right). </span><script type="math/tex; mode=display"> w_{i,j} = \eta\left(\frac{\|x_i - x_j\|^2}{\varepsilon^2} \right). </script></span></dd>
-<dt><strong><code>zero_diagonal</code></strong> :&ensp;<code>bool (optional)</code></dt>
-<dd>Whether to put zero on the diagonal, instead of <span><span class="MathJax_Preview">\eta(0)</span><script type="math/tex">\eta(0)</script></span>. Default is False.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -715,7 +707,7 @@ such as a texture indicator.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, features=None, epsilon_f=1, eta=None, zero_diagonal=False):
+<pre><code class="python">def epsilon_ball(data, epsilon, kernel=&#39;gaussian&#39;, features=None, epsilon_f=1, eta=None):
     &#34;&#34;&#34;Epsilon ball weight matrix
     ======
 
@@ -723,6 +715,7 @@ such as a texture indicator.</dd>
     \\[ w_{i,j} = \\eta\\left(\\frac{\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right), \\]
     when \\(\\|x_i - x_j\\|\\leq \\varepsilon\\), and \\(w_{i,j}=0\\) otherwise.
     This type of weight matrix is only feasible in relatively low dimensions.
+    The diagonals are always zero.
    
     Parameters
     ----------
@@ -753,8 +746,6 @@ such as a texture indicator.</dd>
     eta : python function handle (optional)
         If provided, this overrides the kernel option and instead uses the weights
         \\[ w_{i,j} = \\eta\\left(\\frac{\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right). \\]
-    zero_diagonal : bool (optional)
-        Whether to put zero on the diagonal, instead of \\(\\eta(0)\\). Default is False.
 
     Returns
     -------
@@ -781,15 +772,9 @@ such as a texture indicator.</dd>
         weights = weights*feature_weights
         fzero = fzero**2
 
-    #Symmetrize weights and add diagonal entries if they are not zero
-    if zero_diagonal:
-        weights = np.concatenate((weights,weights))
-        M1 = np.concatenate((M[:,0],M[:,1]))
-        M2 = np.concatenate((M[:,1],M[:,0]))
-    else:
-        weights = np.concatenate((weights,weights,fzero*np.ones(n,)))
-        M1 = np.concatenate((M[:,0],M[:,1],np.arange(0,n)))
-        M2 = np.concatenate((M[:,1],M[:,0],np.arange(0,n)))
+    weights = np.concatenate((weights,weights,fzero*np.ones(n,)))
+    M1 = np.concatenate((M[:,0],M[:,1],np.arange(0,n)))
+    M2 = np.concatenate((M[:,1],M[:,0],np.arange(0,n)))
 
     #Construct sparse matrix and convert to Compressed Sparse Row (CSR) format
     W = sparse.coo_matrix((weights, (M1,M2)),shape=(n,n))

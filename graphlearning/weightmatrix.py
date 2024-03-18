@@ -185,7 +185,7 @@ def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', sim
     W.setdiag(0)
     return W
 
-def epsilon_ball(data, epsilon, kernel='gaussian', features=None, epsilon_f=1, eta=None, zero_diagonal=False):
+def epsilon_ball(data, epsilon, kernel='gaussian', features=None, epsilon_f=1, eta=None):
     """Epsilon ball weight matrix
     ======
 
@@ -193,6 +193,7 @@ def epsilon_ball(data, epsilon, kernel='gaussian', features=None, epsilon_f=1, e
     \\[ w_{i,j} = \\eta\\left(\\frac{\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right), \\]
     when \\(\\|x_i - x_j\\|\\leq \\varepsilon\\), and \\(w_{i,j}=0\\) otherwise.
     This type of weight matrix is only feasible in relatively low dimensions.
+    The diagonals are always zero.
    
     Parameters
     ----------
@@ -223,8 +224,6 @@ def epsilon_ball(data, epsilon, kernel='gaussian', features=None, epsilon_f=1, e
     eta : python function handle (optional)
         If provided, this overrides the kernel option and instead uses the weights
         \\[ w_{i,j} = \\eta\\left(\\frac{\\|x_i - x_j\\|^2}{\\varepsilon^2} \\right). \\]
-    zero_diagonal : bool (optional)
-        Whether to put zero on the diagonal, instead of \\(\\eta(0)\\). Default is False.
 
     Returns
     -------
@@ -251,15 +250,9 @@ def epsilon_ball(data, epsilon, kernel='gaussian', features=None, epsilon_f=1, e
         weights = weights*feature_weights
         fzero = fzero**2
 
-    #Symmetrize weights and add diagonal entries if they are not zero
-    if zero_diagonal:
-        weights = np.concatenate((weights,weights))
-        M1 = np.concatenate((M[:,0],M[:,1]))
-        M2 = np.concatenate((M[:,1],M[:,0]))
-    else:
-        weights = np.concatenate((weights,weights,fzero*np.ones(n,)))
-        M1 = np.concatenate((M[:,0],M[:,1],np.arange(0,n)))
-        M2 = np.concatenate((M[:,1],M[:,0],np.arange(0,n)))
+    weights = np.concatenate((weights,weights,fzero*np.ones(n,)))
+    M1 = np.concatenate((M[:,0],M[:,1],np.arange(0,n)))
+    M2 = np.concatenate((M[:,1],M[:,0],np.arange(0,n)))
 
     #Construct sparse matrix and convert to Compressed Sparse Row (CSR) format
     W = sparse.coo_matrix((weights, (M1,M2)),shape=(n,n))
