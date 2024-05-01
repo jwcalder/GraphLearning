@@ -38,10 +38,10 @@ AL.update(query_points, query_labels)
 ```
 
 Some clarification of terms:
-* ``acquisition function``: a function that quantifies "how useful" it would be to label a currently unlabeled node. Oftentimes, this is reflected in the "uncertainty" of the current classifier's output for each node. 
-    * __NOTE:__ users can provide their own acquisition functions that inherit from the ``acquisition_function`` class, being sure to implement it so that __larger values__ of the acquisition function correspond to __more desirable__ nodes to be labeled.
-* ``policy``: the active learning policy determines which node(s) will be selected as query points, given the set of acquisition function values evaluated on the unlabeled nodes. 
-    * The default value ``max`` indicates that query points will be the maximizers of the acquisition function on the unlabeled nodes. The policy ``prop`` selects the query points proportional to the ''softmax'' of the acquisition function values; namely, 
+- ``acquisition function``: a function that quantifies "how useful" it would be to label a currently unlabeled node. Oftentimes, this is reflected in the "uncertainty" of the current classifier's output for each node. 
+- __NOTE:__ users can provide their own acquisition functions that inherit from the ``acquisition_function`` class, being sure to implement it so that __larger values__ of the acquisition function correspond to __more desirable__ nodes to be labeled.
+- ``policy``: the active learning policy determines which node(s) will be selected as query points, given the set of acquisition function values evaluated on the unlabeled nodes. 
+- The default value ``max`` indicates that query points will be the maximizers of the acquisition function on the unlabeled nodes. The policy ``prop`` selects the query points proportional to the ''softmax'' of the acquisition function values; namely, 
 \\[\mathbb{P}(X = x) \\propto e^{\\gamma \\mathcal{A}(x)}\\]
 """
 
@@ -81,7 +81,7 @@ class active_learner:
                 candidate_ind = np.arange(self.all_inds)
             else:
                 candidate_ind = np.setdiff1d(self.all_inds, self.labeled_ind)
-        elif (candidate_set == 'rand') and (rand_frac>0 and rand_frac<1):
+        elif (candidate_ind == 'rand') and (rand_frac>0 and rand_frac<1):
             if allow_repeat:
                 candidate_ind = np.random.choice(self.all_inds, size=int(rand_frac * self.n), replace=False)
             else:
@@ -234,7 +234,7 @@ class unc_sampling(acquisition_function):
 
 
 
-class v_opt(acquisition_function):
+class var_opt(acquisition_function):
     """Variance Optimization
     ===================
 
@@ -259,7 +259,7 @@ class v_opt(acquisition_function):
     # compute initial, low-rank (spectral truncation) covariance matrix 
     evals, evecs = model.graph.eigen_decomp(normalization='normalized', k=50)
     C = np.diag(1. / (evals + 1e-11))
-    AL = gl.active_learning.active_learner(model, gl.active_learning.v_opt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
+    AL = gl.active_learning.active_learner(model, gl.active_learning.var_opt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
 
     for i in range(10):
         query_points = AL.select_queries() # return this iteration's newly chosen points
@@ -458,7 +458,7 @@ class model_change(acquisition_function):
         self.C = C.copy()
         self.V = V
         self.gamma2 = gamma2
-        self.unc_sampling = uncertainty_sampling(unc_method=unc_method)
+        self.unc_sampling = unc_sampling(unc_method=unc_method)
         if self.V is None:
             self.storage = 'full'
         else:
@@ -488,7 +488,7 @@ class model_change(acquisition_function):
         return
         
 
-class model_change_vopt(acquisition_function):
+class model_change_var_opt(acquisition_function):
     """Model Change Variance Optimization
     ===================
 
@@ -513,7 +513,7 @@ class model_change_vopt(acquisition_function):
     # compute initial, low-rank (spectral truncation) covariance matrix 
     evals, evecs = model.graph.eigen_decomp(normalization='normalized', k=50)
     C = np.diag(1. / (evals + 1e-11))
-    AL = gl.active_learning.active_learner(model, gl.active_learning.mc_vopt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
+    AL = gl.active_learning.active_learner(model, gl.active_learning.model_change_var_opt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
 
     for i in range(10):
         query_points = AL.select_queries() # return this iteration's newly chosen points
@@ -545,7 +545,7 @@ class model_change_vopt(acquisition_function):
         self.C = C.copy()
         self.V = V
         self.gamma2 = gamma2
-        self.unc_sampling = uncertainty_sampling(method=unc_method)
+        self.unc_sampling = unc_sampling(method=unc_method)
         if self.V is None:
             self.storage = 'full'
         else:
