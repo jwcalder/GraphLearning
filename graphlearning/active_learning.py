@@ -295,8 +295,8 @@ class var_opt(acquisition_function):
         
     def compute(self, u, candidate_ind):
         if self.storage == 'full':
-            col_norms = np.linalg.norm(self.C, axis=0)**2.
-            diag_terms = self.gamma2 + self.C.diagonal()
+            col_norms = np.linalg.norm(self.C[:,candidate_ind], axis=0)**2.
+            diag_terms = self.gamma2 + self.C.diagonal()[candidate_ind]
         else:
             Cavk = self.C @ self.V[candidate_ind,:].T
             col_norms = np.linalg.norm(Cavk, axis=0)**2.
@@ -380,8 +380,8 @@ class sigma_opt(acquisition_function):
         
     def compute(self, u, candidate_ind):
         if self.storage == 'full':
-            col_sums = np.sum(self.C, axis=0)**2.
-            diag_terms = selg.gamma2 + self.C.diagonal()
+            col_sums = np.sum(self.C[:, candidate_ind], axis=0)**2.
+            diag_terms = self.gamma2 + self.C.diagonal()[candidate_ind]
         else:
             Cavk = self.C @ self.V[candidate_ind,:].T
             col_sums = np.sum(Cavk, axis=0)**2.
