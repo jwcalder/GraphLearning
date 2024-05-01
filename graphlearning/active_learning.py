@@ -307,7 +307,7 @@ class var_opt(acquisition_function):
     def update(self, query_ind, query_labels):
         for k in query_ind:
             if self.storage == 'full':
-                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+                self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
             else:
                 vk = self.V[k]
                 Cavk = self.C @ vk
@@ -393,7 +393,7 @@ class sigma_opt(acquisition_function):
     def update(self, query_ind, query_labels):
         for k in query_ind:
             if self.storage == 'full':
-                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+                self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
             else:
                 vk = self.V[k]
                 Cavk = self.C @ vk
@@ -479,7 +479,7 @@ class model_change(acquisition_function):
     def update(self, query_ind, query_labels):
         for k in query_ind:
             if self.storage == 'full':
-                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+                self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
             else:
                 vk = self.V[k]
                 Cavk = self.C @ vk
@@ -566,7 +566,7 @@ class model_change_var_opt(acquisition_function):
     def update(self, query_ind, query_labels):
         for k in query_ind:
             if self.storage == 'full':
-                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+                self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
             else:
                 vk = self.V[k]
                 Cavk = self.C @ vk
