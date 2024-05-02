@@ -465,7 +465,7 @@ class model_change(acquisition_function):
             self.storage = 'trunc'
         
     def compute(self, u, candidate_ind):
-        unc_terms = self.unc_sampling.compute_values(active_learning, u)
+        unc_terms = self.unc_sampling.compute(u, candidate_ind)
         if self.storage == 'full':
             col_norms = np.linalg.norm(self.C, axis=0)
             diag_terms = self.gamma2 + self.C.diagonal()
@@ -545,14 +545,14 @@ class model_change_var_opt(acquisition_function):
         self.C = C.copy()
         self.V = V
         self.gamma2 = gamma2
-        self.unc_sampling = unc_sampling(method=unc_method)
+        self.unc_sampling = unc_sampling(unc_method=unc_method)
         if self.V is None:
             self.storage = 'full'
         else:
             self.storage = 'trunc'
         
     def compute(self, u, candidate_ind):
-        unc_terms = self.unc_sampling.compute_values(active_learning, u)
+        unc_terms = self.unc_sampling.compute(u, candidate_ind)
         if self.storage == 'full':
             col_norms = np.linalg.norm(self.C, axis=0)**2.
             diag_terms = self.gamma2 + self.C.diagonal()
