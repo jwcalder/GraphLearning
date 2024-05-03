@@ -42,7 +42,7 @@ Some clarification of terms:
 - __NOTE:__ users can provide their own acquisition functions that inherit from the ``acquisition_function`` class, being sure to implement it so that __larger values__ of the acquisition function correspond to __more desirable__ nodes to be labeled.
 - ``policy``: the active learning policy determines which node(s) will be selected as query points, given the set of acquisition function values evaluated on the unlabeled nodes. 
 - The default value ``max`` indicates that query points will be the maximizers of the acquisition function on the unlabeled nodes. The policy ``prop`` selects the query points proportional to the ''softmax'' of the acquisition function values; namely, 
-\\[\mathbb{P}(X = x) \\propto e^{\\gamma \\mathcal{A}(x)}\\]
+\\[\\mathbb{P}(X = x) \\propto e^{\\gamma \\mathcal{A}(x)}\\]
 """
 
 import numpy as np

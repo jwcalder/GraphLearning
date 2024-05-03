@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.2" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>graphlearning.active_learning API documentation</title>
 <meta name="description" content="Active Learning
 …" />
@@ -58,10 +58,10 @@ query_labels = y[query_point]
 AL.update(query_points, query_labels) 
 </code></pre>
 <p>Some clarification of terms:
-* <code>acquisition function</code>: a function that quantifies "how useful" it would be to label a currently unlabeled node. Oftentimes, this is reflected in the "uncertainty" of the current classifier's output for each node.
-* <strong>NOTE:</strong> users can provide their own acquisition functions that inherit from the <code><a title="graphlearning.active_learning.acquisition_function" href="#graphlearning.active_learning.acquisition_function">acquisition_function</a></code> class, being sure to implement it so that <strong>larger values</strong> of the acquisition function correspond to <strong>more desirable</strong> nodes to be labeled.
-* <code>policy</code>: the active learning policy determines which node(s) will be selected as query points, given the set of acquisition function values evaluated on the unlabeled nodes.
-* The default value <code>max</code> indicates that query points will be the maximizers of the acquisition function on the unlabeled nodes. The policy <code>prop</code> selects the query points proportional to the ''softmax'' of the acquisition function values; namely,
+- <code>acquisition function</code>: a function that quantifies "how useful" it would be to label a currently unlabeled node. Oftentimes, this is reflected in the "uncertainty" of the current classifier's output for each node.
+- <strong>NOTE:</strong> users can provide their own acquisition functions that inherit from the <code><a title="graphlearning.active_learning.acquisition_function" href="#graphlearning.active_learning.acquisition_function">acquisition_function</a></code> class, being sure to implement it so that <strong>larger values</strong> of the acquisition function correspond to <strong>more desirable</strong> nodes to be labeled.
+- <code>policy</code>: the active learning policy determines which node(s) will be selected as query points, given the set of acquisition function values evaluated on the unlabeled nodes.
+- The default value <code>max</code> indicates that query points will be the maximizers of the acquisition function on the unlabeled nodes. The policy <code>prop</code> selects the query points proportional to the ''softmax'' of the acquisition function values; namely,
 <span><span class="MathJax_Preview">\mathbb{P}(X = x) \propto e^{\gamma \mathcal{A}(x)}</span><script type="math/tex; mode=display">\mathbb{P}(X = x) \propto e^{\gamma \mathcal{A}(x)}</script></span></p>
 <details class="source">
 <summary>
@@ -107,11 +107,11 @@ AL.update(query_points, query_labels)
 ```
 
 Some clarification of terms:
-* ``acquisition function``: a function that quantifies &#34;how useful&#34; it would be to label a currently unlabeled node. Oftentimes, this is reflected in the &#34;uncertainty&#34; of the current classifier&#39;s output for each node. 
-    * __NOTE:__ users can provide their own acquisition functions that inherit from the ``acquisition_function`` class, being sure to implement it so that __larger values__ of the acquisition function correspond to __more desirable__ nodes to be labeled.
-* ``policy``: the active learning policy determines which node(s) will be selected as query points, given the set of acquisition function values evaluated on the unlabeled nodes. 
-    * The default value ``max`` indicates that query points will be the maximizers of the acquisition function on the unlabeled nodes. The policy ``prop`` selects the query points proportional to the &#39;&#39;softmax&#39;&#39; of the acquisition function values; namely, 
-\\[\mathbb{P}(X = x) \\propto e^{\\gamma \\mathcal{A}(x)}\\]
+- ``acquisition function``: a function that quantifies &#34;how useful&#34; it would be to label a currently unlabeled node. Oftentimes, this is reflected in the &#34;uncertainty&#34; of the current classifier&#39;s output for each node. 
+- __NOTE:__ users can provide their own acquisition functions that inherit from the ``acquisition_function`` class, being sure to implement it so that __larger values__ of the acquisition function correspond to __more desirable__ nodes to be labeled.
+- ``policy``: the active learning policy determines which node(s) will be selected as query points, given the set of acquisition function values evaluated on the unlabeled nodes. 
+- The default value ``max`` indicates that query points will be the maximizers of the acquisition function on the unlabeled nodes. The policy ``prop`` selects the query points proportional to the &#39;&#39;softmax&#39;&#39; of the acquisition function values; namely, 
+\\[\\mathbb{P}(X = x) \\propto e^{\\gamma \\mathcal{A}(x)}\\]
 &#34;&#34;&#34;
 
 import numpy as np
@@ -150,7 +150,7 @@ class active_learner:
                 candidate_ind = np.arange(self.all_inds)
             else:
                 candidate_ind = np.setdiff1d(self.all_inds, self.labeled_ind)
-        elif (candidate_set == &#39;rand&#39;) and (rand_frac&gt;0 and rand_frac&lt;1):
+        elif (candidate_ind == &#39;rand&#39;) and (rand_frac&gt;0 and rand_frac&lt;1):
             if allow_repeat:
                 candidate_ind = np.random.choice(self.all_inds, size=int(rand_frac * self.n), replace=False)
             else:
@@ -303,7 +303,7 @@ class unc_sampling(acquisition_function):
 
 
 
-class v_opt(acquisition_function):
+class var_opt(acquisition_function):
     &#34;&#34;&#34;Variance Optimization
     ===================
 
@@ -328,7 +328,7 @@ class v_opt(acquisition_function):
     # compute initial, low-rank (spectral truncation) covariance matrix 
     evals, evecs = model.graph.eigen_decomp(normalization=&#39;normalized&#39;, k=50)
     C = np.diag(1. / (evals + 1e-11))
-    AL = gl.active_learning.active_learner(model, gl.active_learning.v_opt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
+    AL = gl.active_learning.active_learner(model, gl.active_learning.var_opt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
 
     for i in range(10):
         query_points = AL.select_queries() # return this iteration&#39;s newly chosen points
@@ -364,8 +364,8 @@ class v_opt(acquisition_function):
         
     def compute(self, u, candidate_ind):
         if self.storage == &#39;full&#39;:
-            col_norms = np.linalg.norm(self.C, axis=0)**2.
-            diag_terms = self.gamma2 + self.C.diagonal()
+            col_norms = np.linalg.norm(self.C[:,candidate_ind], axis=0)**2.
+            diag_terms = self.gamma2 + self.C.diagonal()[candidate_ind]
         else:
             Cavk = self.C @ self.V[candidate_ind,:].T
             col_norms = np.linalg.norm(Cavk, axis=0)**2.
@@ -376,7 +376,7 @@ class v_opt(acquisition_function):
     def update(self, query_ind, query_labels):
         for k in query_ind:
             if self.storage == &#39;full&#39;:
-                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+                self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
             else:
                 vk = self.V[k]
                 Cavk = self.C @ vk
@@ -449,8 +449,8 @@ class sigma_opt(acquisition_function):
         
     def compute(self, u, candidate_ind):
         if self.storage == &#39;full&#39;:
-            col_sums = np.sum(self.C, axis=0)**2.
-            diag_terms = selg.gamma2 + self.C.diagonal()
+            col_sums = np.sum(self.C[:, candidate_ind], axis=0)**2.
+            diag_terms = self.gamma2 + self.C.diagonal()[candidate_ind]
         else:
             Cavk = self.C @ self.V[candidate_ind,:].T
             col_sums = np.sum(Cavk, axis=0)**2.
@@ -462,7 +462,7 @@ class sigma_opt(acquisition_function):
     def update(self, query_ind, query_labels):
         for k in query_ind:
             if self.storage == &#39;full&#39;:
-                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+                self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
             else:
                 vk = self.V[k]
                 Cavk = self.C @ vk
@@ -527,14 +527,14 @@ class model_change(acquisition_function):
         self.C = C.copy()
         self.V = V
         self.gamma2 = gamma2
-        self.unc_sampling = uncertainty_sampling(unc_method=unc_method)
+        self.unc_sampling = unc_sampling(unc_method=unc_method)
         if self.V is None:
             self.storage = &#39;full&#39;
         else:
             self.storage = &#39;trunc&#39;
         
     def compute(self, u, candidate_ind):
-        unc_terms = self.unc_sampling.compute_values(active_learning, u)
+        unc_terms = self.unc_sampling.compute(u, candidate_ind)
         if self.storage == &#39;full&#39;:
             col_norms = np.linalg.norm(self.C, axis=0)
             diag_terms = self.gamma2 + self.C.diagonal()
@@ -548,7 +548,7 @@ class model_change(acquisition_function):
     def update(self, query_ind, query_labels):
         for k in query_ind:
             if self.storage == &#39;full&#39;:
-                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+                self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
             else:
                 vk = self.V[k]
                 Cavk = self.C @ vk
@@ -557,7 +557,7 @@ class model_change(acquisition_function):
         return
         
 
-class model_change_vopt(acquisition_function):
+class model_change_var_opt(acquisition_function):
     &#34;&#34;&#34;Model Change Variance Optimization
     ===================
 
@@ -582,7 +582,7 @@ class model_change_vopt(acquisition_function):
     # compute initial, low-rank (spectral truncation) covariance matrix 
     evals, evecs = model.graph.eigen_decomp(normalization=&#39;normalized&#39;, k=50)
     C = np.diag(1. / (evals + 1e-11))
-    AL = gl.active_learning.active_learner(model, gl.active_learning.mc_vopt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
+    AL = gl.active_learning.active_learner(model, gl.active_learning.model_change_var_opt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
 
     for i in range(10):
         query_points = AL.select_queries() # return this iteration&#39;s newly chosen points
@@ -614,14 +614,14 @@ class model_change_vopt(acquisition_function):
         self.C = C.copy()
         self.V = V
         self.gamma2 = gamma2
-        self.unc_sampling = uncertainty_sampling(method=unc_method)
+        self.unc_sampling = unc_sampling(unc_method=unc_method)
         if self.V is None:
             self.storage = &#39;full&#39;
         else:
             self.storage = &#39;trunc&#39;
         
     def compute(self, u, candidate_ind):
-        unc_terms = self.unc_sampling.compute_values(active_learning, u)
+        unc_terms = self.unc_sampling.compute(u, candidate_ind)
         if self.storage == &#39;full&#39;:
             col_norms = np.linalg.norm(self.C, axis=0)**2.
             diag_terms = self.gamma2 + self.C.diagonal()
@@ -635,7 +635,7 @@ class model_change_vopt(acquisition_function):
     def update(self, query_ind, query_labels):
         for k in query_ind:
             if self.storage == &#39;full&#39;:
-                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+                self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
             else:
                 vk = self.V[k]
                 Cavk = self.C @ vk
@@ -725,10 +725,10 @@ class new_acq_func(gl.acquisition_function):
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="graphlearning.active_learning.model_change" href="#graphlearning.active_learning.model_change">model_change</a></li>
-<li><a title="graphlearning.active_learning.model_change_vopt" href="#graphlearning.active_learning.model_change_vopt">model_change_vopt</a></li>
+<li><a title="graphlearning.active_learning.model_change_var_opt" href="#graphlearning.active_learning.model_change_var_opt">model_change_var_opt</a></li>
 <li><a title="graphlearning.active_learning.sigma_opt" href="#graphlearning.active_learning.sigma_opt">sigma_opt</a></li>
 <li><a title="graphlearning.active_learning.unc_sampling" href="#graphlearning.active_learning.unc_sampling">unc_sampling</a></li>
-<li><a title="graphlearning.active_learning.v_opt" href="#graphlearning.active_learning.v_opt">v_opt</a></li>
+<li><a title="graphlearning.active_learning.var_opt" href="#graphlearning.active_learning.var_opt">var_opt</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
@@ -830,7 +830,7 @@ def update(self, query_ind, query_labels):
                 candidate_ind = np.arange(self.all_inds)
             else:
                 candidate_ind = np.setdiff1d(self.all_inds, self.labeled_ind)
-        elif (candidate_set == &#39;rand&#39;) and (rand_frac&gt;0 and rand_frac&lt;1):
+        elif (candidate_ind == &#39;rand&#39;) and (rand_frac&gt;0 and rand_frac&lt;1):
             if allow_repeat:
                 candidate_ind = np.random.choice(self.all_inds, size=int(rand_frac * self.n), replace=False)
             else:
@@ -889,7 +889,7 @@ def update(self, query_ind, query_labels):
             candidate_ind = np.arange(self.all_inds)
         else:
             candidate_ind = np.setdiff1d(self.all_inds, self.labeled_ind)
-    elif (candidate_set == &#39;rand&#39;) and (rand_frac&gt;0 and rand_frac&lt;1):
+    elif (candidate_ind == &#39;rand&#39;) and (rand_frac&gt;0 and rand_frac&lt;1):
         if allow_repeat:
             candidate_ind = np.random.choice(self.all_inds, size=int(rand_frac * self.n), replace=False)
         else:
@@ -1038,14 +1038,14 @@ Journal on Selected Areas in Information Theory 1, 167–177 (May 2020).</p></di
         self.C = C.copy()
         self.V = V
         self.gamma2 = gamma2
-        self.unc_sampling = uncertainty_sampling(unc_method=unc_method)
+        self.unc_sampling = unc_sampling(unc_method=unc_method)
         if self.V is None:
             self.storage = &#39;full&#39;
         else:
             self.storage = &#39;trunc&#39;
         
     def compute(self, u, candidate_ind):
-        unc_terms = self.unc_sampling.compute_values(active_learning, u)
+        unc_terms = self.unc_sampling.compute(u, candidate_ind)
         if self.storage == &#39;full&#39;:
             col_norms = np.linalg.norm(self.C, axis=0)
             diag_terms = self.gamma2 + self.C.diagonal()
@@ -1059,7 +1059,7 @@ Journal on Selected Areas in Information Theory 1, 167–177 (May 2020).</p></di
     def update(self, query_ind, query_labels):
         for k in query_ind:
             if self.storage == &#39;full&#39;:
-                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+                self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
             else:
                 vk = self.V[k]
                 Cavk = self.C @ vk
@@ -1085,7 +1085,7 @@ Journal on Selected Areas in Information Theory 1, 167–177 (May 2020).</p></di
 <pre><code class="python">def update(self, query_ind, query_labels):
     for k in query_ind:
         if self.storage == &#39;full&#39;:
-            self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+            self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
         else:
             vk = self.V[k]
             Cavk = self.C @ vk
@@ -1104,8 +1104,8 @@ Journal on Selected Areas in Information Theory 1, 167–177 (May 2020).</p></di
 </li>
 </ul>
 </dd>
-<dt id="graphlearning.active_learning.model_change_vopt"><code class="flex name class">
-<span>class <span class="ident">model_change_vopt</span></span>
+<dt id="graphlearning.active_learning.model_change_var_opt"><code class="flex name class">
+<span>class <span class="ident">model_change_var_opt</span></span>
 <span>(</span><span>C, V=None, gamma2=0.010000000000000002, unc_method='smallest_margin')</span>
 </code></dt>
 <dd>
@@ -1128,7 +1128,7 @@ plt.show()
 # compute initial, low-rank (spectral truncation) covariance matrix 
 evals, evecs = model.graph.eigen_decomp(normalization='normalized', k=50)
 C = np.diag(1. / (evals + 1e-11))
-AL = gl.active_learning.active_learner(model, gl.active_learning.mc_vopt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
+AL = gl.active_learning.active_learner(model, gl.active_learning.model_change_var_opt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
 
 for i in range(10):
     query_points = AL.select_queries() # return this iteration's newly chosen points
@@ -1154,7 +1154,7 @@ Journal on Selected Areas in Information Theory 1, 167–177 (May 2020).</p></di
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class model_change_vopt(acquisition_function):
+<pre><code class="python">class model_change_var_opt(acquisition_function):
     &#34;&#34;&#34;Model Change Variance Optimization
     ===================
 
@@ -1179,7 +1179,7 @@ Journal on Selected Areas in Information Theory 1, 167–177 (May 2020).</p></di
     # compute initial, low-rank (spectral truncation) covariance matrix 
     evals, evecs = model.graph.eigen_decomp(normalization=&#39;normalized&#39;, k=50)
     C = np.diag(1. / (evals + 1e-11))
-    AL = gl.active_learning.active_learner(model, gl.active_learning.mc_vopt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
+    AL = gl.active_learning.active_learner(model, gl.active_learning.model_change_var_opt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
 
     for i in range(10):
         query_points = AL.select_queries() # return this iteration&#39;s newly chosen points
@@ -1211,14 +1211,14 @@ Journal on Selected Areas in Information Theory 1, 167–177 (May 2020).</p></di
         self.C = C.copy()
         self.V = V
         self.gamma2 = gamma2
-        self.unc_sampling = uncertainty_sampling(method=unc_method)
+        self.unc_sampling = unc_sampling(unc_method=unc_method)
         if self.V is None:
             self.storage = &#39;full&#39;
         else:
             self.storage = &#39;trunc&#39;
         
     def compute(self, u, candidate_ind):
-        unc_terms = self.unc_sampling.compute_values(active_learning, u)
+        unc_terms = self.unc_sampling.compute(u, candidate_ind)
         if self.storage == &#39;full&#39;:
             col_norms = np.linalg.norm(self.C, axis=0)**2.
             diag_terms = self.gamma2 + self.C.diagonal()
@@ -1232,7 +1232,7 @@ Journal on Selected Areas in Information Theory 1, 167–177 (May 2020).</p></di
     def update(self, query_ind, query_labels):
         for k in query_ind:
             if self.storage == &#39;full&#39;:
-                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+                self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
             else:
                 vk = self.V[k]
                 Cavk = self.C @ vk
@@ -1246,7 +1246,7 @@ Journal on Selected Areas in Information Theory 1, 167–177 (May 2020).</p></di
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="graphlearning.active_learning.model_change_vopt.update"><code class="name flex">
+<dt id="graphlearning.active_learning.model_change_var_opt.update"><code class="name flex">
 <span>def <span class="ident">update</span></span>(<span>self, query_ind, query_labels)</span>
 </code></dt>
 <dd>
@@ -1258,7 +1258,7 @@ Journal on Selected Areas in Information Theory 1, 167–177 (May 2020).</p></di
 <pre><code class="python">def update(self, query_ind, query_labels):
     for k in query_ind:
         if self.storage == &#39;full&#39;:
-            self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+            self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
         else:
             vk = self.V[k]
             Cavk = self.C @ vk
@@ -1385,8 +1385,8 @@ Ghahramani, Z., and Weinberger, K. Q., eds., 2751–2759, Curran Associates, Inc
         
     def compute(self, u, candidate_ind):
         if self.storage == &#39;full&#39;:
-            col_sums = np.sum(self.C, axis=0)**2.
-            diag_terms = selg.gamma2 + self.C.diagonal()
+            col_sums = np.sum(self.C[:, candidate_ind], axis=0)**2.
+            diag_terms = self.gamma2 + self.C.diagonal()[candidate_ind]
         else:
             Cavk = self.C @ self.V[candidate_ind,:].T
             col_sums = np.sum(Cavk, axis=0)**2.
@@ -1398,7 +1398,7 @@ Ghahramani, Z., and Weinberger, K. Q., eds., 2751–2759, Curran Associates, Inc
     def update(self, query_ind, query_labels):
         for k in query_ind:
             if self.storage == &#39;full&#39;:
-                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+                self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
             else:
                 vk = self.V[k]
                 Cavk = self.C @ vk
@@ -1425,7 +1425,7 @@ Ghahramani, Z., and Weinberger, K. Q., eds., 2751–2759, Curran Associates, Inc
 <pre><code class="python">def update(self, query_ind, query_labels):
     for k in query_ind:
         if self.storage == &#39;full&#39;:
-            self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+            self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
         else:
             vk = self.V[k]
             Cavk = self.C @ vk
@@ -1569,8 +1569,8 @@ for i in range(10):
 </li>
 </ul>
 </dd>
-<dt id="graphlearning.active_learning.v_opt"><code class="flex name class">
-<span>class <span class="ident">v_opt</span></span>
+<dt id="graphlearning.active_learning.var_opt"><code class="flex name class">
+<span>class <span class="ident">var_opt</span></span>
 <span>(</span><span>C, V=None, gamma2=0.010000000000000002)</span>
 </code></dt>
 <dd>
@@ -1593,7 +1593,7 @@ plt.show()
 # compute initial, low-rank (spectral truncation) covariance matrix 
 evals, evecs = model.graph.eigen_decomp(normalization='normalized', k=50)
 C = np.diag(1. / (evals + 1e-11))
-AL = gl.active_learning.active_learner(model, gl.active_learning.v_opt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
+AL = gl.active_learning.active_learner(model, gl.active_learning.var_opt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
 
 for i in range(10):
     query_points = AL.select_queries() # return this iteration's newly chosen points
@@ -1615,7 +1615,7 @@ and Statistics ], 556–564 (Mar. 2012).</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class v_opt(acquisition_function):
+<pre><code class="python">class var_opt(acquisition_function):
     &#34;&#34;&#34;Variance Optimization
     ===================
 
@@ -1640,7 +1640,7 @@ and Statistics ], 556–564 (Mar. 2012).</p></div>
     # compute initial, low-rank (spectral truncation) covariance matrix 
     evals, evecs = model.graph.eigen_decomp(normalization=&#39;normalized&#39;, k=50)
     C = np.diag(1. / (evals + 1e-11))
-    AL = gl.active_learning.active_learner(model, gl.active_learning.v_opt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
+    AL = gl.active_learning.active_learner(model, gl.active_learning.var_opt, train_ind, y[train_ind], C=C.copy(), V=evecs.copy())
 
     for i in range(10):
         query_points = AL.select_queries() # return this iteration&#39;s newly chosen points
@@ -1676,8 +1676,8 @@ and Statistics ], 556–564 (Mar. 2012).</p></div>
         
     def compute(self, u, candidate_ind):
         if self.storage == &#39;full&#39;:
-            col_norms = np.linalg.norm(self.C, axis=0)**2.
-            diag_terms = self.gamma2 + self.C.diagonal()
+            col_norms = np.linalg.norm(self.C[:,candidate_ind], axis=0)**2.
+            diag_terms = self.gamma2 + self.C.diagonal()[candidate_ind]
         else:
             Cavk = self.C @ self.V[candidate_ind,:].T
             col_norms = np.linalg.norm(Cavk, axis=0)**2.
@@ -1688,7 +1688,7 @@ and Statistics ], 556–564 (Mar. 2012).</p></div>
     def update(self, query_ind, query_labels):
         for k in query_ind:
             if self.storage == &#39;full&#39;:
-                self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+                self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
             else:
                 vk = self.V[k]
                 Cavk = self.C @ vk
@@ -1703,7 +1703,7 @@ and Statistics ], 556–564 (Mar. 2012).</p></div>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="graphlearning.active_learning.v_opt.update"><code class="name flex">
+<dt id="graphlearning.active_learning.var_opt.update"><code class="name flex">
 <span>def <span class="ident">update</span></span>(<span>self, query_ind, query_labels)</span>
 </code></dt>
 <dd>
@@ -1715,7 +1715,7 @@ and Statistics ], 556–564 (Mar. 2012).</p></div>
 <pre><code class="python">def update(self, query_ind, query_labels):
     for k in query_ind:
         if self.storage == &#39;full&#39;:
-            self.C -= np.outer(C[:,k], C[:,k]) / (self.gamma2 + C[k,k])
+            self.C -= np.outer(self.C[:,k], self.C[:,k]) / (self.gamma2 + self.C[k,k])
         else:
             vk = self.V[k]
             Cavk = self.C @ vk
@@ -1774,9 +1774,9 @@ and Statistics ], 556–564 (Mar. 2012).</p></div>
 </ul>
 </li>
 <li>
-<h4><code><a title="graphlearning.active_learning.model_change_vopt" href="#graphlearning.active_learning.model_change_vopt">model_change_vopt</a></code></h4>
+<h4><code><a title="graphlearning.active_learning.model_change_var_opt" href="#graphlearning.active_learning.model_change_var_opt">model_change_var_opt</a></code></h4>
 <ul class="">
-<li><code><a title="graphlearning.active_learning.model_change_vopt.update" href="#graphlearning.active_learning.model_change_vopt.update">update</a></code></li>
+<li><code><a title="graphlearning.active_learning.model_change_var_opt.update" href="#graphlearning.active_learning.model_change_var_opt.update">update</a></code></li>
 </ul>
 </li>
 <li>
@@ -1789,9 +1789,9 @@ and Statistics ], 556–564 (Mar. 2012).</p></div>
 <h4><code><a title="graphlearning.active_learning.unc_sampling" href="#graphlearning.active_learning.unc_sampling">unc_sampling</a></code></h4>
 </li>
 <li>
-<h4><code><a title="graphlearning.active_learning.v_opt" href="#graphlearning.active_learning.v_opt">v_opt</a></code></h4>
+<h4><code><a title="graphlearning.active_learning.var_opt" href="#graphlearning.active_learning.var_opt">var_opt</a></code></h4>
 <ul class="">
-<li><code><a title="graphlearning.active_learning.v_opt.update" href="#graphlearning.active_learning.v_opt.update">update</a></code></li>
+<li><code><a title="graphlearning.active_learning.var_opt.update" href="#graphlearning.active_learning.var_opt.update">update</a></code></li>
 </ul>
 </li>
 </ul>
@@ -1800,7 +1800,7 @@ and Statistics ], 556–564 (Mar. 2012).</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.9.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
 </body>
 </html>

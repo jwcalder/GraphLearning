@@ -6,7 +6,7 @@ else
 	sed -i 's/import sklearn.cluster as cluster/#import sklearn.cluster as cluster/' graphlearning/clustering.py
 fi
 
-pdoc --template-dir ./pdoc/templates --html --force -o docs/ ./graphlearning > /dev/null
+pdoc3 --template-dir ./pdoc/templates --html --force -o docs/ ./graphlearning > /dev/null
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
 	sed -i '' 's/#import sklearn.cluster as cluster/import sklearn.cluster as cluster/' graphlearning/clustering.py
