@@ -457,7 +457,7 @@ class ssl:
         Returns
         -------
         u : (n,k) numpy array, float
-            Probabilities computed by graph-based learning for each node and each class.
+            Per-class scores computed by graph-based learning for each node and each class. For some methods these are probabilities (i.e., for Laplace learning), while for others they can take on negative values (e.g., Poisson learning). The class label prediction is either the argmax or argmin over the rows of u (most methods are argmax, except distance-function based methods like nearest neighbor and peikonal).
         """
 
         if self.graph is None:

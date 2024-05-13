@@ -587,7 +587,7 @@ class ssl:
         Returns
         -------
         u : (n,k) numpy array, float
-            Probabilities computed by graph-based learning for each node and each class.
+            Per-class scores computed by graph-based learning for each node and each class. For some methods these are probabilities (i.e., for Laplace learning), while for others they can take on negative values (e.g., Poisson learning). The class label prediction is either the argmax or argmin over the rows of u (most methods are argmax, except distance-function based methods like nearest neighbor and peikonal).
         &#34;&#34;&#34;
 
         if self.graph is None:
@@ -4830,7 +4830,7 @@ nodes in each class.</dd>
         Returns
         -------
         u : (n,k) numpy array, float
-            Probabilities computed by graph-based learning for each node and each class.
+            Per-class scores computed by graph-based learning for each node and each class. For some methods these are probabilities (i.e., for Laplace learning), while for others they can take on negative values (e.g., Poisson learning). The class label prediction is either the argmax or argmin over the rows of u (most methods are argmax, except distance-function based methods like nearest neighbor and peikonal).
         &#34;&#34;&#34;
 
         if self.graph is None:
@@ -4922,7 +4922,7 @@ at each iteration.</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>u</code></strong> :&ensp;<code>(n,k) numpy array, float</code></dt>
-<dd>Probabilities computed by graph-based learning for each node and each class.</dd>
+<dd>Per-class scores computed by graph-based learning for each node and each class. For some methods these are probabilities (i.e., for Laplace learning), while for others they can take on negative values (e.g., Poisson learning). The class label prediction is either the argmax or argmin over the rows of u (most methods are argmax, except distance-function based methods like nearest neighbor and peikonal).</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -4949,7 +4949,7 @@ at each iteration.</p>
     Returns
     -------
     u : (n,k) numpy array, float
-        Probabilities computed by graph-based learning for each node and each class.
+        Per-class scores computed by graph-based learning for each node and each class. For some methods these are probabilities (i.e., for Laplace learning), while for others they can take on negative values (e.g., Poisson learning). The class label prediction is either the argmax or argmin over the rows of u (most methods are argmax, except distance-function based methods like nearest neighbor and peikonal).
     &#34;&#34;&#34;
 
     if self.graph is None:
