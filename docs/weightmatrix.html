@@ -406,6 +406,7 @@ def knnsearch(X, k, method=None, similarity=&#39;euclidean&#39;, dataset=None, m
             A = u.get_nns_by_item(i, k, include_distances=True, search_k=-1)
             knn_ind.append(A[0])
             #knn_dist.append(A[1]) #These distances are floating point (32-bit) precision
+            #The code below computes them more accurately
             if similarity == &#39;euclidean&#39;:
                 dist = np.linalg.norm(X[i,:] - X[A[0],:],axis=1)
             elif similarity == &#39;angular&#39;:
@@ -413,15 +414,15 @@ def knnsearch(X, k, method=None, similarity=&#39;euclidean&#39;, dataset=None, m
                 vj = X[A[0],:]/np.maximum(np.linalg.norm(X[A[0],:],axis=1)[:,None],eps)
                 dist = np.linalg.norm(vi-vj,axis=1)
             elif similarity == &#39;manhattan&#39;:
-                dist = A[1]
+                dist = np.linalg.norm(X[i,:] - X[A[0],:],axis=1,ord=1)
             elif similarity == &#39;hamming&#39;:
-                dist = A[1]
+                dist = A[1] #hamming is integer-valued, so no need to compute in double precision
             elif similarity == &#39;dot&#39;:
-                dist = A[1]
+                dist = np.sum(X[i,:]*X[A[0],:],axis=1)
             else:
                 dist = A[1]
 
-            print(np.max(np.absolute(dist - np.array(A[1]))))
+            #print(np.max(np.absolute(dist - np.array(A[1]))))
             knn_dist.append(dist)
 
 
@@ -1173,6 +1174,7 @@ the <a href="https://github.com/spotify/annoy">Annoy</a> package.</dd>
             A = u.get_nns_by_item(i, k, include_distances=True, search_k=-1)
             knn_ind.append(A[0])
             #knn_dist.append(A[1]) #These distances are floating point (32-bit) precision
+            #The code below computes them more accurately
             if similarity == &#39;euclidean&#39;:
                 dist = np.linalg.norm(X[i,:] - X[A[0],:],axis=1)
             elif similarity == &#39;angular&#39;:
@@ -1180,15 +1182,15 @@ the <a href="https://github.com/spotify/annoy">Annoy</a> package.</dd>
                 vj = X[A[0],:]/np.maximum(np.linalg.norm(X[A[0],:],axis=1)[:,None],eps)
                 dist = np.linalg.norm(vi-vj,axis=1)
             elif similarity == &#39;manhattan&#39;:
-                dist = A[1]
+                dist = np.linalg.norm(X[i,:] - X[A[0],:],axis=1,ord=1)
             elif similarity == &#39;hamming&#39;:
-                dist = A[1]
+                dist = A[1] #hamming is integer-valued, so no need to compute in double precision
             elif similarity == &#39;dot&#39;:
-                dist = A[1]
+                dist = np.sum(X[i,:]*X[A[0],:],axis=1)
             else:
                 dist = A[1]
 
-            print(np.max(np.absolute(dist - np.array(A[1]))))
+            #print(np.max(np.absolute(dist - np.array(A[1]))))
             knn_dist.append(dist)
 
 
