@@ -373,6 +373,7 @@ def knnsearch(X, k, method=None, similarity='euclidean', dataset=None, metric='r
             A = u.get_nns_by_item(i, k, include_distances=True, search_k=-1)
             knn_ind.append(A[0])
             #knn_dist.append(A[1]) #These distances are floating point (32-bit) precision
+            #The code below computes them more accurately
             if similarity == 'euclidean':
                 dist = np.linalg.norm(X[i,:] - X[A[0],:],axis=1)
             elif similarity == 'angular':
@@ -380,15 +381,15 @@ def knnsearch(X, k, method=None, similarity='euclidean', dataset=None, metric='r
                 vj = X[A[0],:]/np.maximum(np.linalg.norm(X[A[0],:],axis=1)[:,None],eps)
                 dist = np.linalg.norm(vi-vj,axis=1)
             elif similarity == 'manhattan':
-                dist = A[1]
+                dist = np.linalg.norm(X[i,:] - X[A[0],:],axis=1,ord=1)
             elif similarity == 'hamming':
-                dist = A[1]
+                dist = A[1] #hamming is integer-valued, so no need to compute in double precision
             elif similarity == 'dot':
-                dist = A[1]
+                dist = np.sum(X[i,:]*X[A[0],:],axis=1)
             else:
                 dist = A[1]
 
-            print(np.max(np.absolute(dist - np.array(A[1]))))
+            #print(np.max(np.absolute(dist - np.array(A[1]))))
             knn_dist.append(dist)
 
 
