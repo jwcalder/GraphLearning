@@ -9,7 +9,7 @@ packages = ['graphlearning']
 
 [project]
 name = "graphlearning"
-version = "1.5.4"
+version = "1.5.5"
 authors = [
   { name="Jeff Calder", email="jwcalder@umn.edu" },
 ]
