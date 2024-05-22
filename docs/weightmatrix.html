@@ -370,19 +370,21 @@ def knnsearch(X, k, method=None, similarity=&#39;euclidean&#39;, dataset=None, m
             sys.exit(&#39;Invalid choice of similarity &#39; + similarity)
 
         if similarity == &#39;angular&#39;:
-            X /= np.linalg.norm(X,axis=1)[:,None]
+            Y = X/np.linalg.norm(X,axis=1)[:,None]
+        else:
+            Y = X
 
         if method == &#39;kdtree&#39;:
 
-            Xtree = spatial.cKDTree(X)
-            knn_dist, knn_ind = Xtree.query(X,k=k)
+            Xtree = spatial.cKDTree(Y)
+            knn_dist, knn_ind = Xtree.query(Y,k=k)
 
         else: #Brute force knn search
 
             knn_ind = np.zeros((n,k),dtype=int)
             knn_dist = np.zeros((n,k))
             for i in range(n):
-                dist  = np.linalg.norm(X - X[i,:],axis=1) 
+                dist  = np.linalg.norm(Y - Y[i,:],axis=1) 
                 knn_ind[i,:] = np.argsort(dist)[:k]
                 knn_dist[i,:] = dist[knn_ind[i,:]]
 
@@ -401,7 +403,7 @@ def knnsearch(X, k, method=None, similarity=&#39;euclidean&#39;, dataset=None, m
         
         knn_dist = []
         knn_ind = []
-        eps = 1e-15
+        eps = 1e-20
         for i in range(n):
             #Get extra neighbors, in case there are mistakes
             A = u.get_nns_by_item(i, min(2*k,n), include_distances=True)
@@ -1143,19 +1145,21 @@ the <a href="https://github.com/spotify/annoy">Annoy</a> package.</dd>
             sys.exit(&#39;Invalid choice of similarity &#39; + similarity)
 
         if similarity == &#39;angular&#39;:
-            X /= np.linalg.norm(X,axis=1)[:,None]
+            Y = X/np.linalg.norm(X,axis=1)[:,None]
+        else:
+            Y = X
 
         if method == &#39;kdtree&#39;:
 
-            Xtree = spatial.cKDTree(X)
-            knn_dist, knn_ind = Xtree.query(X,k=k)
+            Xtree = spatial.cKDTree(Y)
+            knn_dist, knn_ind = Xtree.query(Y,k=k)
 
         else: #Brute force knn search
 
             knn_ind = np.zeros((n,k),dtype=int)
             knn_dist = np.zeros((n,k))
             for i in range(n):
-                dist  = np.linalg.norm(X - X[i,:],axis=1) 
+                dist  = np.linalg.norm(Y - Y[i,:],axis=1) 
                 knn_ind[i,:] = np.argsort(dist)[:k]
                 knn_dist[i,:] = dist[knn_ind[i,:]]
 
@@ -1174,7 +1178,7 @@ the <a href="https://github.com/spotify/annoy">Annoy</a> package.</dd>
         
         knn_dist = []
         knn_ind = []
-        eps = 1e-15
+        eps = 1e-20
         for i in range(n):
             #Get extra neighbors, in case there are mistakes
             A = u.get_nns_by_item(i, min(2*k,n), include_distances=True)
