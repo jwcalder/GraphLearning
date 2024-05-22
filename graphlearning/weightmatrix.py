@@ -337,19 +337,21 @@ def knnsearch(X, k, method=None, similarity='euclidean', dataset=None, metric='r
             sys.exit('Invalid choice of similarity ' + similarity)
 
         if similarity == 'angular':
-            X /= np.linalg.norm(X,axis=1)[:,None]
+            Y = X/np.linalg.norm(X,axis=1)[:,None]
+        else:
+            Y = X
 
         if method == 'kdtree':
 
-            Xtree = spatial.cKDTree(X)
-            knn_dist, knn_ind = Xtree.query(X,k=k)
+            Xtree = spatial.cKDTree(Y)
+            knn_dist, knn_ind = Xtree.query(Y,k=k)
 
         else: #Brute force knn search
 
             knn_ind = np.zeros((n,k),dtype=int)
             knn_dist = np.zeros((n,k))
             for i in range(n):
-                dist  = np.linalg.norm(X - X[i,:],axis=1) 
+                dist  = np.linalg.norm(Y - Y[i,:],axis=1) 
                 knn_ind[i,:] = np.argsort(dist)[:k]
                 knn_dist[i,:] = dist[knn_ind[i,:]]
 
@@ -368,7 +370,7 @@ def knnsearch(X, k, method=None, similarity='euclidean', dataset=None, metric='r
         
         knn_dist = []
         knn_ind = []
-        eps = 1e-15
+        eps = 1e-20
         for i in range(n):
             #Get extra neighbors, in case there are mistakes
             A = u.get_nns_by_item(i, min(2*k,n), include_distances=True)
