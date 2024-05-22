@@ -346,12 +346,12 @@ def knnsearch(X, k, method=None, similarity='euclidean', dataset=None, metric='r
 
         else: #Brute force knn search
 
-            knn_ind = np.array((n,k),dtype=int)
-            knn_dist = np.array((n,k))
+            knn_ind = np.zeros((n,k),dtype=int)
+            knn_dist = np.zeros((n,k))
             for i in range(n):
                 dist  = np.linalg.norm(X - X[i,:],axis=1) 
                 knn_ind[i,:] = np.argsort(dist)[:k]
-                knn_dist[i,:] = dist[knn_ind]
+                knn_dist[i,:] = dist[knn_ind[i,:]]
 
     elif method == 'annoy':
 
