@@ -514,7 +514,7 @@ def conjgrad(A, b, x0=None, max_iter=1e5, tol=1e-10):
         x = x0
 
     r = b - A@x
-    p = r
+    p = r.copy()
     rsold = np.sum(r**2,axis=0)
   
     err = 1 
