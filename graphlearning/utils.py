@@ -481,13 +481,12 @@ def constrained_solve_gmres(L,f,R,g,ind,tol=1e-5):
     return u
 
 def conjgrad(A, b, x0=None, max_iter=1e5, tol=1e-10):
-    r"""Conjugate Gradient Method
+    """Conjugate Gradient Method
     ======
 
     Conjugate gradient method for solving the linear equation
-    \\[Ax = b\\]
-    where \\(A\\in \\mathbb{R}^{n\\times n}\\) is symmetric and positive semi-definite, 
-    \\(x\\in \\mathbb{R}^{n\\times k}\\) and \\(b\\in \\mathbb{R}^{n\\times k}\\).
+    \\[ Ax = b\\]
+    where \\(A\\) is \\(n\\times n\\), and \\(x\\) and \\(b\\) are \\(n\\times m\\).
 
     Parameters
     ----------
@@ -511,7 +510,7 @@ def conjgrad(A, b, x0=None, max_iter=1e5, tol=1e-10):
     if x0 is None:
         x = np.zeros_like(b)
     else:
-        x = x0
+        x = x0.copy()
 
     r = b - A@x
     p = r.copy()
@@ -571,54 +570,6 @@ def labels_to_onehot(labels, standardize=False):
 
     return onehot_labels
 
-def conjgrad(A, b, x=None, max_iter=1e5, tol=1e-10):
-    """Conjugate Gradient Method
-    ======
-
-    Conjugate gradient method in matrix form for solving
-    \\[ Ax = b\\]
-    where \\(A\\) is \\(n\\times n\\), and \\(x\\) and \\(b\\) are \\(n\\times m\\).
-   
-    Parameters
-    ----------
-    A : (n,n) numpy array or matrix or scipy sparse matrix
-        Left hand side matrix.
-    b : (n,m) numpy array
-        Right hand side matrix.
-    x : (n,m) numpy array, optional
-        Initial guess.
-    max_iter : int (optional), default = 1e5
-        Maximum number of iterations.
-    tol : float (optional), default = 1e-10
-        Tolerance for stopping.
-
-    Returns
-    -------
-    x : (n,m) numpy array
-        Solution of \\(Ax=b\\) with the conjugate gradient method.
-    """
-
-    if x is None:
-        x = np.zeros_like(b)
-
-    r = b - A@x
-    p = r
-    rsold = np.sum(r**2,axis=0)
-  
-    err = 1 
-    i = 0
-    while (err > tol) and (i < max_iter):
-        i += 1
-        Ap = A@p
-        alpha = rsold / np.sum(p*Ap,axis=0)
-        x += alpha * p
-        r -= alpha * Ap
-        rsnew = np.sum(r**2,axis=0)
-        err = np.sqrt(np.sum(rsnew)) 
-        p = r + (rsnew / rsold) * p
-        rsold = rsnew
-
-    return x
 
 
 def randomized_svd(A, k=10, c=None, q=1):

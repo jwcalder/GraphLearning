@@ -513,13 +513,12 @@ def constrained_solve_gmres(L,f,R,g,ind,tol=1e-5):
     return u
 
 def conjgrad(A, b, x0=None, max_iter=1e5, tol=1e-10):
-    r&#34;&#34;&#34;Conjugate Gradient Method
+    &#34;&#34;&#34;Conjugate Gradient Method
     ======
 
     Conjugate gradient method for solving the linear equation
-    \\[Ax = b\\]
-    where \\(A\\in \\mathbb{R}^{n\\times n}\\) is symmetric and positive semi-definite, 
-    \\(x\\in \\mathbb{R}^{n\\times k}\\) and \\(b\\in \\mathbb{R}^{n\\times k}\\).
+    \\[ Ax = b\\]
+    where \\(A\\) is \\(n\\times n\\), and \\(x\\) and \\(b\\) are \\(n\\times m\\).
 
     Parameters
     ----------
@@ -543,7 +542,7 @@ def conjgrad(A, b, x0=None, max_iter=1e5, tol=1e-10):
     if x0 is None:
         x = np.zeros_like(b)
     else:
-        x = x0
+        x = x0.copy()
 
     r = b - A@x
     p = r.copy()
@@ -603,54 +602,6 @@ def labels_to_onehot(labels, standardize=False):
 
     return onehot_labels
 
-def conjgrad(A, b, x=None, max_iter=1e5, tol=1e-10):
-    &#34;&#34;&#34;Conjugate Gradient Method
-    ======
-
-    Conjugate gradient method in matrix form for solving
-    \\[ Ax = b\\]
-    where \\(A\\) is \\(n\\times n\\), and \\(x\\) and \\(b\\) are \\(n\\times m\\).
-   
-    Parameters
-    ----------
-    A : (n,n) numpy array or matrix or scipy sparse matrix
-        Left hand side matrix.
-    b : (n,m) numpy array
-        Right hand side matrix.
-    x : (n,m) numpy array, optional
-        Initial guess.
-    max_iter : int (optional), default = 1e5
-        Maximum number of iterations.
-    tol : float (optional), default = 1e-10
-        Tolerance for stopping.
-
-    Returns
-    -------
-    x : (n,m) numpy array
-        Solution of \\(Ax=b\\) with the conjugate gradient method.
-    &#34;&#34;&#34;
-
-    if x is None:
-        x = np.zeros_like(b)
-
-    r = b - A@x
-    p = r
-    rsold = np.sum(r**2,axis=0)
-  
-    err = 1 
-    i = 0
-    while (err &gt; tol) and (i &lt; max_iter):
-        i += 1
-        Ap = A@p
-        alpha = rsold / np.sum(p*Ap,axis=0)
-        x += alpha * p
-        r -= alpha * Ap
-        rsnew = np.sum(r**2,axis=0)
-        err = np.sqrt(np.sum(rsnew)) 
-        p = r + (rsnew / rsold) * p
-        rsold = rsnew
-
-    return x
 
 
 def randomized_svd(A, k=10, c=None, q=1):
@@ -1493,67 +1444,69 @@ parameters n_rows and n_cols below are overridden.</dd>
 </details>
 </dd>
 <dt id="graphlearning.utils.conjgrad"><code class="name flex">
-<span>def <span class="ident">conjgrad</span></span>(<span>A, b, x=None, max_iter=100000.0, tol=1e-10)</span>
+<span>def <span class="ident">conjgrad</span></span>(<span>A, b, x0=None, max_iter=100000.0, tol=1e-10)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="conjugate-gradient-method">Conjugate Gradient Method</h1>
-<p>Conjugate gradient method in matrix form for solving
+<p>Conjugate gradient method for solving the linear equation
 <span><span class="MathJax_Preview"> Ax = b</span><script type="math/tex; mode=display"> Ax = b</script></span>
 where <span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span> is <span><span class="MathJax_Preview">n\times n</span><script type="math/tex">n\times n</script></span>, and <span><span class="MathJax_Preview">x</span><script type="math/tex">x</script></span> and <span><span class="MathJax_Preview">b</span><script type="math/tex">b</script></span> are <span><span class="MathJax_Preview">n\times m</span><script type="math/tex">n\times m</script></span>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>A</code></strong> :&ensp;<code>(n,n) numpy array</code> or <code>matrix</code> or <code>scipy sparse matrix</code></dt>
-<dd>Left hand side matrix.</dd>
-<dt><strong><code>b</code></strong> :&ensp;<code>(n,m) numpy array</code></dt>
-<dd>Right hand side matrix.</dd>
-<dt><strong><code>x</code></strong> :&ensp;<code>(n,m) numpy array</code>, optional</dt>
-<dd>Initial guess.</dd>
+<dt><strong><code>A</code></strong> :&ensp;<code>(n,n) numpy array</code> or <code>scipy sparse matrix</code></dt>
+<dd>Left hand side of linear equation.</dd>
+<dt><strong><code>b</code></strong> :&ensp;<code>(n,k) numpy array</code></dt>
+<dd>Right hand side of linear equation.</dd>
+<dt><strong><code>x0</code></strong> :&ensp;<code>(n,k) numpy array (optional)</code></dt>
+<dd>Initial guess. If not provided, then x0=0.</dd>
 <dt><strong><code>max_iter</code></strong> :&ensp;<code>int (optional)</code>, default <code>= 1e5</code></dt>
 <dd>Maximum number of iterations.</dd>
 <dt><strong><code>tol</code></strong> :&ensp;<code>float (optional)</code>, default <code>= 1e-10</code></dt>
-<dd>Tolerance for stopping.</dd>
+<dd>Tolerance for stopping conjugate gradient iterations.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>x</code></strong> :&ensp;<code>(n,m) numpy array</code></dt>
-<dd>Solution of <span><span class="MathJax_Preview">Ax=b</span><script type="math/tex">Ax=b</script></span> with the conjugate gradient method.</dd>
+<dt><strong><code>x</code></strong> :&ensp;<code>(n,k) numpy array</code></dt>
+<dd>Solution of <span><span class="MathJax_Preview">Ax=b</span><script type="math/tex">Ax=b</script></span> with conjugate gradient</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def conjgrad(A, b, x=None, max_iter=1e5, tol=1e-10):
+<pre><code class="python">def conjgrad(A, b, x0=None, max_iter=1e5, tol=1e-10):
     &#34;&#34;&#34;Conjugate Gradient Method
     ======
 
-    Conjugate gradient method in matrix form for solving
+    Conjugate gradient method for solving the linear equation
     \\[ Ax = b\\]
     where \\(A\\) is \\(n\\times n\\), and \\(x\\) and \\(b\\) are \\(n\\times m\\).
-   
+
     Parameters
     ----------
-    A : (n,n) numpy array or matrix or scipy sparse matrix
-        Left hand side matrix.
-    b : (n,m) numpy array
-        Right hand side matrix.
-    x : (n,m) numpy array, optional
-        Initial guess.
+    A : (n,n) numpy array or scipy sparse matrix
+        Left hand side of linear equation.
+    b : (n,k) numpy array
+        Right hand side of linear equation.
+    x0 : (n,k) numpy array (optional)
+        Initial guess. If not provided, then x0=0.
     max_iter : int (optional), default = 1e5
         Maximum number of iterations.
     tol : float (optional), default = 1e-10
-        Tolerance for stopping.
+        Tolerance for stopping conjugate gradient iterations.
 
     Returns
     -------
-    x : (n,m) numpy array
-        Solution of \\(Ax=b\\) with the conjugate gradient method.
+    x : (n,k) numpy array
+        Solution of \\(Ax=b\\) with conjugate gradient
     &#34;&#34;&#34;
 
-    if x is None:
+    if x0 is None:
         x = np.zeros_like(b)
+    else:
+        x = x0.copy()
 
     r = b - A@x
-    p = r
+    p = r.copy()
     rsold = np.sum(r**2,axis=0)
   
     err = 1 
