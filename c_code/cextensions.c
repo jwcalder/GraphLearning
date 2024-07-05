@@ -7,12 +7,13 @@
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include <Python.h>
-#include <numpy/arrayobject.h>
 #include "lp_iterate.h"
 #include "mnist_benchmark.h"
 #include "hjsolvers.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <numpy/arrayobject.h>
+#undef I //This had a conflict from Complex.h
 //#include <unistd.h>
 
 static PyObject* lp_iterate(PyObject* self, PyObject* args)
