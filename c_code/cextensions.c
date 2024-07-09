@@ -16,7 +16,9 @@
 #ifdef __linux__
    #undef I //This had a conflict from Complex.h in linux
 #elif __APPLE__
-   #undef I //This had a conflict from Complex.h in linux
+   #undef I //This had a conflict from Complex.h in mac
+#elif _WIN32
+   #undef I //This had a conflict from Complex.h in windows
 #endif
 
 //#include <unistd.h>
