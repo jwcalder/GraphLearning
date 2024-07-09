@@ -15,7 +15,10 @@
 #include <numpy/arrayobject.h>
 #ifdef __linux__
    #undef I //This had a conflict from Complex.h in linux
+#elif __APPLE__
+   #undef I //This had a conflict from Complex.h in linux
 #endif
+
 //#include <unistd.h>
 
 static PyObject* lp_iterate(PyObject* self, PyObject* args)
