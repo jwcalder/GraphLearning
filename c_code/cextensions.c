@@ -13,7 +13,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <numpy/arrayobject.h>
-#undef I //This had a conflict from Complex.h
+#ifdef __linux__
+   #undef I //This had a conflict from Complex.h in linux
+#endif
 //#include <unistd.h>
 
 static PyObject* lp_iterate(PyObject* self, PyObject* args)
