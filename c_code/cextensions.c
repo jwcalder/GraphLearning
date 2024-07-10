@@ -7,13 +7,13 @@
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include <Python.h>
+#include <numpy/arrayobject.h>
+#include <math.h>
 #include "lp_iterate.h"
 #include "mnist_benchmark.h"
 #include "hjsolvers.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <numpy/arrayobject.h>
-//#include <unistd.h>
+//#include <stdio.h>
+//#include <stdlib.h>
 
 static PyObject* lp_iterate(PyObject* self, PyObject* args)
 {
