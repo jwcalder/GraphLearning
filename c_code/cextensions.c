@@ -13,14 +13,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <numpy/arrayobject.h>
-#ifdef __linux__
-   #undef I //This had a conflict from Complex.h in linux
-#elif __APPLE__
-   #undef I //This had a conflict from Complex.h in mac
-#elif _WIN32
-   #undef I //This had a conflict from Complex.h in windows
-#endif
-
 //#include <unistd.h>
 
 static PyObject* lp_iterate(PyObject* self, PyObject* args)
@@ -32,26 +24,26 @@ static PyObject* lp_iterate(PyObject* self, PyObject* args)
    double progd;
    PyArrayObject *uu_array;
    PyArrayObject *ul_array;
-   PyArrayObject *I_array;
+   PyArrayObject *II_array;
    PyArrayObject *J_array;
    PyArrayObject *W_array;
    PyArrayObject *ind_array;
    PyArrayObject *val_array;
 
    /*  parse arguments */
-   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!dddd", &PyArray_Type, &uu_array, &PyArray_Type, &ul_array, &PyArray_Type, &I_array, &PyArray_Type, &J_array, &PyArray_Type, &W_array,  &PyArray_Type, &ind_array, &PyArray_Type, &val_array, &p, &Td, &tol, &progd))
+   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!dddd", &PyArray_Type, &uu_array, &PyArray_Type, &ul_array, &PyArray_Type, &II_array, &PyArray_Type, &J_array, &PyArray_Type, &W_array,  &PyArray_Type, &ind_array, &PyArray_Type, &val_array, &p, &Td, &tol, &progd))
       return NULL;
 
    npy_intp *dim =  PyArray_DIMS(uu_array);
    int n = dim[0]; //Number of vertices
-   dim =  PyArray_DIMS(I_array);
+   dim =  PyArray_DIMS(II_array);
    int M = dim[0]; //Number nonzero entries in weight matrix
    dim =  PyArray_DIMS(ind_array);
    int m = dim[0]; //Number labeled points
 
    double *uu = (double *) PyArray_DATA(uu_array);
    double *ul = (double *) PyArray_DATA(ul_array);
-   int *I = (int *) PyArray_DATA(I_array);
+   int *II = (int *) PyArray_DATA(II_array);
    int *J = (int *) PyArray_DATA(J_array);
    double *W = (double *) PyArray_DATA(W_array);
    int *ind = (int *) PyArray_DATA(ind_array);
@@ -60,7 +52,7 @@ static PyObject* lp_iterate(PyObject* self, PyObject* args)
    int T = (int)Td;
 
    //Call main function from C code
-   lp_iterate_main(uu,ul,I,J,W,ind,val,p,T,tol,prog,n,M,m);
+   lp_iterate_main(uu,ul,II,J,W,ind,val,p,T,tol,prog,n,M,m);
 
    Py_INCREF(Py_None);
    return Py_None;
@@ -76,25 +68,25 @@ static PyObject* lip_iterate(PyObject* self, PyObject* args)
    double alpha;
    double beta;
    PyArrayObject *u_array;
-   PyArrayObject *I_array;
+   PyArrayObject *II_array;
    PyArrayObject *J_array;
    PyArrayObject *W_array;
    PyArrayObject *ind_array;
    PyArrayObject *val_array;
 
    /*  parse arguments */
-   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!dddddd", &PyArray_Type, &u_array, &PyArray_Type, &I_array, &PyArray_Type, &J_array, &PyArray_Type, &W_array, &PyArray_Type, &ind_array, &PyArray_Type, &val_array, &Td, &tol, &progd, &weightedd, &alpha, &beta))
+   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!dddddd", &PyArray_Type, &u_array, &PyArray_Type, &II_array, &PyArray_Type, &J_array, &PyArray_Type, &W_array, &PyArray_Type, &ind_array, &PyArray_Type, &val_array, &Td, &tol, &progd, &weightedd, &alpha, &beta))
       return NULL;
 
    npy_intp *dim =  PyArray_DIMS(u_array);
    int n = dim[0]; //Number of vertices
-   dim =  PyArray_DIMS(I_array);
+   dim =  PyArray_DIMS(II_array);
    int M = dim[0]; //Number nonzero entries in weight matrix
    dim =  PyArray_DIMS(ind_array);
    int m = dim[0]; //Number labeled points
 
    double *u = (double *) PyArray_DATA(u_array);
-   int *I = (int *) PyArray_DATA(I_array);
+   int *II = (int *) PyArray_DATA(II_array);
    int *J = (int *) PyArray_DATA(J_array);
    double *W = (double *) PyArray_DATA(W_array);
    int *ind = (int *) PyArray_DATA(ind_array);
@@ -105,9 +97,9 @@ static PyObject* lip_iterate(PyObject* self, PyObject* args)
 
    //Call main function from C code
    if(weighted)
-      lip_iterate_weighted_main(u,I,J,W,ind,val,T,tol,prog,n,M,m);
+      lip_iterate_weighted_main(u,II,J,W,ind,val,T,tol,prog,n,M,m);
    else
-      lip_iterate_main(u,I,J,W,ind,val,T,tol,prog,n,M,m,alpha,beta);
+      lip_iterate_main(u,II,J,W,ind,val,T,tol,prog,n,M,m,alpha,beta);
 
    Py_INCREF(Py_None);
    return Py_None;
@@ -120,7 +112,7 @@ static PyObject* volume_mbo(PyObject* self, PyObject* args)
 
    double progd, lcountd, Td, volume_mult;
    PyArrayObject *u_array;
-   PyArrayObject *I_array;
+   PyArrayObject *II_array;
    PyArrayObject *J_array;
    PyArrayObject *W_array;
    PyArrayObject *ind_array;
@@ -128,18 +120,18 @@ static PyObject* volume_mbo(PyObject* self, PyObject* args)
    PyArrayObject *classCounts_array;
 
    /*  parse arguments */
-   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!dddd", &PyArray_Type, &u_array, &PyArray_Type, &I_array, &PyArray_Type, &J_array, &PyArray_Type, &W_array,  &PyArray_Type, &ind_array, &PyArray_Type, &val_array, &PyArray_Type, &classCounts_array, &lcountd, &progd, &Td, &volume_mult))
+   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!dddd", &PyArray_Type, &u_array, &PyArray_Type, &II_array, &PyArray_Type, &J_array, &PyArray_Type, &W_array,  &PyArray_Type, &ind_array, &PyArray_Type, &val_array, &PyArray_Type, &classCounts_array, &lcountd, &progd, &Td, &volume_mult))
       return NULL;
 
    npy_intp *dim =  PyArray_DIMS(u_array);
    int n = dim[0]; //Number of vertices
-   dim =  PyArray_DIMS(I_array);
+   dim =  PyArray_DIMS(II_array);
    int M = dim[0]; //Number nonzero entries in weight matrix
    dim =  PyArray_DIMS(ind_array);
    int m = dim[0]; //Number labeled points
 
    int *u = (int *) PyArray_DATA(u_array);
-   int *I = (int *) PyArray_DATA(I_array);
+   int *II = (int *) PyArray_DATA(II_array);
    int *J = (int *) PyArray_DATA(J_array);
    float *W = (float *) PyArray_DATA(W_array);
    int *ind = (int *) PyArray_DATA(ind_array);
@@ -150,7 +142,7 @@ static PyObject* volume_mbo(PyObject* self, PyObject* args)
    float T = (float)Td;
 
    //Call main function from C code
-   mbo_main(u,I,J,W,ind,val,classCounts,prog,n,M,m,lcount,100,1e-6,T,2-volume_mult,volume_mult);
+   mbo_main(u,II,J,W,ind,val,classCounts,prog,n,M,m,lcount,100,1e-6,T,2-volume_mult,volume_mult);
 
    Py_INCREF(Py_None);
    return Py_None;
@@ -165,19 +157,19 @@ static PyObject* dijkstra_hl(PyObject* self, PyObject* args)
    PyArrayObject *WI_array;
    PyArrayObject *K_array;
    PyArrayObject *WV_array;
-   PyArrayObject *I_array;
+   PyArrayObject *II_array;
    PyArrayObject *g_array;
    PyArrayObject *f_array;
 
    /*  parse arguments */
-   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!O!dd", &PyArray_Type, &d_array, &PyArray_Type, &l_array, &PyArray_Type, &WI_array, &PyArray_Type, &K_array, &PyArray_Type, &WV_array, &PyArray_Type, &I_array, &PyArray_Type, &g_array,  &PyArray_Type, &f_array, &progd, &max_radius))
+   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!O!dd", &PyArray_Type, &d_array, &PyArray_Type, &l_array, &PyArray_Type, &WI_array, &PyArray_Type, &K_array, &PyArray_Type, &WV_array, &PyArray_Type, &II_array, &PyArray_Type, &g_array,  &PyArray_Type, &f_array, &progd, &max_radius))
       return NULL;
 
    npy_intp *dim =  PyArray_DIMS(d_array);
    int n = dim[0]; //Number of vertices
    dim =  PyArray_DIMS(WI_array);
    int M = dim[0]; //Number nonzero entries in weight matrix
-   dim =  PyArray_DIMS(I_array);
+   dim =  PyArray_DIMS(II_array);
    int k = dim[0]; //Number labeled points
 
    double *d = (double *) PyArray_DATA(d_array);
@@ -185,13 +177,13 @@ static PyObject* dijkstra_hl(PyObject* self, PyObject* args)
    int *WI = (int *) PyArray_DATA(WI_array);
    int *K = (int *) PyArray_DATA(K_array);
    double *WV = (double *) PyArray_DATA(WV_array);
-   int *I = (int *) PyArray_DATA(I_array);
+   int *II = (int *) PyArray_DATA(II_array);
    double *g = (double *) PyArray_DATA(g_array);
    double *f = (double *) PyArray_DATA(f_array);
    bool prog = (bool)progd;
 
    //Call main function from C code
-   dijkstra_hl_main(d,l,WI,K,WV,I,g,f,prog,n,M,k,max_radius);
+   dijkstra_hl_main(d,l,WI,K,WV,II,g,f,prog,n,M,k,max_radius);
 
    Py_INCREF(Py_None);
    return Py_None;
@@ -205,19 +197,19 @@ static PyObject* dijkstra(PyObject* self, PyObject* args)
    PyArrayObject *WI_array;
    PyArrayObject *K_array;
    PyArrayObject *WV_array;
-   PyArrayObject *I_array;
+   PyArrayObject *II_array;
    PyArrayObject *g_array;
    PyArrayObject *f_array;
 
    /*  parse arguments */
-   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!O!dd", &PyArray_Type, &d_array, &PyArray_Type, &l_array, &PyArray_Type, &WI_array, &PyArray_Type, &K_array, &PyArray_Type, &WV_array, &PyArray_Type, &I_array, &PyArray_Type, &g_array,  &PyArray_Type, &f_array, &progd, &max_radius))
+   if (!PyArg_ParseTuple(args, "O!O!O!O!O!O!O!O!dd", &PyArray_Type, &d_array, &PyArray_Type, &l_array, &PyArray_Type, &WI_array, &PyArray_Type, &K_array, &PyArray_Type, &WV_array, &PyArray_Type, &II_array, &PyArray_Type, &g_array,  &PyArray_Type, &f_array, &progd, &max_radius))
       return NULL;
 
    npy_intp *dim =  PyArray_DIMS(d_array);
    int n = dim[0]; //Number of vertices
    dim =  PyArray_DIMS(WI_array);
    int M = dim[0]; //Number nonzero entries in weight matrix
-   dim =  PyArray_DIMS(I_array);
+   dim =  PyArray_DIMS(II_array);
    int k = dim[0]; //Number labeled points
 
    double *d = (double *) PyArray_DATA(d_array);
@@ -225,13 +217,13 @@ static PyObject* dijkstra(PyObject* self, PyObject* args)
    int *WI = (int *) PyArray_DATA(WI_array);
    int *K = (int *) PyArray_DATA(K_array);
    double *WV = (double *) PyArray_DATA(WV_array);
-   int *I = (int *) PyArray_DATA(I_array);
+   int *II = (int *) PyArray_DATA(II_array);
    double *g = (double *) PyArray_DATA(g_array);
    double *f = (double *) PyArray_DATA(f_array);
    bool prog = (bool)progd;
 
    //Call main function from C code
-   dijkstra_main(d,l,WI,K,WV,I,g,f,prog,n,M,k,max_radius);
+   dijkstra_main(d,l,WI,K,WV,II,g,f,prog,n,M,k,max_radius);
 
    Py_INCREF(Py_None);
    return Py_None;
