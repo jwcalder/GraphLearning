@@ -10,7 +10,8 @@ setup_args = dict(
                                      'c_code/mnist_benchmark.c',
                                      'c_code/mbo_speedy_volume_preserving.c'],
                             include_dirs=[numpy.get_include()],
-                            extra_compile_args = ['-Ofast','-std=c11'],
+                            #extra_compile_args = ['-Ofast','-std=c11'],
+                            extra_compile_args = ['-Ofast'],
                             extra_link_args = ['-lm'])])
 
 setup(**setup_args)
