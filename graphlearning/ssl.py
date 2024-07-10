@@ -197,7 +197,7 @@ class ssl:
         err = 1
         while i < 1e4 and err > 1e-3:
             i += 1
-            class_size = np.mean(utils.labels_to_onehot(self.predict()),axis=0)
+            class_size = np.mean(utils.labels_to_onehot(self.predict(),k),axis=0)
             #print(class_size-self.class_priors)
             grad = class_size - self.class_priors
             err = np.max(np.absolute(grad))
@@ -617,7 +617,7 @@ class poisson(ssl):
         G = graph.graph(W)
 
         #Poisson source term
-        onehot = utils.labels_to_onehot(train_labels)
+        onehot = utils.labels_to_onehot(train_labels,k)
         source = np.zeros((n, onehot.shape[1]))
         source[train_ind] = onehot - np.mean(onehot, axis=0)
         
@@ -789,13 +789,13 @@ class poisson_mbo(ssl):
         G = graph.graph(W)
         
         #Poisson source term
-        onehot = utils.labels_to_onehot(train_labels)
+        onehot = utils.labels_to_onehot(train_labels,k)
         source = np.zeros((n, onehot.shape[1]))
         source[train_ind] = onehot - np.mean(onehot, axis=0)
 
         #Initialize via Poisson learning
         labels = self.poisson_model.fit_predict(train_ind, train_labels, all_labels=all_labels)
-        u = utils.labels_to_onehot(labels)
+        u = utils.labels_to_onehot(labels,k)
 
         #Time step for stability
         dt = 1/np.max(G.degree_vector())
@@ -829,7 +829,7 @@ class poisson_mbo(ssl):
             #Projection step
             self.prob = u
             labels = self.volume_label_projection()
-            u = utils.labels_to_onehot(labels)
+            u = utils.labels_to_onehot(labels,k)
 
             #Compute accuracy if all labels are provided
             if all_labels is not None:
@@ -906,7 +906,7 @@ class volume_mbo(ssl):
 
         #Set given labels and convert to vector format
         u[train_ind] = train_labels
-        u = utils.labels_to_onehot(u)
+        u = utils.labels_to_onehot(u,k)
         return u
 
 class multiclass_mbo(ssl):
@@ -976,15 +976,15 @@ class multiclass_mbo(ssl):
 
         #Random initial labeling
         u = np.random.rand(k,n)
-        u = utils.labels_to_onehot(np.argmax(u,axis=0)).T
-        u[:,train_ind] = utils.labels_to_onehot(train_labels).T
+        u = utils.labels_to_onehot(np.argmax(u,axis=0),k).T
+        u[:,train_ind] = utils.labels_to_onehot(train_labels,k).T
 
         #Indicator of train_ind
         J = np.zeros(n,)
         K = np.zeros(n,)
         J[train_ind] = 1
         K[train_ind] = train_labels
-        K = utils.labels_to_onehot(K).T
+        K = utils.labels_to_onehot(K,k).T
 
         for i in range(T):
             #Diffusion step
@@ -993,7 +993,7 @@ class multiclass_mbo(ssl):
                 u = Z@Xt
                 
             #Projection step
-            u = utils.labels_to_onehot(np.argmax(u,axis=0)).T
+            u = utils.labels_to_onehot(np.argmax(u,axis=0),k).T
 
             #Compute accuracy if all labels are provided
             if all_labels is not None:
@@ -1059,7 +1059,7 @@ class modularity_mbo(ssl):
         #One-hot initialization
         n = self.graph.num_nodes
         num_classes = len(np.unique(train_labels))
-        train_onehot = utils.labels_to_onehot(train_labels)
+        train_onehot = utils.labels_to_onehot(train_labels,k)
         u = np.zeros((n,num_classes))
         u[train_ind,:] = train_onehot
 
@@ -1091,7 +1091,7 @@ class modularity_mbo(ssl):
             labels = np.argmax(u,axis=1)
             
             #Convert to 1-hot vectors
-            u = utils.labels_to_onehot(labels)
+            u = utils.labels_to_onehot(labels,num_classes)
 
             #Compute accuracy if all labels are provided
             if all_labels is not None:
@@ -1226,7 +1226,7 @@ class laplace(ssl):
                 for i in range(2,self.order):
                     Lpow = L*Lpow
             L = Lpow
-        F = utils.labels_to_onehot(train_labels)
+        F = utils.labels_to_onehot(train_labels,k)
 
         #Locations of unlabeled points
         idx = np.full((n,), True, dtype=bool)
@@ -1311,7 +1311,7 @@ class dynamic_label_propagation(ssl):
         G = graph.graph(W)
         
         #Labels to vector and correct position
-        K = utils.labels_to_onehot(train_labels)
+        K = utils.labels_to_onehot(train_labels,k)
         u = np.zeros((n,k))
         u[train_ind,:] = K 
       
@@ -1389,7 +1389,7 @@ class centered_kernel(ssl):
 
         #Indicator of train_ind
         K = np.zeros((n,k))
-        K[train_ind] = utils.labels_to_onehot(train_labels)
+        K[train_ind] = utils.labels_to_onehot(train_labels,k)
         
         #Center labels
         K[train_ind,:] -= np.sum(K,axis=0)/len(train_ind)
@@ -1473,7 +1473,7 @@ class sparse_label_propagation(ssl):
         u = np.zeros((k,n))
 
         #Indicator of train_ind
-        one_hot_labels = utils.labels_to_onehot(train_labels).T
+        one_hot_labels = utils.labels_to_onehot(train_labels,k).T
 
         #Initialization
         Y = list()
@@ -1561,7 +1561,8 @@ class graph_nearest_neighbor(ssl):
             _,l = self.graph.dijkstra(train_ind, bdy_val=np.zeros_like(train_ind), f=self.f, return_cp=True)
             u = np.zeros(l.shape)
             u[train_ind] = train_labels
-            u = utils.labels_to_onehot(u[l])
+            k = len(np.unique(train_labels))
+            u = utils.labels_to_onehot(u[l],k)
 
         return u
 
@@ -1780,7 +1781,8 @@ class randomwalk(ssl):
         M = sparse.spdiags(1/np.sqrt(M+1e-10),0,m,m).tocsr()
        
         #Right hand side
-        onehot = utils.labels_to_onehot(train_labels)
+        k = len(np.unique(train_labels))
+        onehot = utils.labels_to_onehot(train_labels,k)
         Y = np.zeros((n, onehot.shape[1]))
         Y[train_ind,:] = onehot
 

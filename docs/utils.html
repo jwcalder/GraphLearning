@@ -565,7 +565,7 @@ def conjgrad(A, b, x0=None, max_iter=1e5, tol=1e-10):
 
 
 
-def labels_to_onehot(labels, standardize=False):
+def labels_to_onehot(labels, k, standardize=False):
     &#34;&#34;&#34;Onehot labels
     ======
 
@@ -575,6 +575,8 @@ def labels_to_onehot(labels, standardize=False):
     ----------
     labels : numpy array, int
         Labels as integers.
+    k : int
+        Number of classes.
     standardize : bool (optional), default=False
         Whether to map labels to 0,1,...,k-1 first, before encoding.
 
@@ -585,6 +587,7 @@ def labels_to_onehot(labels, standardize=False):
     &#34;&#34;&#34;
 
     n = labels.shape[0]
+    k = max(int(np.max(labels))+1,k) #Make sure the given k is not too small
 
     if standardize:
         #First convert to standard 0,1,...,k-1
@@ -592,8 +595,6 @@ def labels_to_onehot(labels, standardize=False):
         k = len(unique_labels)
         for i in range(k):
             labels[labels==unique_labels[i]] = i
-    else:
-        k = int(np.max(labels))+1
 
     #Now convert to onehot
     labels = labels.astype(int)
@@ -2056,7 +2057,7 @@ Supports color or grayscale images.</p>
 </details>
 </dd>
 <dt id="graphlearning.utils.labels_to_onehot"><code class="name flex">
-<span>def <span class="ident">labels_to_onehot</span></span>(<span>labels, standardize=False)</span>
+<span>def <span class="ident">labels_to_onehot</span></span>(<span>labels, k, standardize=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="onehot-labels">Onehot labels</h1>
@@ -2065,6 +2066,8 @@ Supports color or grayscale images.</p>
 <dl>
 <dt><strong><code>labels</code></strong> :&ensp;<code>numpy array, int</code></dt>
 <dd>Labels as integers.</dd>
+<dt><strong><code>k</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of classes.</dd>
 <dt><strong><code>standardize</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
 <dd>Whether to map labels to 0,1,&hellip;,k-1 first, before encoding.</dd>
 </dl>
@@ -2077,7 +2080,7 @@ Supports color or grayscale images.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def labels_to_onehot(labels, standardize=False):
+<pre><code class="python">def labels_to_onehot(labels, k, standardize=False):
     &#34;&#34;&#34;Onehot labels
     ======
 
@@ -2087,6 +2090,8 @@ Supports color or grayscale images.</p>
     ----------
     labels : numpy array, int
         Labels as integers.
+    k : int
+        Number of classes.
     standardize : bool (optional), default=False
         Whether to map labels to 0,1,...,k-1 first, before encoding.
 
@@ -2097,6 +2102,7 @@ Supports color or grayscale images.</p>
     &#34;&#34;&#34;
 
     n = labels.shape[0]
+    k = max(int(np.max(labels))+1,k) #Make sure the given k is not too small
 
     if standardize:
         #First convert to standard 0,1,...,k-1
@@ -2104,8 +2110,6 @@ Supports color or grayscale images.</p>
         k = len(unique_labels)
         for i in range(k):
             labels[labels==unique_labels[i]] = i
-    else:
-        k = int(np.max(labels))+1
 
     #Now convert to onehot
     labels = labels.astype(int)

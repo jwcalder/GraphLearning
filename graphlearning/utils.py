@@ -533,7 +533,7 @@ def conjgrad(A, b, x0=None, max_iter=1e5, tol=1e-10):
 
 
 
-def labels_to_onehot(labels, standardize=False):
+def labels_to_onehot(labels, k, standardize=False):
     """Onehot labels
     ======
 
@@ -543,6 +543,8 @@ def labels_to_onehot(labels, standardize=False):
     ----------
     labels : numpy array, int
         Labels as integers.
+    k : int
+        Number of classes.
     standardize : bool (optional), default=False
         Whether to map labels to 0,1,...,k-1 first, before encoding.
 
@@ -553,6 +555,7 @@ def labels_to_onehot(labels, standardize=False):
     """
 
     n = labels.shape[0]
+    k = max(int(np.max(labels))+1,k) #Make sure the given k is not too small
 
     if standardize:
         #First convert to standard 0,1,...,k-1
@@ -560,8 +563,6 @@ def labels_to_onehot(labels, standardize=False):
         k = len(unique_labels)
         for i in range(k):
             labels[labels==unique_labels[i]] = i
-    else:
-        k = int(np.max(labels))+1
 
     #Now convert to onehot
     labels = labels.astype(int)

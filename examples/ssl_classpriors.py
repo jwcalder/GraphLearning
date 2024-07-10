@@ -12,11 +12,11 @@ model = gl.ssl.laplace(W, class_priors=class_priors)
 model.fit(train_ind,train_labels)
 
 pred_labels = model.predict(ignore_class_priors=True)
-accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,len(train_ind))
+accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,train_ind)
 print(model.name + ' without class priors: %.2f%%'%accuracy)
 
 pred_labels = model.predict()
-accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,len(train_ind))
+accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,train_ind)
 print(model.name + ' with class priors: %.2f%%'%accuracy)
 
 

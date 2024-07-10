@@ -12,7 +12,7 @@ train_labels = labels[train_ind]
 model = gl.ssl.laplace(W)
 pred_labels = model.fit_predict(train_ind, train_labels)
 
-accuracy = gl.ssl.ssl_accuracy(pred_labels, labels, len(train_ind))   
+accuracy = gl.ssl.ssl_accuracy(pred_labels, labels, train_ind)   
 print("Accuracy: %.2f%%"%accuracy)
 
 plt.scatter(X[:,0],X[:,1], c=pred_labels)

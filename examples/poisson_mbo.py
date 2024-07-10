@@ -11,5 +11,5 @@ class_priors = gl.utils.class_priors(labels)
 model = gl.ssl.poisson_mbo(W, class_priors)
 pred_labels = model.fit_predict(train_ind,train_labels,all_labels=labels)
 
-accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,len(train_ind))
+accuracy = gl.ssl.ssl_accuracy(labels,pred_labels,train_ind)
 print(model.name + ': %.2f%%'%accuracy)
