@@ -237,28 +237,31 @@ def epsilon_ball(data, epsilon, kernel='gaussian', features=None, epsilon_f=1, e
     M = Xtree.query_pairs(epsilon)
     M = np.array(list(M))
 
-    #Differences between points and neighbors
-    V = data[M[:,0],:] - data[M[:,1],:]
-    dists = np.sum(V*V,axis=1)
-    weights, fzero = __weights__(dists,epsilon,kernel,eta)
+    if len(M) == 0:
+        return sparse.csr_matrix((n,n)) 
+    else:
+        #Differences between points and neighbors
+        V = data[M[:,0],:] - data[M[:,1],:]
+        dists = np.sum(V*V,axis=1)
+        weights, fzero = __weights__(dists,epsilon,kernel,eta)
 
-    #Add differences in features
-    if features is not None:
-        VF = features[M[:,0],:] - features[M[:,1],:]
-        Fdists = np.sum(VF*VF,axis=1)
-        feature_weights, _ = __weights__(Fdists,epsilon_f,kernel,eta)
-        weights = weights*feature_weights
-        fzero = fzero**2
+        #Add differences in features
+        if features is not None:
+            VF = features[M[:,0],:] - features[M[:,1],:]
+            Fdists = np.sum(VF*VF,axis=1)
+            feature_weights, _ = __weights__(Fdists,epsilon_f,kernel,eta)
+            weights = weights*feature_weights
+            fzero = fzero**2
 
-    weights = np.concatenate((weights,weights,fzero*np.ones(n,)))
-    M1 = np.concatenate((M[:,0],M[:,1],np.arange(0,n)))
-    M2 = np.concatenate((M[:,1],M[:,0],np.arange(0,n)))
+        weights = np.concatenate((weights,weights,fzero*np.ones(n,)))
+        M1 = np.concatenate((M[:,0],M[:,1],np.arange(0,n)))
+        M2 = np.concatenate((M[:,1],M[:,0],np.arange(0,n)))
 
-    #Construct sparse matrix and convert to Compressed Sparse Row (CSR) format
-    W = sparse.coo_matrix((weights, (M1,M2)),shape=(n,n))
+        #Construct sparse matrix and convert to Compressed Sparse Row (CSR) format
+        W = sparse.coo_matrix((weights, (M1,M2)),shape=(n,n))
 
-    W.setdiag(0)
-    return W.tocsr()
+        W.setdiag(0)
+        return W.tocsr()
 
 def __weights__(dists,epsilon,kernel,eta):
 
