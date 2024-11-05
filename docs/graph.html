@@ -1484,7 +1484,97 @@ class graph:
                     else:
                         plt.plot([x[i],x[j]],[y[i],y[j]],color=linecolor,linewidth=linewidth,zorder=0)
 
-        return X</code></pre>
+        return X
+
+    def ars(X, dim=2, perplexity=30, kappa=0.5, iters=1000, time_step=1, theta1=2,
+            theta2=3, alpha=10, num_early=250, use_pca=True, init_dim=50, prog = False):
+        &#34;&#34;&#34;Attraction-Repulsion Swarming t-SNE
+        ======
+
+        Computes a low dimensional embedding (visualization) of a graph or data set using the Attraction-Repulsion Swarming method of [1]. Uses the Barnes-Hut approximation.
+
+        Parameters
+        ----------
+        X : numpy array (float) 
+            Data matrix, rows are data points.
+        dim : int (optional, default=2)
+            Dimension of embedding (usually 2 or 3).
+        perplexity : float (optional, default=30.0)
+            Perplexity for graph construction.
+        kappa : float (optional, default = 0.5)
+            Parameter for Barnes-Hut tree decomposition.
+        iters : int (optional, default=1000)
+            Number of iterations.
+        time_step : float (optional, default=1.0)
+            Time step for ARS iterations.
+        theta1 : float (optional, default = 2.0)
+            Attraction scaling exponent.
+        theta2 : float (optional, default = 3.0)
+            Repulsion scaling exponent. 
+        alpha : float (optional, default = 10.0)
+            Early exaggeration factor.
+        num_early : int (optional, default = 250)
+            Number of early exaggeration iterations.
+        use_pca : bool (optional, default = true)
+            Whether to use PCA to reduce the dimension to d=init_dim.
+        init_dim : int (optional, default = 50)
+            PCA dimension.
+        prog : bool (optional, default = False)
+            Whether to print out progress.
+
+
+        Returns
+        -------
+        Y : numpy array, float 
+            Matrix whose rows are the embedded points.
+
+        Example
+        -------
+        This example uses ARS t-SNE to visualize the MNIST data set: [ars_tsne.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/ars_tsne.py).
+        ```py
+        import graphlearning as gl 
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        #Load the MNIST data
+        data,labels = gl.datasets.load(&#39;mnist&#39;)
+
+        #In order to run the code more quickly, 
+        #you may want to subsample MNIST. 
+        size = 70000
+        if size &lt; data.shape[0]: #If less than 70000
+            ind = np.random.choice(data.shape[0], size=size, replace=False)
+            data = data[ind,:]
+            labels = labels[ind]
+
+        #Run ARS t-SNE and plot the result
+        Y = gl.graph.ars(data, prog=True)
+        plt.scatter(Y[:,0],Y[:,1],c=labels,s=1)
+        plt.show()
+        ```
+
+        References
+        ----------
+        [1] J. Lu, J. Calder. [Attraction-Repulsion Swarming: A Generalized Framework of t-SNE via Force Normalization and Tunable Interactions](https://arxiv.org/abs), Submitted, 2024.
+
+        &#34;&#34;&#34;
+
+        #Import c extensions
+        from . import cextensions
+
+        if use_pca and (X.shape[1] &gt; init_dim):
+            X = X - np.mean(X, axis=0)
+            vals, Q = sparse.linalg.eigsh(X.T@X, k=init_dim, which=&#39;LM&#39;)
+            X = X@Q
+
+        #Type casting and memory blocking
+        X = np.ascontiguousarray(X,dtype=np.float64)
+        Y = np.zeros((X.shape[0],dim),dtype=float)
+        Y = np.ascontiguousarray(Y,dtype=np.float64)
+
+        cextensions.ars(X,Y,dim,perplexity,kappa,iters,time_step,theta1,theta2,alpha,num_early,prog)
+
+        return Y</code></pre>
 </details>
 </section>
 <section>
@@ -2952,7 +3042,97 @@ eigendecompositions, which are useful in graph learning.</p>
                     else:
                         plt.plot([x[i],x[j]],[y[i],y[j]],color=linecolor,linewidth=linewidth,zorder=0)
 
-        return X</code></pre>
+        return X
+
+    def ars(X, dim=2, perplexity=30, kappa=0.5, iters=1000, time_step=1, theta1=2,
+            theta2=3, alpha=10, num_early=250, use_pca=True, init_dim=50, prog = False):
+        &#34;&#34;&#34;Attraction-Repulsion Swarming t-SNE
+        ======
+
+        Computes a low dimensional embedding (visualization) of a graph or data set using the Attraction-Repulsion Swarming method of [1]. Uses the Barnes-Hut approximation.
+
+        Parameters
+        ----------
+        X : numpy array (float) 
+            Data matrix, rows are data points.
+        dim : int (optional, default=2)
+            Dimension of embedding (usually 2 or 3).
+        perplexity : float (optional, default=30.0)
+            Perplexity for graph construction.
+        kappa : float (optional, default = 0.5)
+            Parameter for Barnes-Hut tree decomposition.
+        iters : int (optional, default=1000)
+            Number of iterations.
+        time_step : float (optional, default=1.0)
+            Time step for ARS iterations.
+        theta1 : float (optional, default = 2.0)
+            Attraction scaling exponent.
+        theta2 : float (optional, default = 3.0)
+            Repulsion scaling exponent. 
+        alpha : float (optional, default = 10.0)
+            Early exaggeration factor.
+        num_early : int (optional, default = 250)
+            Number of early exaggeration iterations.
+        use_pca : bool (optional, default = true)
+            Whether to use PCA to reduce the dimension to d=init_dim.
+        init_dim : int (optional, default = 50)
+            PCA dimension.
+        prog : bool (optional, default = False)
+            Whether to print out progress.
+
+
+        Returns
+        -------
+        Y : numpy array, float 
+            Matrix whose rows are the embedded points.
+
+        Example
+        -------
+        This example uses ARS t-SNE to visualize the MNIST data set: [ars_tsne.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/ars_tsne.py).
+        ```py
+        import graphlearning as gl 
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        #Load the MNIST data
+        data,labels = gl.datasets.load(&#39;mnist&#39;)
+
+        #In order to run the code more quickly, 
+        #you may want to subsample MNIST. 
+        size = 70000
+        if size &lt; data.shape[0]: #If less than 70000
+            ind = np.random.choice(data.shape[0], size=size, replace=False)
+            data = data[ind,:]
+            labels = labels[ind]
+
+        #Run ARS t-SNE and plot the result
+        Y = gl.graph.ars(data, prog=True)
+        plt.scatter(Y[:,0],Y[:,1],c=labels,s=1)
+        plt.show()
+        ```
+
+        References
+        ----------
+        [1] J. Lu, J. Calder. [Attraction-Repulsion Swarming: A Generalized Framework of t-SNE via Force Normalization and Tunable Interactions](https://arxiv.org/abs), Submitted, 2024.
+
+        &#34;&#34;&#34;
+
+        #Import c extensions
+        from . import cextensions
+
+        if use_pca and (X.shape[1] &gt; init_dim):
+            X = X - np.mean(X, axis=0)
+            vals, Q = sparse.linalg.eigsh(X.T@X, k=init_dim, which=&#39;LM&#39;)
+            X = X@Q
+
+        #Type casting and memory blocking
+        X = np.ascontiguousarray(X,dtype=np.float64)
+        Y = np.zeros((X.shape[0],dim),dtype=float)
+        Y = np.ascontiguousarray(Y,dtype=np.float64)
+
+        cextensions.ars(X,Y,dim,perplexity,kappa,iters,time_step,theta1,theta2,alpha,num_early,prog)
+
+        return Y</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -3079,6 +3259,165 @@ which allows for a much faster solver.</dd>
     cextensions.lip_iterate(u,self.J,self.I,self.V,bdy_set,bdy_val,max_num_it,tol,float(prog),float(weighted),float(alpha),float(beta))
 
     return u</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.ars"><code class="name flex">
+<span>def <span class="ident">ars</span></span>(<span>X, dim=2, perplexity=30, kappa=0.5, iters=1000, time_step=1, theta1=2, theta2=3, alpha=10, num_early=250, use_pca=True, init_dim=50, prog=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="attraction-repulsion-swarming-t-sne">Attraction-Repulsion Swarming t-SNE</h1>
+<p>Computes a low dimensional embedding (visualization) of a graph or data set using the Attraction-Repulsion Swarming method of [1]. Uses the Barnes-Hut approximation.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>numpy array (float) </code></dt>
+<dd>Data matrix, rows are data points.</dd>
+<dt><strong><code>dim</code></strong> :&ensp;<code>int (optional</code>, default=<code>2)</code></dt>
+<dd>Dimension of embedding (usually 2 or 3).</dd>
+<dt><strong><code>perplexity</code></strong> :&ensp;<code>float (optional</code>, default=<code>30.0)</code></dt>
+<dd>Perplexity for graph construction.</dd>
+<dt><strong><code>kappa</code></strong> :&ensp;<code>float (optional</code>, default <code>= 0.5)</code></dt>
+<dd>Parameter for Barnes-Hut tree decomposition.</dd>
+<dt><strong><code>iters</code></strong> :&ensp;<code>int (optional</code>, default=<code>1000)</code></dt>
+<dd>Number of iterations.</dd>
+<dt><strong><code>time_step</code></strong> :&ensp;<code>float (optional</code>, default=<code>1.0)</code></dt>
+<dd>Time step for ARS iterations.</dd>
+<dt><strong><code>theta1</code></strong> :&ensp;<code>float (optional</code>, default <code>= 2.0)</code></dt>
+<dd>Attraction scaling exponent.</dd>
+<dt><strong><code>theta2</code></strong> :&ensp;<code>float (optional</code>, default <code>= 3.0)</code></dt>
+<dd>Repulsion scaling exponent.</dd>
+<dt><strong><code>alpha</code></strong> :&ensp;<code>float (optional</code>, default <code>= 10.0)</code></dt>
+<dd>Early exaggeration factor.</dd>
+<dt><strong><code>num_early</code></strong> :&ensp;<code>int (optional</code>, default <code>= 250)</code></dt>
+<dd>Number of early exaggeration iterations.</dd>
+<dt><strong><code>use_pca</code></strong> :&ensp;<code>bool (optional</code>, default <code>= true)</code></dt>
+<dd>Whether to use PCA to reduce the dimension to d=init_dim.</dd>
+<dt><strong><code>init_dim</code></strong> :&ensp;<code>int (optional</code>, default <code>= 50)</code></dt>
+<dd>PCA dimension.</dd>
+<dt><strong><code>prog</code></strong> :&ensp;<code>bool (optional</code>, default <code>= False)</code></dt>
+<dd>Whether to print out progress.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Y</code></strong> :&ensp;<code>numpy array, float </code></dt>
+<dd>Matrix whose rows are the embedded points.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>This example uses ARS t-SNE to visualize the MNIST data set: <a href="https://github.com/jwcalder/GraphLearning/blob/master/examples/ars_tsne.py">ars_tsne.py</a>.</p>
+<pre><code class="language-py">import graphlearning as gl 
+import numpy as np
+import matplotlib.pyplot as plt
+
+#Load the MNIST data
+data,labels = gl.datasets.load('mnist')
+
+#In order to run the code more quickly, 
+#you may want to subsample MNIST. 
+size = 70000
+if size &lt; data.shape[0]: #If less than 70000
+    ind = np.random.choice(data.shape[0], size=size, replace=False)
+    data = data[ind,:]
+    labels = labels[ind]
+
+#Run ARS t-SNE and plot the result
+Y = gl.graph.ars(data, prog=True)
+plt.scatter(Y[:,0],Y[:,1],c=labels,s=1)
+plt.show()
+</code></pre>
+<h2 id="references">References</h2>
+<p>[1] J. Lu, J. Calder. <a href="https://arxiv.org/abs">Attraction-Repulsion Swarming: A Generalized Framework of t-SNE via Force Normalization and Tunable Interactions</a>, Submitted, 2024.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ars(X, dim=2, perplexity=30, kappa=0.5, iters=1000, time_step=1, theta1=2,
+        theta2=3, alpha=10, num_early=250, use_pca=True, init_dim=50, prog = False):
+    &#34;&#34;&#34;Attraction-Repulsion Swarming t-SNE
+    ======
+
+    Computes a low dimensional embedding (visualization) of a graph or data set using the Attraction-Repulsion Swarming method of [1]. Uses the Barnes-Hut approximation.
+
+    Parameters
+    ----------
+    X : numpy array (float) 
+        Data matrix, rows are data points.
+    dim : int (optional, default=2)
+        Dimension of embedding (usually 2 or 3).
+    perplexity : float (optional, default=30.0)
+        Perplexity for graph construction.
+    kappa : float (optional, default = 0.5)
+        Parameter for Barnes-Hut tree decomposition.
+    iters : int (optional, default=1000)
+        Number of iterations.
+    time_step : float (optional, default=1.0)
+        Time step for ARS iterations.
+    theta1 : float (optional, default = 2.0)
+        Attraction scaling exponent.
+    theta2 : float (optional, default = 3.0)
+        Repulsion scaling exponent. 
+    alpha : float (optional, default = 10.0)
+        Early exaggeration factor.
+    num_early : int (optional, default = 250)
+        Number of early exaggeration iterations.
+    use_pca : bool (optional, default = true)
+        Whether to use PCA to reduce the dimension to d=init_dim.
+    init_dim : int (optional, default = 50)
+        PCA dimension.
+    prog : bool (optional, default = False)
+        Whether to print out progress.
+
+
+    Returns
+    -------
+    Y : numpy array, float 
+        Matrix whose rows are the embedded points.
+
+    Example
+    -------
+    This example uses ARS t-SNE to visualize the MNIST data set: [ars_tsne.py](https://github.com/jwcalder/GraphLearning/blob/master/examples/ars_tsne.py).
+    ```py
+    import graphlearning as gl 
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    #Load the MNIST data
+    data,labels = gl.datasets.load(&#39;mnist&#39;)
+
+    #In order to run the code more quickly, 
+    #you may want to subsample MNIST. 
+    size = 70000
+    if size &lt; data.shape[0]: #If less than 70000
+        ind = np.random.choice(data.shape[0], size=size, replace=False)
+        data = data[ind,:]
+        labels = labels[ind]
+
+    #Run ARS t-SNE and plot the result
+    Y = gl.graph.ars(data, prog=True)
+    plt.scatter(Y[:,0],Y[:,1],c=labels,s=1)
+    plt.show()
+    ```
+
+    References
+    ----------
+    [1] J. Lu, J. Calder. [Attraction-Repulsion Swarming: A Generalized Framework of t-SNE via Force Normalization and Tunable Interactions](https://arxiv.org/abs), Submitted, 2024.
+
+    &#34;&#34;&#34;
+
+    #Import c extensions
+    from . import cextensions
+
+    if use_pca and (X.shape[1] &gt; init_dim):
+        X = X - np.mean(X, axis=0)
+        vals, Q = sparse.linalg.eigsh(X.T@X, k=init_dim, which=&#39;LM&#39;)
+        X = X@Q
+
+    #Type casting and memory blocking
+    X = np.ascontiguousarray(X,dtype=np.float64)
+    Y = np.zeros((X.shape[0],dim),dtype=float)
+    Y = np.ascontiguousarray(Y,dtype=np.float64)
+
+    cextensions.ars(X,Y,dim,perplexity,kappa,iters,time_step,theta1,theta2,alpha,num_early,prog)
+
+    return Y</code></pre>
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.degree_matrix"><code class="name flex">
@@ -5204,6 +5543,7 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 <ul class="">
 <li><code><a title="graphlearning.graph.graph.adjacency" href="#graphlearning.graph.graph.adjacency">adjacency</a></code></li>
 <li><code><a title="graphlearning.graph.graph.amle" href="#graphlearning.graph.graph.amle">amle</a></code></li>
+<li><code><a title="graphlearning.graph.graph.ars" href="#graphlearning.graph.graph.ars">ars</a></code></li>
 <li><code><a title="graphlearning.graph.graph.degree_matrix" href="#graphlearning.graph.graph.degree_matrix">degree_matrix</a></code></li>
 <li><code><a title="graphlearning.graph.graph.degree_vector" href="#graphlearning.graph.graph.degree_vector">degree_vector</a></code></li>
 <li><code><a title="graphlearning.graph.graph.dijkstra" href="#graphlearning.graph.graph.dijkstra">dijkstra</a></code></li>

@@ -109,8 +109,8 @@ static void insert_node(implicit_heap *heap, int nodeIndex, key_type newKey){
 static implicit_heap create_empty_heap_with_locations(int pcount){
     implicit_heap heap;
     heap.count=0;
-    heap.root=malloc(pcount*sizeof(implicit_heap_node));
-    heap.locations=malloc(pcount*sizeof(int));
+    heap.root=(implicit_heap_node*)malloc(pcount*sizeof(implicit_heap_node));
+    heap.locations=(int*)malloc(pcount*sizeof(int));
     return heap;
 }
 

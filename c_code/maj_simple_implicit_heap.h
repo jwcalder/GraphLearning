@@ -105,7 +105,7 @@ static void s_heap_insert_node(s_heap *heap, int nodeIndex, k_type newKey){
 static s_heap s_heap_create_empty_heap(int pcount){
     s_heap heap;
     heap.count=0;
-    heap.root=malloc(pcount*sizeof(s_heap_node));
+    heap.root=(s_heap_node*)malloc(pcount*sizeof(s_heap_node));
     return heap;
 }
 

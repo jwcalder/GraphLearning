@@ -110,8 +110,8 @@ void volume_preserving_auction(float *weights, int *labels, int *volumes, unsign
     //float prices[lcount];
     //memset(prices,0,lcount*sizeof(float));
     float *prices = (float*) calloc(lcount, sizeof(float)); 
-    int *unassigned=calloc(pcount,sizeof(int));
-    unsigned char *fixedPoints=calloc(pcount,1);
+    int *unassigned = (int*)calloc(pcount,sizeof(int));
+    unsigned char *fixedPoints=(unsigned char*)calloc(pcount,1);
     memcpy(fixedPoints,fixedLabels,pcount);
     float scalingFactor=4;
     float epsilon=epsilonMin*1.1;//*scalingFactor;
@@ -260,7 +260,7 @@ void volume_preserving_forward_reverse_auction(float *weights, int *labels, int 
     for(l=0;l<lcount;l++){
         forwardHeapHolder[l]=s_heap_create_empty_heap(upperVolumes[l]);
     }
-    int *unassigned=calloc(pcount,sizeof(int));
+    int *unassigned = (int*)calloc(pcount,sizeof(int));
     while(epsilon>epsilonMin){
         int feasible=0;
         while(!feasible){
@@ -321,13 +321,13 @@ generalConvolutionStructure create_symmetric_adjacency_matrix(indexedFloat *neig
     
     int i,j;
     
-    float *medians=calloc(pcount,sizeof(float));
+    float *medians=(float*)calloc(pcount,sizeof(float));
     for(i=0;i<pcount;i++){
         medians[i]=neighborData[i*maxNeighbors+k/2].dist;
     }
     
     
-    int *tcounts=calloc(pcount+1,sizeof(int));
+    int *tcounts=(int*)calloc(pcount+1,sizeof(int));
     for(i=0;i<pcount;i++){
         for(j=0;j<k;j++){
             int index=neighborData[maxNeighbors*i+j].index;
@@ -340,8 +340,8 @@ generalConvolutionStructure create_symmetric_adjacency_matrix(indexedFloat *neig
         tcounts[i+1]+=tcounts[i];
     }
     int num=tcounts[pcount-1];
-    float *tempWeights=calloc(num,sizeof(float));
-    int *tempIndicies=calloc(num,sizeof(int));
+    float *tempWeights=(float*)calloc(num,sizeof(float));
+    int *tempIndicies=(int*)calloc(num,sizeof(int));
     for(i=0;i<pcount;i++){
         for(j=0;j<k;j++){
             int index=neighborData[maxNeighbors*i+j].index;
@@ -358,8 +358,8 @@ generalConvolutionStructure create_symmetric_adjacency_matrix(indexedFloat *neig
         }
     }
     
-    int *counts=calloc(pcount+1,sizeof(int));
-    int *seen=calloc(pcount,sizeof(int));
+    int *counts=(int*)calloc(pcount+1,sizeof(int));
+    int *seen=(int*)calloc(pcount,sizeof(int));
     
     for(i=0;i<pcount;i++){
         for(j=tcounts[i];j<tcounts[i+1];j++){
@@ -374,8 +374,8 @@ generalConvolutionStructure create_symmetric_adjacency_matrix(indexedFloat *neig
         counts[i+1]+=counts[i];
     }
     
-    float *weights=calloc(counts[pcount],sizeof(float));
-    int *indicies=calloc(counts[pcount],sizeof(int));
+    float *weights=(float*)calloc(counts[pcount],sizeof(float));
+    int *indicies=(int*)calloc(counts[pcount],sizeof(int));
     memset(seen,0,pcount*sizeof(int));
     
     for(i=0;i<pcount;i++){
@@ -421,7 +421,7 @@ generalConvolutionStructure create_symmetric_matrix(float (* kernel)(float), ind
 
 void normalize_matrix(generalConvolutionStructure g, int pcount){
     int i,j;
-    float *sums=calloc(pcount,sizeof(float));
+    float *sums=(float*)calloc(pcount,sizeof(float));
     float *weights=g.connectionStrengths;
     int *indicies=g.neighbors;
     int *counts=g.counts;
@@ -447,7 +447,7 @@ generalConvolutionStructure create_dual_convolution_structure(mbo_struct mbos){
     int tot=0;
     int pcount=mbos.pcount;
     
-    int *counts=calloc(pcount+1,sizeof(int)); //store the index range for each point
+    int *counts=(int*)calloc(pcount+1,sizeof(int)); //store the index range for each point
     int *nncounts=mbos.nncounts;
     for(i=0;i<pcount;i++){
         for(j=nncounts[i];j<nncounts[i+1];j++){
@@ -462,8 +462,8 @@ generalConvolutionStructure create_dual_convolution_structure(mbo_struct mbos){
     for(i=1;i<pcount;i++){
         counts[i]+=counts[i-1]; //count now holds upper index cutoff for each point
     }
-    int *neighbors=calloc(tot,sizeof(int));
-    float *connectionStrengths=calloc(tot,sizeof(int));
+    int *neighbors=(int*)calloc(tot,sizeof(int));
+    float *connectionStrengths=(float*)calloc(tot,sizeof(float));
     
     for(i=0;i<pcount;i++){//loop to assign neighbors and strengths and set counts to hold the index range for each point
         for(j=nncounts[i];j<nncounts[i+1];j++){
@@ -500,8 +500,8 @@ void calc_linear_from_voronoi_neighbors(mbo_struct *mbos, generalConvolutionStru
     int pcount=mbos->pcount;
     int lcount=mbos->lcount;
     int *labels=mbos->labels;
-    float *linear=calloc(pcount*lcount,sizeof(float));
-    int *seen=calloc(lcount,sizeof(int));
+    float *linear=(float*)calloc(pcount*lcount,sizeof(float));
+    int *seen=(int*)calloc(lcount,sizeof(int));
     for(i=0;i<pcount;i++){
         for(j=g.counts[i];j<g.counts[i+1];j++){
             int index=g.neighbors[j];
@@ -529,11 +529,11 @@ void bellman_ford_voronoi_initialization(mbo_struct *mbos, generalConvolutionStr
     int i,j;
     //clock_t b,e;
     int pcount=mbos->pcount;
-    unsigned char *active=calloc(pcount,1);
+    unsigned char *active=(unsigned char*)calloc(pcount,1);
     unsigned char *fixedLabels=mbos->fixedLabels;
     int *labels=mbos->labels;
     memcpy(active,fixedLabels,pcount*1);
-    float *voronoiDistances=calloc(pcount,sizeof(float));
+    float *voronoiDistances=(float*)calloc(pcount,sizeof(float));
     //b=clock();
     for(i=0;i<pcount;i++){
         for(j=g.counts[i];j<g.counts[i+1];j++){
@@ -590,7 +590,7 @@ void voronoi_initialization(mbo_struct *mbos, generalConvolutionStructure g, int
     int *labels=mbos->labels;
     unsigned char *fixedLabels=mbos->fixedLabels;
     int pcount=mbos->pcount;
-    float *voronoiDistances=calloc(pcount,sizeof(float));
+    float *voronoiDistances=(float*)calloc(pcount,sizeof(float));
     
     for(i=0;i<pcount;i++){
         for(j=g.counts[i];j<g.counts[i+1];j++){
@@ -663,7 +663,7 @@ char calc_dual_convolution(mbo_struct mbos, generalConvolutionStructure dual, fl
     int lcount=mbos.lcount;
     
     
-    float *labelValues=calloc(pcount*lcount,sizeof(float));
+    float *labelValues=(float*)calloc(pcount*lcount,sizeof(float));
     char noneNegative=calc_first_convolution(mbos,labelValues);
     for(i=0;i<pcount;i++){
         for(j=dual.counts[i];j<dual.counts[i+1];j++){//counts holds the neighbor and strength array index range for each point
@@ -835,7 +835,7 @@ float update_labels(mbo_struct mbos, float *convLabels, int *volumes, int *cc){
     float *surfaceTensions=mbos.surfaceTensions;
     float epsilon=mbos.epsilon;
     float energy=0;
-    int *oldLabels=calloc(pcount,sizeof(int));
+    int *oldLabels=(int*)calloc(pcount,sizeof(int));
     memcpy(oldLabels,labels,pcount*sizeof(int));
     float uvm=mbos.upperVolumeMultiplier;
     float lvm=mbos.lowerVolumeMultiplier;
@@ -1009,7 +1009,7 @@ int convolve_and_threshold(mbo_struct mbos, int *tempLabels){
 void run_mbo_lfr(mbo_struct mbos){
     int maxIters=mbos.maxIters;
     int pcount=mbos.pcount;
-    int *tempLabels=calloc(pcount,sizeof(int));
+    int *tempLabels=(int*)calloc(pcount,sizeof(int));
     for(int i=0;i<maxIters;i++){
         int changedCount=convolve_and_threshold(mbos,tempLabels);
         if(changedCount<mbos.stoppingCriterion){
@@ -1048,7 +1048,7 @@ float run_mbo(mbo_struct mbos, char mode){
     int *volumes = (int*)malloc(lcount*sizeof(int));
     memcpy(volumes,mbos.classCounts,lcount*sizeof(int));
     int changedCount=pcount*lcount;
-    float *convLabels=calloc(pcount*lcount,sizeof(float));
+    float *convLabels=(float*)calloc(pcount*lcount,sizeof(float));
     for(i=0;i<maxIters;i++){
         //factor=sqrt(factor);
         if(mode=='k'&& changedCount*degree>pcount*lcount){
@@ -1101,15 +1101,15 @@ float run_mbo_with_temperature(mbo_struct mbos, char mode){
     }
     remove_fixed_labels_from_volumes(mbos);
     float best=FLT_MAX;
-    int *savedLabels=calloc(pcount,sizeof(int));
+    int *savedLabels=(int*)calloc(pcount,sizeof(int));
     //int volumes[lcount];
     int *volumes = (int*)malloc(lcount*sizeof(int));
     memcpy(volumes,mbos.classCounts,lcount*sizeof(int));
-    float *convLabels=calloc(pcount*lcount,sizeof(float));
+    float *convLabels=(float*)calloc(pcount*lcount,sizeof(float));
     int changedCount=pcount*lcount;
     for(i=0;i<maxIters;i++){
         //factor=sqrt(factor);
-        float *tempLabels=calloc(pcount*lcount,sizeof(float));
+        float *tempLabels=(float*)calloc(pcount*lcount,sizeof(float));
         if(mode=='k'&& changedCount*degree>pcount*lcount){
             memset(convLabels,0,pcount*lcount*sizeof(float));
             calc_first_convolution(mbos, convLabels);

@@ -14,6 +14,7 @@
 #include "hjsolvers.h"
 //#include <stdio.h>
 //#include <stdlib.h>
+#include "tsne.h"
 
 static PyObject* lp_iterate(PyObject* self, PyObject* args)
 {
@@ -309,7 +310,36 @@ static PyObject* peikonal_fmm(PyObject* self, PyObject* args)
    return Py_None;
 }
 
+static PyObject* ars(PyObject* self, PyObject* args)
+{
 
+   int origN, N, D, no_dims, max_iter, num_early;
+   double perplexity, theta, *data, theta1, theta2, alpha, time_step;
+   int rand_seed = -1;
+   bool prog;
+
+   PyArrayObject *X_array, *Y_array;
+
+   /*  parse arguments */
+   if (!PyArg_ParseTuple(args, "O!O!iddiddddip",
+                               &PyArray_Type, &X_array,
+                               &PyArray_Type, &Y_array, 
+                               &no_dims, &perplexity, &theta, &max_iter,
+                               &time_step, &theta1, &theta2, &alpha, &num_early, &prog))
+      return NULL;
+
+   npy_intp *dim =  PyArray_DIMS(X_array);
+   N = dim[0]; //Number of data points
+   D = dim[1]; //Number of dimensions of X
+
+   double *X = (double *) PyArray_DATA(X_array);
+   double *Y = (double *) PyArray_DATA(Y_array);
+
+   tsne_run(X, N, D, Y, no_dims, perplexity, theta, rand_seed, false, max_iter, 250, 250, time_step, theta1, theta2, alpha, num_early, prog);
+
+   Py_INCREF(Py_None);
+   return Py_None;
+}
 
 /*  define functions in module */
 static PyMethodDef CExtensionsMethods[] =
@@ -321,6 +351,7 @@ static PyMethodDef CExtensionsMethods[] =
    {"dijkstra_hl", dijkstra_hl, METH_VARARGS, "Dijkstra's algorithm in Hopf-Lax formula"},
    {"peikonal", peikonal, METH_VARARGS, "C code version of p-eikonal solver via Gauss-Seidel"},
    {"peikonal_fmm", peikonal_fmm, METH_VARARGS, "C code version of p-eikonal solver via Fast Marching"},
+   {"ars", ars, METH_VARARGS, "Attraction-Repulsion Swarming t-SNE"},
    {NULL, NULL, 0, NULL}
 };
 

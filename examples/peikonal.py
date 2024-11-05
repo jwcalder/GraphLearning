@@ -7,7 +7,7 @@ import time
 X = np.random.rand(int(10000),2)
 x,y = X[:,0],X[:,1]
 
-eps = 0.02
+eps = 0.025
 W = gl.weightmatrix.epsilon_ball(X, eps)
 G = gl.graph(W)
 

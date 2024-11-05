@@ -75,7 +75,7 @@ void sort_int(int *array, int n){
 void sort_float(float *array, int n){
     qsort(array,n,sizeof(float),&compare_float);
 }
-
+/*
 indexedFloat *readAndConvertDistanceDataToIndexedFloat(const char *distanceFilename, const char *knnFilename, int maxNeighbors, int pcount){
     int i,j;
     float *distances=getFileData(distanceFilename);
@@ -96,7 +96,7 @@ indexedFloat *readAndConvertDistanceDataToIndexedFloat(const char *distanceFilen
     free(indicies);
     return comboData;
     
-}
+}*/
 
 
 float kernel(float t){
@@ -130,7 +130,7 @@ void mbo_main(int *labels, int *I, int *J, float *W, int *ind, int *val, int *cl
    char *mode="dvn";
 
    //Set vector indicating label locations and label values
-   unsigned char *fixedLabels=calloc(pcount,1); //array that tracks which points have a fixed correct label
+   unsigned char *fixedLabels=(unsigned char*)calloc(pcount,1); //array that tracks which points have a fixed correct label
    for(j=0;j<m;j++){
       fixedLabels[ind[j]] = 1;
       labels[ind[j]]=val[j];
@@ -181,7 +181,7 @@ void mbo_main(int *labels, int *I, int *J, float *W, int *ind, int *val, int *cl
    mbos.indicies=g.neighbors; // entries nncounts[i] through nncounts[i+1]-1 hold the indicies of the nearest neighbors of node i
    mbos.weights=g.connectionStrengths; // entries nncounts[i] through nncounts[i+1]-1 hold the weights of the nearest neighbors of node i
 
-   mbos.updateList=calloc(pcount,sizeof(nodeChanged)); //allocate memory for internal workspace
+   mbos.updateList=(nodeChanged*)calloc(pcount,sizeof(nodeChanged)); //allocate memory for internal workspace
    mbos.surfaceTensions=NULL;//surfaceTensions; // create a lcount*lcount symmetric matrix if surface tensions are used.
    mbos.fixedLabels=fixedLabels; //binary array of length pcount recording the nodes whose label is known
    mbos.labels=labels; //integer array of length pcount holding label of each node

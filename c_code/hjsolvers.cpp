@@ -292,7 +292,7 @@ void peikonal_main(double *u, int *WI, int *K, double *WV, int *I, double *f,  d
    //Initialization
    int i,j,ii,kk;
    bool *A = vector_bool(n,1);      //Indicates labeled nodes
-   NearestNeighbors *neighbors = malloc((n+1)*sizeof(NearestNeighbors));
+   NearestNeighbors *neighbors = (NearestNeighbors*)malloc((n+1)*sizeof(NearestNeighbors));
 
    //Set mask for labeled nodes
    for(i=0; i<k; i++){
@@ -349,7 +349,7 @@ void peikonal_fmm_main(double *u, int *WI, int *K, double *WV, int *I, double *f
    int *p = vector_int(n,-1);       //Pointer back to heap
    bool *V = vector_bool(n,0);      //Finalized flag
    bool *L = vector_bool(n,1);      //Indicates labeled nodes
-   NearestNeighbors *neighbors = malloc((n+1)*sizeof(NearestNeighbors));
+   NearestNeighbors *neighbors = (NearestNeighbors*)malloc((n+1)*sizeof(NearestNeighbors));
 
    //Build active points heap and set distance = g for initial points
    for(i=0; i<k; i++){

@@ -169,9 +169,9 @@ void lip_iterate_main(double *u, int *I, int *J, double *W, int *ind, double *va
                minu = MIN(u[I[j]],minu);
                maxu = MAX(u[I[j]],maxu);
             }
-            double new = alpha*sumu/deg + beta*(minu + maxu)/2;
-            err = MAX(ABS(u[i] - new),err);
-            u[i] = new;
+            double ne = alpha*sumu/deg + beta*(minu + maxu)/2;
+            err = MAX(ABS(u[i] - ne),err);
+            u[i] = ne;
          }
       }
 
@@ -241,9 +241,9 @@ void lip_iterate_weighted_main(double *u, int *I, int *J, double *W, int *ind, d
                else
                   a = t;
             }
-            double new = (a + b)/2.0;
-            err = MAX(ABS(u[i] - new),err);
-            u[i] = new;
+            double ne = (a + b)/2.0;
+            err = MAX(ABS(u[i] - ne),err);
+            u[i] = ne;
          }
       }
 
