@@ -57,8 +57,9 @@ static void computeSquaredEuclideanDistance(double* X, int N, int D, double* DD)
 static void symmetrizeMatrix(unsigned int** row_P, unsigned int** col_P, double** val_P, int N);
 
 // Perform t-SNE
-void tsne_run(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int rand_seed, bool skip_random_init, int max_iter, int stop_lying_iter, int mom_switch_iter, double time_step, double theta1, double theta2, double alpha, int num_early, bool prog) {
+void tsne_run(double* X, int N, int D, double* Y, int no_dims, double perplexity, double theta, int rand_seed, bool skip_random_init, int max_iter, int stop_lying_iter, int mom_switch_iter, double time_step, double theta1, double theta2, double alpha, int num_early, bool prog, bool dump_to_file) {
 
+    //prog = true;
     // Set random seed
     if(prog){
     if (skip_random_init != true) {
@@ -163,6 +164,7 @@ void tsne_run(double* X, int N, int D, double* Y, int no_dims, double perplexity
 
 	// Initialize solution (randomly)
   if (skip_random_init != true) {
+    printf("Initializing randomly...\n");
   	for(int i = 0; i < N * no_dims; i++) Y[i] = randn() * .0001;
   }
 
@@ -174,6 +176,17 @@ void tsne_run(double* X, int N, int D, double* Y, int no_dims, double perplexity
     start = clock();
 
 	for(int iter = 0; iter < max_iter; iter++) {
+        
+        //Write current data to file
+        if(dump_to_file){
+            FILE *pFile;
+            char fname[50];
+            snprintf(fname, 50, "ars_%d.bin", iter);
+            pFile = fopen(fname, "wb");
+            printf("Writing to %s...\n",fname);
+            fwrite(Y, sizeof(double), N*no_dims, pFile);
+            fclose(pFile);
+        }
 
         // Compute (approximate) gradient
         if(exact) 
@@ -194,7 +207,14 @@ void tsne_run(double* X, int N, int D, double* Y, int no_dims, double perplexity
         for(int i = 0; i < N * no_dims; i++) uY[i] = momentum * uY[i] - eta * gains[i] * dY[i];
 		for(int i = 0; i < N * no_dims; i++)  Y[i] = Y[i] + uY[i];
         */
-		for(int i = 0; i < N * no_dims; i++)  Y[i] -= time_step * dY[i];
+
+        //This was modified
+        if(iter < num_early){
+		    for(int i = 0; i < N * no_dims; i++)  Y[i] -= time_step * dY[i] / alpha;
+        }else{
+		    for(int i = 0; i < N * no_dims; i++)  Y[i] -= time_step * dY[i];
+        }
+
 
         // Make solution zero-mean
 		zeroMean(Y, N, no_dims);

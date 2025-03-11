@@ -316,16 +316,17 @@ static PyObject* ars(PyObject* self, PyObject* args)
    int origN, N, D, no_dims, max_iter, num_early;
    double perplexity, theta, *data, theta1, theta2, alpha, time_step;
    int rand_seed = -1;
-   bool prog;
+   int prog, skip_random_init, dump_to_file;
 
    PyArrayObject *X_array, *Y_array;
 
    /*  parse arguments */
-   if (!PyArg_ParseTuple(args, "O!O!iddiddddip",
+   if (!PyArg_ParseTuple(args, "O!O!iddiddddiiii",
                                &PyArray_Type, &X_array,
                                &PyArray_Type, &Y_array, 
                                &no_dims, &perplexity, &theta, &max_iter,
-                               &time_step, &theta1, &theta2, &alpha, &num_early, &prog))
+                               &time_step, &theta1, &theta2, &alpha, &num_early,
+                               &prog, &skip_random_init, &dump_to_file))
       return NULL;
 
    npy_intp *dim =  PyArray_DIMS(X_array);
@@ -335,7 +336,7 @@ static PyObject* ars(PyObject* self, PyObject* args)
    double *X = (double *) PyArray_DATA(X_array);
    double *Y = (double *) PyArray_DATA(Y_array);
 
-   tsne_run(X, N, D, Y, no_dims, perplexity, theta, rand_seed, false, max_iter, 250, 250, time_step, theta1, theta2, alpha, num_early, prog);
+   tsne_run(X, N, D, Y, no_dims, perplexity, theta, rand_seed, skip_random_init, max_iter, 250, 250, time_step, theta1, theta2, alpha, num_early, prog, dump_to_file);
 
    Py_INCREF(Py_None);
    return Py_None;

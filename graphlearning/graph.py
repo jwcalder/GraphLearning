@@ -13,6 +13,7 @@ from scipy import sparse
 from scipy import spatial
 import scipy.sparse.linalg as splinalg
 import scipy.sparse.csgraph as csgraph
+from sklearn.decomposition import PCA
 import time
 import sys
 import pickle
@@ -1453,7 +1454,8 @@ class graph:
         return X
 
     def ars(X, dim=2, perplexity=30, kappa=0.5, iters=1000, time_step=1, theta1=2,
-            theta2=3, alpha=10, num_early=250, use_pca=True, init_dim=50, prog = False):
+            theta2=3, alpha=10, num_early=250, use_pca=True, init_dim=200, 
+            init='pca', prog = False, dump=False):
         """Attraction-Repulsion Swarming t-SNE
         ======
 
@@ -1483,10 +1485,14 @@ class graph:
             Number of early exaggeration iterations.
         use_pca : bool (optional, default = true)
             Whether to use PCA to reduce the dimension to d=init_dim.
-        init_dim : int (optional, default = 50)
+        init_dim : int (optional, default = 200)
             PCA dimension.
+        init : string {'random','pca'} or numpy array.
+            Whether to use random initialization, PCA, or user-defined (default 'pca').
         prog : bool (optional, default = False)
             Whether to print out progress.
+        dump : bool (optional, default = False)
+            Whether to write intermediate states to files. 
 
 
         Returns
@@ -1535,10 +1541,32 @@ class graph:
 
         #Type casting and memory blocking
         X = np.ascontiguousarray(X,dtype=np.float64)
-        Y = np.zeros((X.shape[0],dim),dtype=float)
-        Y = np.ascontiguousarray(Y,dtype=np.float64)
+        #Y = np.zeros((X.shape[0],dim),dtype=float)
+        #Y = X[:,-dim:].copy()
+        #Y -= np.mean(Y,axis=0)
+        #sig = np.sqrt(np.sum(Y*Y,axis=0))
+        #Y = Y/sig
+        #print(np.mean(Y,axis=0))
+        #print(np.sum(Y*Y,axis=0))
+        #Y = Y*0.001
 
-        cextensions.ars(X,Y,dim,perplexity,kappa,iters,time_step,theta1,theta2,alpha,num_early,prog)
+        if type(init) == np.ndarray:
+            skip_random_init = True
+            Y = init.copy()
+            Y = np.ascontiguousarray(Y,dtype=np.float64)
+        elif init == 'pca':
+            skip_random_init = True
+            pca = PCA(n_components=dim,svd_solver="randomized")
+            pca.set_output(transform="default")
+            Y = pca.fit_transform(X).astype(np.float32, copy=False)
+            Y = Y / np.std(Y[:, 0]) * 1e-4
+            Y = np.ascontiguousarray(Y,dtype=np.float64)
+        else:
+            skip_random_init = False
+            Y = np.zeros((X.shape[0],dim))
+            Y = np.ascontiguousarray(Y,dtype=np.float64)
+
+        cextensions.ars(X,Y,dim,perplexity,kappa,iters,time_step,theta1,theta2,alpha,num_early,int(prog),int(skip_random_init),int(dump))
 
         return Y
 
