@@ -47,6 +47,7 @@ from scipy import sparse
 from scipy import spatial
 import scipy.sparse.linalg as splinalg
 import scipy.sparse.csgraph as csgraph
+from sklearn.decomposition import PCA
 import time
 import sys
 import pickle
@@ -614,6 +615,44 @@ class graph:
 
         return G, ind
 
+    def diffusion_map(self, k=1, alpha=1, d=3, full=False):
+        &#34;&#34;&#34;Diffusion Map Spectral Embedding
+        ======
+
+        Returns the diffusion map spectral embedding of Coifman-Lafon.
+
+        Coifman, R.R. and Lafon, S., 2006. Diffusion maps. Applied and computational harmonic analysis, 21(1), pp.5-30.
+
+        Parameters
+        ----------
+        k : fload (optional), default=1
+            Number of diffusion steps.
+        alpha : float (optional), default=1
+            Normalization exponent.
+        d : int (optional), default=2
+            Dimension of the embedding
+        full : bool (optional), default=False
+            Whether to include the trivial first eigenvector.
+
+        Returns
+        -------
+        vals : numpy array, float 
+            eigenvalues in increasing order.
+        emb : (n,d) numpy array, float
+            diffusion map embedding.
+        &#34;&#34;&#34;
+
+        D = self.degree_matrix(p=-alpha)
+        H = graph(D*self.weight_matrix*D)
+
+        vals, V = H.eigen_decomp(normalization=&#39;randomwalk&#39;,k=d)
+
+        if full:
+            S = 1 - vals
+            return vals,V@np.diag(S**k)
+        else:
+            S = 1 - vals[1:]
+            return vals[1:],V[:,1:]@np.diag(S**k)
 
     def eigen_decomp(self, normalization=&#39;combinatorial&#39;, method=&#39;exact&#39;, k=10, c=None, gamma=0, tol=0, q=1):
         &#34;&#34;&#34;Eigen Decomposition of Graph Laplacian
@@ -1487,7 +1526,8 @@ class graph:
         return X
 
     def ars(X, dim=2, perplexity=30, kappa=0.5, iters=1000, time_step=1, theta1=2,
-            theta2=3, alpha=10, num_early=250, use_pca=True, init_dim=50, prog = False):
+            theta2=3, alpha=10, num_early=250, use_pca=True, init_dim=200, 
+            init=&#39;pca&#39;, prog = False, dump=False):
         &#34;&#34;&#34;Attraction-Repulsion Swarming t-SNE
         ======
 
@@ -1517,10 +1557,14 @@ class graph:
             Number of early exaggeration iterations.
         use_pca : bool (optional, default = true)
             Whether to use PCA to reduce the dimension to d=init_dim.
-        init_dim : int (optional, default = 50)
+        init_dim : int (optional, default = 200)
             PCA dimension.
+        init : string {&#39;random&#39;,&#39;pca&#39;} or numpy array.
+            Whether to use random initialization, PCA, or user-defined (default &#39;pca&#39;).
         prog : bool (optional, default = False)
             Whether to print out progress.
+        dump : bool (optional, default = False)
+            Whether to write intermediate states to files. 
 
 
         Returns
@@ -1569,10 +1613,32 @@ class graph:
 
         #Type casting and memory blocking
         X = np.ascontiguousarray(X,dtype=np.float64)
-        Y = np.zeros((X.shape[0],dim),dtype=float)
-        Y = np.ascontiguousarray(Y,dtype=np.float64)
+        #Y = np.zeros((X.shape[0],dim),dtype=float)
+        #Y = X[:,-dim:].copy()
+        #Y -= np.mean(Y,axis=0)
+        #sig = np.sqrt(np.sum(Y*Y,axis=0))
+        #Y = Y/sig
+        #print(np.mean(Y,axis=0))
+        #print(np.sum(Y*Y,axis=0))
+        #Y = Y*0.001
 
-        cextensions.ars(X,Y,dim,perplexity,kappa,iters,time_step,theta1,theta2,alpha,num_early,prog)
+        if type(init) == np.ndarray:
+            skip_random_init = True
+            Y = init.copy()
+            Y = np.ascontiguousarray(Y,dtype=np.float64)
+        elif init == &#39;pca&#39;:
+            skip_random_init = True
+            pca = PCA(n_components=dim,svd_solver=&#34;randomized&#34;)
+            pca.set_output(transform=&#34;default&#34;)
+            Y = pca.fit_transform(X).astype(np.float32, copy=False)
+            Y = Y / np.std(Y[:, 0]) * 1e-4
+            Y = np.ascontiguousarray(Y,dtype=np.float64)
+        else:
+            skip_random_init = False
+            Y = np.zeros((X.shape[0],dim))
+            Y = np.ascontiguousarray(Y,dtype=np.float64)
+
+        cextensions.ars(X,Y,dim,perplexity,kappa,iters,time_step,theta1,theta2,alpha,num_early,int(prog),int(skip_random_init),int(dump))
 
         return Y</code></pre>
 </details>
@@ -2172,6 +2238,44 @@ eigendecompositions, which are useful in graph learning.</p>
 
         return G, ind
 
+    def diffusion_map(self, k=1, alpha=1, d=3, full=False):
+        &#34;&#34;&#34;Diffusion Map Spectral Embedding
+        ======
+
+        Returns the diffusion map spectral embedding of Coifman-Lafon.
+
+        Coifman, R.R. and Lafon, S., 2006. Diffusion maps. Applied and computational harmonic analysis, 21(1), pp.5-30.
+
+        Parameters
+        ----------
+        k : fload (optional), default=1
+            Number of diffusion steps.
+        alpha : float (optional), default=1
+            Normalization exponent.
+        d : int (optional), default=2
+            Dimension of the embedding
+        full : bool (optional), default=False
+            Whether to include the trivial first eigenvector.
+
+        Returns
+        -------
+        vals : numpy array, float 
+            eigenvalues in increasing order.
+        emb : (n,d) numpy array, float
+            diffusion map embedding.
+        &#34;&#34;&#34;
+
+        D = self.degree_matrix(p=-alpha)
+        H = graph(D*self.weight_matrix*D)
+
+        vals, V = H.eigen_decomp(normalization=&#39;randomwalk&#39;,k=d)
+
+        if full:
+            S = 1 - vals
+            return vals,V@np.diag(S**k)
+        else:
+            S = 1 - vals[1:]
+            return vals[1:],V[:,1:]@np.diag(S**k)
 
     def eigen_decomp(self, normalization=&#39;combinatorial&#39;, method=&#39;exact&#39;, k=10, c=None, gamma=0, tol=0, q=1):
         &#34;&#34;&#34;Eigen Decomposition of Graph Laplacian
@@ -3045,7 +3149,8 @@ eigendecompositions, which are useful in graph learning.</p>
         return X
 
     def ars(X, dim=2, perplexity=30, kappa=0.5, iters=1000, time_step=1, theta1=2,
-            theta2=3, alpha=10, num_early=250, use_pca=True, init_dim=50, prog = False):
+            theta2=3, alpha=10, num_early=250, use_pca=True, init_dim=200, 
+            init=&#39;pca&#39;, prog = False, dump=False):
         &#34;&#34;&#34;Attraction-Repulsion Swarming t-SNE
         ======
 
@@ -3075,10 +3180,14 @@ eigendecompositions, which are useful in graph learning.</p>
             Number of early exaggeration iterations.
         use_pca : bool (optional, default = true)
             Whether to use PCA to reduce the dimension to d=init_dim.
-        init_dim : int (optional, default = 50)
+        init_dim : int (optional, default = 200)
             PCA dimension.
+        init : string {&#39;random&#39;,&#39;pca&#39;} or numpy array.
+            Whether to use random initialization, PCA, or user-defined (default &#39;pca&#39;).
         prog : bool (optional, default = False)
             Whether to print out progress.
+        dump : bool (optional, default = False)
+            Whether to write intermediate states to files. 
 
 
         Returns
@@ -3127,10 +3236,32 @@ eigendecompositions, which are useful in graph learning.</p>
 
         #Type casting and memory blocking
         X = np.ascontiguousarray(X,dtype=np.float64)
-        Y = np.zeros((X.shape[0],dim),dtype=float)
-        Y = np.ascontiguousarray(Y,dtype=np.float64)
+        #Y = np.zeros((X.shape[0],dim),dtype=float)
+        #Y = X[:,-dim:].copy()
+        #Y -= np.mean(Y,axis=0)
+        #sig = np.sqrt(np.sum(Y*Y,axis=0))
+        #Y = Y/sig
+        #print(np.mean(Y,axis=0))
+        #print(np.sum(Y*Y,axis=0))
+        #Y = Y*0.001
 
-        cextensions.ars(X,Y,dim,perplexity,kappa,iters,time_step,theta1,theta2,alpha,num_early,prog)
+        if type(init) == np.ndarray:
+            skip_random_init = True
+            Y = init.copy()
+            Y = np.ascontiguousarray(Y,dtype=np.float64)
+        elif init == &#39;pca&#39;:
+            skip_random_init = True
+            pca = PCA(n_components=dim,svd_solver=&#34;randomized&#34;)
+            pca.set_output(transform=&#34;default&#34;)
+            Y = pca.fit_transform(X).astype(np.float32, copy=False)
+            Y = Y / np.std(Y[:, 0]) * 1e-4
+            Y = np.ascontiguousarray(Y,dtype=np.float64)
+        else:
+            skip_random_init = False
+            Y = np.zeros((X.shape[0],dim))
+            Y = np.ascontiguousarray(Y,dtype=np.float64)
+
+        cextensions.ars(X,Y,dim,perplexity,kappa,iters,time_step,theta1,theta2,alpha,num_early,int(prog),int(skip_random_init),int(dump))
 
         return Y</code></pre>
 </details>
@@ -3262,7 +3393,7 @@ which allows for a much faster solver.</dd>
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.ars"><code class="name flex">
-<span>def <span class="ident">ars</span></span>(<span>X, dim=2, perplexity=30, kappa=0.5, iters=1000, time_step=1, theta1=2, theta2=3, alpha=10, num_early=250, use_pca=True, init_dim=50, prog=False)</span>
+<span>def <span class="ident">ars</span></span>(<span>X, dim=2, perplexity=30, kappa=0.5, iters=1000, time_step=1, theta1=2, theta2=3, alpha=10, num_early=250, use_pca=True, init_dim=200, init='pca', prog=False, dump=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h1 id="attraction-repulsion-swarming-t-sne">Attraction-Repulsion Swarming t-SNE</h1>
@@ -3291,10 +3422,14 @@ which allows for a much faster solver.</dd>
 <dd>Number of early exaggeration iterations.</dd>
 <dt><strong><code>use_pca</code></strong> :&ensp;<code>bool (optional</code>, default <code>= true)</code></dt>
 <dd>Whether to use PCA to reduce the dimension to d=init_dim.</dd>
-<dt><strong><code>init_dim</code></strong> :&ensp;<code>int (optional</code>, default <code>= 50)</code></dt>
+<dt><strong><code>init_dim</code></strong> :&ensp;<code>int (optional</code>, default <code>= 200)</code></dt>
 <dd>PCA dimension.</dd>
+<dt>init : string {'random','pca'} or numpy array.</dt>
+<dt>Whether to use random initialization, PCA, or user-defined (default 'pca').</dt>
 <dt><strong><code>prog</code></strong> :&ensp;<code>bool (optional</code>, default <code>= False)</code></dt>
 <dd>Whether to print out progress.</dd>
+<dt><strong><code>dump</code></strong> :&ensp;<code>bool (optional</code>, default <code>= False)</code></dt>
+<dd>Whether to write intermediate states to files.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -3330,7 +3465,8 @@ plt.show()
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def ars(X, dim=2, perplexity=30, kappa=0.5, iters=1000, time_step=1, theta1=2,
-        theta2=3, alpha=10, num_early=250, use_pca=True, init_dim=50, prog = False):
+        theta2=3, alpha=10, num_early=250, use_pca=True, init_dim=200, 
+        init=&#39;pca&#39;, prog = False, dump=False):
     &#34;&#34;&#34;Attraction-Repulsion Swarming t-SNE
     ======
 
@@ -3360,10 +3496,14 @@ plt.show()
         Number of early exaggeration iterations.
     use_pca : bool (optional, default = true)
         Whether to use PCA to reduce the dimension to d=init_dim.
-    init_dim : int (optional, default = 50)
+    init_dim : int (optional, default = 200)
         PCA dimension.
+    init : string {&#39;random&#39;,&#39;pca&#39;} or numpy array.
+        Whether to use random initialization, PCA, or user-defined (default &#39;pca&#39;).
     prog : bool (optional, default = False)
         Whether to print out progress.
+    dump : bool (optional, default = False)
+        Whether to write intermediate states to files. 
 
 
     Returns
@@ -3412,10 +3552,32 @@ plt.show()
 
     #Type casting and memory blocking
     X = np.ascontiguousarray(X,dtype=np.float64)
-    Y = np.zeros((X.shape[0],dim),dtype=float)
-    Y = np.ascontiguousarray(Y,dtype=np.float64)
+    #Y = np.zeros((X.shape[0],dim),dtype=float)
+    #Y = X[:,-dim:].copy()
+    #Y -= np.mean(Y,axis=0)
+    #sig = np.sqrt(np.sum(Y*Y,axis=0))
+    #Y = Y/sig
+    #print(np.mean(Y,axis=0))
+    #print(np.sum(Y*Y,axis=0))
+    #Y = Y*0.001
 
-    cextensions.ars(X,Y,dim,perplexity,kappa,iters,time_step,theta1,theta2,alpha,num_early,prog)
+    if type(init) == np.ndarray:
+        skip_random_init = True
+        Y = init.copy()
+        Y = np.ascontiguousarray(Y,dtype=np.float64)
+    elif init == &#39;pca&#39;:
+        skip_random_init = True
+        pca = PCA(n_components=dim,svd_solver=&#34;randomized&#34;)
+        pca.set_output(transform=&#34;default&#34;)
+        Y = pca.fit_transform(X).astype(np.float32, copy=False)
+        Y = Y / np.std(Y[:, 0]) * 1e-4
+        Y = np.ascontiguousarray(Y,dtype=np.float64)
+    else:
+        skip_random_init = False
+        Y = np.zeros((X.shape[0],dim))
+        Y = np.ascontiguousarray(Y,dtype=np.float64)
+
+    cextensions.ars(X,Y,dim,perplexity,kappa,iters,time_step,theta1,theta2,alpha,num_early,int(prog),int(skip_random_init),int(dump))
 
     return Y</code></pre>
 </details>
@@ -3499,6 +3661,75 @@ in the form
 
     d = self.weight_matrix*np.ones(self.num_nodes)
     return d</code></pre>
+</details>
+</dd>
+<dt id="graphlearning.graph.graph.diffusion_map"><code class="name flex">
+<span>def <span class="ident">diffusion_map</span></span>(<span>self, k=1, alpha=1, d=3, full=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h1 id="diffusion-map-spectral-embedding">Diffusion Map Spectral Embedding</h1>
+<p>Returns the diffusion map spectral embedding of Coifman-Lafon.</p>
+<p>Coifman, R.R. and Lafon, S., 2006. Diffusion maps. Applied and computational harmonic analysis, 21(1), pp.5-30.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>k</code></strong> :&ensp;<code>fload (optional)</code>, default=<code>1</code></dt>
+<dd>Number of diffusion steps.</dd>
+<dt><strong><code>alpha</code></strong> :&ensp;<code>float (optional)</code>, default=<code>1</code></dt>
+<dd>Normalization exponent.</dd>
+<dt><strong><code>d</code></strong> :&ensp;<code>int (optional)</code>, default=<code>2</code></dt>
+<dd>Dimension of the embedding</dd>
+<dt><strong><code>full</code></strong> :&ensp;<code>bool (optional)</code>, default=<code>False</code></dt>
+<dd>Whether to include the trivial first eigenvector.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>vals</code></strong> :&ensp;<code>numpy array, float </code></dt>
+<dd>eigenvalues in increasing order.</dd>
+<dt><strong><code>emb</code></strong> :&ensp;<code>(n,d) numpy array, float</code></dt>
+<dd>diffusion map embedding.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def diffusion_map(self, k=1, alpha=1, d=3, full=False):
+    &#34;&#34;&#34;Diffusion Map Spectral Embedding
+    ======
+
+    Returns the diffusion map spectral embedding of Coifman-Lafon.
+
+    Coifman, R.R. and Lafon, S., 2006. Diffusion maps. Applied and computational harmonic analysis, 21(1), pp.5-30.
+
+    Parameters
+    ----------
+    k : fload (optional), default=1
+        Number of diffusion steps.
+    alpha : float (optional), default=1
+        Normalization exponent.
+    d : int (optional), default=2
+        Dimension of the embedding
+    full : bool (optional), default=False
+        Whether to include the trivial first eigenvector.
+
+    Returns
+    -------
+    vals : numpy array, float 
+        eigenvalues in increasing order.
+    emb : (n,d) numpy array, float
+        diffusion map embedding.
+    &#34;&#34;&#34;
+
+    D = self.degree_matrix(p=-alpha)
+    H = graph(D*self.weight_matrix*D)
+
+    vals, V = H.eigen_decomp(normalization=&#39;randomwalk&#39;,k=d)
+
+    if full:
+        S = 1 - vals
+        return vals,V@np.diag(S**k)
+    else:
+        S = 1 - vals[1:]
+        return vals[1:],V[:,1:]@np.diag(S**k)</code></pre>
 </details>
 </dd>
 <dt id="graphlearning.graph.graph.dijkstra"><code class="name flex">
@@ -5546,6 +5777,7 @@ Journal of Scientific Computing 73.2 (2017): 1164-1177.</p>
 <li><code><a title="graphlearning.graph.graph.ars" href="#graphlearning.graph.graph.ars">ars</a></code></li>
 <li><code><a title="graphlearning.graph.graph.degree_matrix" href="#graphlearning.graph.graph.degree_matrix">degree_matrix</a></code></li>
 <li><code><a title="graphlearning.graph.graph.degree_vector" href="#graphlearning.graph.graph.degree_vector">degree_vector</a></code></li>
+<li><code><a title="graphlearning.graph.graph.diffusion_map" href="#graphlearning.graph.graph.diffusion_map">diffusion_map</a></code></li>
 <li><code><a title="graphlearning.graph.graph.dijkstra" href="#graphlearning.graph.graph.dijkstra">dijkstra</a></code></li>
 <li><code><a title="graphlearning.graph.graph.dijkstra_hl" href="#graphlearning.graph.graph.dijkstra_hl">dijkstra_hl</a></code></li>
 <li><code><a title="graphlearning.graph.graph.distance" href="#graphlearning.graph.graph.distance">distance</a></code></li>
