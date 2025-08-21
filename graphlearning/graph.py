@@ -581,6 +581,44 @@ class graph:
 
         return G, ind
 
+    def diffusion_map(self, k=1, alpha=1, d=3, full=False):
+        """Diffusion Map Spectral Embedding
+        ======
+
+        Returns the diffusion map spectral embedding of Coifman-Lafon.
+
+        Coifman, R.R. and Lafon, S., 2006. Diffusion maps. Applied and computational harmonic analysis, 21(1), pp.5-30.
+
+        Parameters
+        ----------
+        k : fload (optional), default=1
+            Number of diffusion steps.
+        alpha : float (optional), default=1
+            Normalization exponent.
+        d : int (optional), default=2
+            Dimension of the embedding
+        full : bool (optional), default=False
+            Whether to include the trivial first eigenvector.
+
+        Returns
+        -------
+        vals : numpy array, float 
+            eigenvalues in increasing order.
+        emb : (n,d) numpy array, float
+            diffusion map embedding.
+        """
+
+        D = self.degree_matrix(p=-alpha)
+        H = graph(D*self.weight_matrix*D)
+
+        vals, V = H.eigen_decomp(normalization='randomwalk',k=d)
+
+        if full:
+            S = 1 - vals
+            return vals,V@np.diag(S**k)
+        else:
+            S = 1 - vals[1:]
+            return vals[1:],V[:,1:]@np.diag(S**k)
 
     def eigen_decomp(self, normalization='combinatorial', method='exact', k=10, c=None, gamma=0, tol=0, q=1):
         """Eigen Decomposition of Graph Laplacian
