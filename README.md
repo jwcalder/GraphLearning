@@ -8,7 +8,7 @@ This package also reproduces experiments from the paper
 
 J. Calder, B. Cook, M. Thorpe, D. Slepcev. [Poisson Learning: Graph Based Semi-Supervised Learning at Very Low Label Rates.](http://proceedings.mlr.press/v119/calder20a.html), Proceedings of the 37th International Conference on Machine Learning, PMLR 119:1306-1316, 2020.
 
-**Important:** The variational autoencoder embedding (VAE) has been improved since our ICML paper was published. If you wish to load the VAE graph or data from that paper use `metric=vae_old` instead of `metric=vae`.
+**Important:** The variational autoencoder embedding (VAE) for MNIST has been improved since our ICML paper was published. To make this more clear, I have now updated the package so that `metric=vae` is the old VAE from our ICML paper, while `metric=vae2` is the new updated VAE, which gives better results. Please note which one you are using to make comparisons. Note that in a previous version of the package, I used `vae_old` in place of `vae` and `vae` instead of `vae2`. 
 
 ## Installation
 

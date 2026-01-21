@@ -183,6 +183,7 @@ def knn(data, k, kernel='gaussian', eta=None, symmetrize=True, metric='raw', sim
             W = (W + W.transpose())/2;
 
     W.setdiag(0)
+    W.eliminate_zeros()
     return W
 
 def epsilon_ball(data, epsilon, kernel='gaussian', features=None, epsilon_f=1, eta=None):
@@ -261,6 +262,7 @@ def epsilon_ball(data, epsilon, kernel='gaussian', features=None, epsilon_f=1, e
         W = sparse.coo_matrix((weights, (M1,M2)),shape=(n,n))
 
         W.setdiag(0)
+        W.eliminate_zeros()
         return W.tocsr()
 
 def __weights__(dists,epsilon,kernel,eta):
